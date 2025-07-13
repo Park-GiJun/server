@@ -87,7 +87,7 @@
 
     ConcertDate {
         Int ConcertDateId PK
-        Int ConcertSession PK
+        Int ConcertSession
         Int ConcertId
         DateTime Date
         Int TotalSeats
@@ -96,8 +96,9 @@
     }
 
     ConcertSeats {
-        Int ConcertDateId PK
-        String SeatNumber PK
+        Int ConcertSeatId PK
+        Int ConcertDateId 
+        String SeatNumber 
         String SeatGrade
         String SeatStatus
     }
@@ -151,7 +152,7 @@
 
     PointHistory {
         Int HistoryId PK
-        String UserId FK
+        String UserId
         String Type 
         Int Amount
         Int BalanceAfter
