@@ -69,15 +69,13 @@
 #### ERD
 
 ```mermaid
-   erDiagram
+    erDiagram
     User {
         String UserId PK
         String UserName
         Int TotalPoint
         Int AvailablePoint
         Int UsedPoint
-        DateTime CreatedAt
-        DateTime UpdatedAt
     }
 
     Concert {
@@ -85,116 +83,92 @@
         String ConcertName
         String Location
         String Description
-        DateTime CreatedAt
-        DateTime UpdatedAt
     }
 
     ConcertDate {
         Int ConcertDateId PK
-        Int ConcertId FK
         Int ConcertSession
+        Int ConcertId
         DateTime Date
         Int TotalSeats
         Int AvailableSeats
         Boolean IsSoldOut
-        DateTime CreatedAt
-        DateTime UpdatedAt
-    }
-
-    ConcertSeatsGrade {
-        Int ConcertSeatsGradeId PK
-        Int ConcertId FK
-        String SeatGrade
-        Int Price
-        DateTime CreatedAt
-        DateTime UpdatedAt
     }
 
     ConcertSeats {
         Int ConcertSeatId PK
-        Int ConcertDateId FK
-        Int ConcertSeatsGradeId FK
-        String SeatNumber
+        Int ConcertDateId 
+        String SeatNumber 
+        String SeatGrade
         String SeatStatus
-        DateTime CreatedAt
-        DateTime UpdatedAt
     }
 
-    QueueToken {
-        String QueueTokenId PK
-        String UserId FK
-        Int ConcertId FK
-        String Status
-        Int Position
-        DateTime EnteredAt
-        DateTime ExpiredAt
-        DateTime CreatedAt
-        DateTime UpdatedAt
+    ConcertSeatsGrade {
+        Int ConcertSeatsGradeId PK
+        Int ConcertId         
+        String SeatGrade
+        Int Price
     }
 
     TempReservation {
         Int TempReservationId PK
-        String UserId FK
-        Int ConcertSeatId FK
-        String Status
+        String UserId
+        Int SeatId
         DateTime ExpiredAt
-        DateTime CreatedAt
-        DateTime UpdatedAt
+        String TempReservationStatus
     }
 
     Reservation {
         Int ReservationId PK
-        String UserId FK
-        Int ConcertDateId FK
-        Int ConcertSeatId FK
-        Int TempReservationId FK
-        String Status
-        Int PaymentAmount
+        String UserId
+        Int ConcertDateId
+        Int SeatId
         DateTime ReservationAt
-        DateTime CancelledAt
-        DateTime CreatedAt
-        DateTime UpdatedAt
+        DateTime CancleAt
+        String ReservationStatus
+        Int PaymentAmount
     }
 
     Payment {
         Int PaymentId PK
-        Int ReservationId FK
-        String UserId FK
+        Int ReservationId
+        String UserId
         Int TotalAmount
         Int DiscountAmount
         Int ActualAmount
-        String Status
         DateTime PaymentAt
-        DateTime CancelledAt
-        DateTime CreatedAt
-        DateTime UpdatedAt
+        Boolean IsCancel
+        Boolean IsRefund
+        DateTime CancleAt
+    }
+    
+    QueueToken {
+        String queueTokenId PK
+        String userId
+        Int ConcertId
+        String Status
+        DateTime enteredAt
     }
 
     PointHistory {
         Int HistoryId PK
-        String UserId FK
-        String Type
+        String UserId
+        String Type 
         Int Amount
         Int BalanceAfter
         String Description
         DateTime CreatedAt
     }
 
-    Concert||--o{ConcertDate:"has"
-    Concert||--o{ConcertSeatsGrade:"define"
-    Concert||--o{QueueToken:"manage"
-    ConcertDate||--o{ConcertSeats:"contain"
-    ConcertDate||--o{Reservation:"include"
-    ConcertSeatsGrade||--o{ConcertSeats:"define"
-    ConcertSeats||--o|TempReservation:"temp"
-    ConcertSeats||--o|Reservation:"reserve"
-    User||--o{QueueToken:"request"
-    User||--o{TempReservation:"hold"
-    User||--o{Reservation:"make"
-    User||--o{Payment:"make"
-    User||--o{PointHistory:"has"
-    TempReservation||--o|Reservation:"convert"
-    Reservation||--o|Payment:"pay"
+    Concert ||--o{ ConcertDate : "has"
+    ConcertDate ||--o{ ConcertSeats : "contains"
+    User ||--o{ TempReservation : "holds"
+    ConcertSeats ||--o| TempReservation : "held"
+    User ||--o{ Reservation : "makes"
+    ConcertDate ||--o{ Reservation : "includes"
+    ConcertSeats ||--o| Reservation : "reserved"
+    Reservation ||--o| Payment : "paid"
+    ConcertSeatsGrade ||--o{ ConcertSeats : "has"
 ```
 
 ##### 대기열
