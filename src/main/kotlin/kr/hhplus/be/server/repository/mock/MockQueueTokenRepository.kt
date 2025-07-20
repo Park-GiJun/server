@@ -14,9 +14,13 @@ class MockQueueTokenRepository {
     private val queueTokens = ConcurrentHashMap<String, QueueToken>()
 
     fun save(queueToken: QueueToken): QueueToken {
-        queueTokens[queueToken.queueToken] = queueToken
-        log.info("Saved queue token: userId=${queueToken.userId}, concertId=${queueToken.concertId}, tokenId=${queueToken.queueToken}, status=${queueToken.tokenStatus}")
+        queueTokens[queueToken.queueTokenId] = queueToken
+        log.info("Saved queue token: tokenId=${queueToken.queueTokenId}, userId=${queueToken.userId}, concertId=${queueToken.concertId}, status=${queueToken.tokenStatus}")
         return queueToken
+    }
+
+    fun findByTokenId(tokenId: String): QueueToken? {
+        return queueTokens[tokenId]
     }
 
     fun findByQueueToken(queueToken: String): QueueToken? {
@@ -26,6 +30,14 @@ class MockQueueTokenRepository {
     fun findByUserIdAndConcertId(userId: String, concertId: Long): QueueToken? {
         return queueTokens.values.find {
             it.userId == userId && it.concertId == concertId
+        }
+    }
+
+    fun findActiveTokenByUserAndConcert(userId: String, concertId: Long): QueueToken? {
+        return queueTokens.values.find {
+            it.userId == userId &&
+                    it.concertId == concertId &&
+                    (it.isActive() || it.isWaiting())
         }
     }
 
@@ -43,12 +55,36 @@ class MockQueueTokenRepository {
         }.toLong()
     }
 
+    fun updateTokenStatus(tokenId: String, status: QueueTokenStatus): QueueToken? {
+        val token = queueTokens[tokenId] ?: return null
+        token.tokenStatus = status
+        queueTokens[tokenId] = token
+        log.info("Updated token status: tokenId=$tokenId, status=$status")
+        return token
+    }
+
+    fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
+        val waitingTokens = findWaitingTokensByConcertIdOrderByEnteredAt(concertId)
+            .take(count)
+
+        return waitingTokens.map { token ->
+            token.activate()
+            queueTokens[token.queueTokenId] = token
+            log.info("Activated token: tokenId=${token.queueTokenId}, userId=${token.userId}")
+            token
+        }
+    }
+
     fun findAll(): List<QueueToken> {
         return queueTokens.values.toList()
     }
 
     fun deleteByQueueToken(queueToken: String): Boolean {
         return queueTokens.remove(queueToken) != null
+    }
+
+    fun deleteByTokenId(tokenId: String): Boolean {
+        return queueTokens.remove(tokenId) != null
     }
 
     fun clear() {

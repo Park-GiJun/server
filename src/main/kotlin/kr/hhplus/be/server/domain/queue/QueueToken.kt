@@ -1,22 +1,16 @@
 package kr.hhplus.be.server.domain.queue
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import kr.hhplus.be.server.domain.BaseEntity
-import kr.hhplus.be.server.dto.QueueTokenResponse
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Entity
 @Table(name = "queue_token")
 class QueueToken(
     @Id
     @Column(name = "queue_token_id")
-    val queueToken: String = UUID.randomUUID().toString(),
+    val queueTokenId: String = UUID.randomUUID().toString(),
 
     @Column(name = "user_id")
     val userId: String,
@@ -26,35 +20,39 @@ class QueueToken(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "token_status")
-    val tokenStatus: QueueTokenStatus,
+    var tokenStatus: QueueTokenStatus,
 
     @Column(name = "entered_at")
-    val enteredAt: LocalDateTime = LocalDateTime.now()
+    val enteredAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "expires_at")
+    var expiresAt: LocalDateTime = LocalDateTime.now().plusHours(1)
 ) : BaseEntity() {
 
-    fun isExpired(): Boolean = tokenStatus == QueueTokenStatus.EXPIRED
+    fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiresAt)
 
-    fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE
+    fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE && !isExpired()
 
-    fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING
+    fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING && !isExpired()
 
     fun activate(): QueueToken {
-        return QueueToken(
-            queueToken = this.queueToken,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.ACTIVE,
-            enteredAt = this.enteredAt
-        )
+        this.tokenStatus = QueueTokenStatus.ACTIVE
+        this.expiresAt = LocalDateTime.now().plusMinutes(30) // 활성화 후 30분
+        return this
     }
 
     fun expire(): QueueToken {
-        return QueueToken(
-            queueToken = this.queueToken,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.EXPIRED,
-            enteredAt = this.enteredAt
-        )
+        this.tokenStatus = QueueTokenStatus.EXPIRED
+        return this
+    }
+
+    fun cancel(): QueueToken {
+        this.tokenStatus = QueueTokenStatus.CANCELLED
+        return this
+    }
+
+    fun complete(): QueueToken {
+        this.tokenStatus = QueueTokenStatus.COMPLETED
+        return this
     }
 }

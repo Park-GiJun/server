@@ -1,11 +1,9 @@
 package kr.hhplus.be.server.service
 
-import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
-import kr.hhplus.be.server.dto.QueueTokenStatusRequest
 import kr.hhplus.be.server.dto.ReservationCancelRequest
 import kr.hhplus.be.server.dto.ReservationConfirmRequest
 import kr.hhplus.be.server.dto.TempReservationRequest
@@ -28,15 +26,17 @@ class ReservationService(
     private val queueService: QueueService
 ) {
 
-    fun createTempReservation(
-        tokenRequest: QueueTokenStatusRequest, request: TempReservationRequest
-    ): TempReservation {
+    fun createTempReservation(tokenId: String, request: TempReservationRequest): TempReservation {
+        val token = queueService.validateActiveToken(tokenId)
+
         validateUser(request.userId)
 
-        validateTokenStatus(tokenRequest)
+        if (token.userId != request.userId) {
+            throw InvalidTokenException("Token user ID (${token.userId}) does not match request user ID (${request.userId})")
+        }
 
         val seat = concertSeatRepository.findByConcertSeatId(request.concertSeatId)
-            ?: throw ConcertNotFoundException("Concert seat not found")
+            ?: throw ConcertNotFoundException("Concert seat not found: ${request.concertSeatId}")
 
         if (!seat.isAvailable()) {
             throw SeatAlreadyBookedException("Seat is already booked")
@@ -47,7 +47,7 @@ class ReservationService(
         )
 
         if (existingTempReservation != null && existingTempReservation.isReserved()) {
-            throw SeatAlreadyBookedException("Seat is already temporarily reserved")
+            throw SeatAlreadyBookedException("Seat is already temporarily reserved by this user")
         }
 
         val tempReservation = TempReservation(
@@ -63,29 +63,29 @@ class ReservationService(
         return tempReservationRepository.save(tempReservation)
     }
 
-    fun confirmReservation(
-        tokenRequest: QueueTokenStatusRequest, request: ReservationConfirmRequest
-    ): Reservation {
+    fun confirmReservation(tokenId: String, request: ReservationConfirmRequest): Reservation {
+        val token = queueService.validateActiveToken(tokenId)
+
         val tempReservation = tempReservationRepository.findByTempReservationId(request.tempReservationId)
-            ?: throw QueueTokenNotFoundException("Temporary reservation not found")
+            ?: throw QueueTokenNotFoundException("Temporary reservation not found: ${request.tempReservationId}")
 
         if (tempReservation.isExpired()) {
             throw ConcertDateExpiredException("Temporary reservation has expired")
         }
 
         if (!tempReservation.isReserved()) {
-            throw InvalidTokenStatusException("Invalid temporary reservation status")
+            throw InvalidTokenStatusException("Invalid temporary reservation status: ${tempReservation.status}")
         }
 
-        if (tempReservation.userId != tokenRequest.userId) {
-            throw InvalidTokenException("User mismatch")
+        if (tempReservation.userId != token.userId) {
+            throw InvalidTokenException("Temporary reservation user (${tempReservation.userId}) does not match token user (${token.userId})")
         }
 
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
-            ?: throw ConcertNotFoundException("Concert seat not found")
+            ?: throw ConcertNotFoundException("Concert seat not found: ${tempReservation.concertSeatId}")
 
         if (request.paymentAmount <= 0) {
-            throw InvalidateAmountException("Invalid payment amount")
+            throw InvalidateAmountException("Invalid payment amount: ${request.paymentAmount}")
         }
 
         val reservation = Reservation(
@@ -99,58 +99,53 @@ class ReservationService(
             paymentAmount = request.paymentAmount
         )
 
-        val bookedSeat = seat.sell()
-        concertSeatRepository.save(bookedSeat)
+        val soldSeat = seat.sell()
+        concertSeatRepository.save(soldSeat)
 
         val confirmedTempReservation = tempReservation.confirm()
         tempReservationRepository.save(confirmedTempReservation)
 
-        queueService.expireToken(tokenRequest.userId)
+        val savedReservation = reservationRepository.save(reservation)
 
-        return reservationRepository.save(reservation)
+        queueService.completeToken(tokenId)
+
+        return savedReservation
     }
 
+    fun cancelReservation(tokenId: String, request: ReservationCancelRequest): TempReservation {
+        val token = queueService.validateActiveToken(tokenId)
 
-    fun cancelReservation(
-        tokenRequest: QueueTokenStatusRequest,
-        request: ReservationCancelRequest
-    ): TempReservation {
         val tempReservation = tempReservationRepository.findByTempReservationId(request.tempReservationId)
-            ?: throw QueueTokenNotFoundException("Temporary reservation not found")
+            ?: throw QueueTokenNotFoundException("Temporary reservation not found: ${request.tempReservationId}")
 
         if (tempReservation.isExpired()) {
-            throw ConcertDateExpiredException("Temporary reservation has expired")
+            throw ConcertDateExpiredException("Temporary reservation has already expired")
         }
 
         if (!tempReservation.isReserved()) {
-            throw InvalidTokenStatusException("Invalid temporary reservation status")
+            throw InvalidTokenStatusException("Invalid temporary reservation status: ${tempReservation.status}")
         }
 
-        if (tempReservation.userId != tokenRequest.userId) {
-            throw InvalidTokenException("User mismatch")
+        if (tempReservation.userId != token.userId) {
+            throw InvalidTokenException("Temporary reservation user (${tempReservation.userId}) does not match token user (${token.userId})")
         }
 
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
-            ?: throw ConcertNotFoundException("Concert seat not found")
+            ?: throw ConcertNotFoundException("Concert seat not found: ${tempReservation.concertSeatId}")
 
         val releasedSeat = seat.release()
         concertSeatRepository.save(releasedSeat)
 
         val expiredTempReservation = tempReservation.expire()
-        tempReservationRepository.save(expiredTempReservation)
+        val savedTempReservation = tempReservationRepository.save(expiredTempReservation)
 
-        queueService.expireToken(tokenRequest.userId)
+        queueService.expireToken(tokenId)
 
-        return expiredTempReservation
+        return savedTempReservation
     }
 
     private fun validateUser(userId: String) {
-        userRepository.findByUserId(userId) ?: throw UserNotFoundException("User not found with id: $userId")
-    }
-
-    private fun validateTokenStatus(tokenRequest: QueueTokenStatusRequest) {
-        if (tokenRequest.status != QueueTokenStatus.ACTIVE) {
-            throw InvalidTokenStatusException("Token is not active")
-        }
+        userRepository.findByUserId(userId)
+            ?: throw UserNotFoundException("User not found with id: $userId")
     }
 }

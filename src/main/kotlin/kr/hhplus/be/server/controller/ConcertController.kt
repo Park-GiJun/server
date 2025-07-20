@@ -1,26 +1,29 @@
 package kr.hhplus.be.server.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.dto.ConcertDateResponse
 import kr.hhplus.be.server.dto.ConcertResponse
 import kr.hhplus.be.server.dto.ConcertSeatResponse
 import kr.hhplus.be.server.dto.common.ApiResponse
 import kr.hhplus.be.server.service.ConcertService
-import kr.hhplus.be.server.util.JwtQueueTokenUtil
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/concerts")
-@Tag(name = "콘서트")
+@Tag(name = "콘서트", description = "콘서트 정보 조회 API")
 class ConcertController(
-    private val concertService: ConcertService, private val jwtQueueTokenUtil: JwtQueueTokenUtil
+    private val concertService: ConcertService
 ) {
 
     @GetMapping
-    @Operation(summary = "전체 콘서트 목록 조회")
+    @Operation(
+        summary = "전체 콘서트 목록 조회",
+        description = "등록된 모든 콘서트의 기본 정보를 조회합니다. 대기열 토큰이 필요하지 않습니다."
+    )
     fun getConcertList(): ResponseEntity<ApiResponse<List<ConcertResponse>>> {
         val concerts = concertService.getConcertList()
         val response = concerts.map { concert ->
@@ -43,18 +46,18 @@ class ConcertController(
     }
 
     @GetMapping("/{concertId}/dates")
-    @Operation(summary = "특정 콘서트의 예약 가능 날짜 조회")
+    @Operation(
+        summary = "특정 콘서트의 예약 가능 날짜 조회",
+        description = "지정된 콘서트의 예약 가능한 날짜 목록을 조회합니다. 활성화된 대기열 토큰이 필요합니다."
+    )
     fun getConcertDates(
-        @PathVariable concertId: Long, @RequestHeader("Authorization") token: String
+        @Parameter(description = "콘서트 ID", example = "1")
+        @PathVariable concertId: Long,
+        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
-        val jwtToken = token.removePrefix("Bearer ")
-        val tokenRequest = jwtQueueTokenUtil.parseToken(jwtToken)
 
-        if (tokenRequest.concertId != concertId) {
-            throw IllegalArgumentException("Token concert ID does not match requested concert ID")
-        }
-
-        val concertDatesWithStats = concertService.getConcertDate(tokenRequest, concertId)
+        val concertDatesWithStats = concertService.getConcertDate(tokenId, concertId)
         val response = concertDatesWithStats.map { dateWithStats ->
             ConcertDateResponse(
                 concertDateId = dateWithStats.concertDate.concertDateId,
@@ -78,18 +81,20 @@ class ConcertController(
     }
 
     @GetMapping("/{concertId}/dates/{dateId}/seats")
-    @Operation(summary = "특정 날짜의 좌석 조회")
+    @Operation(
+        summary = "특정 날짜의 좌석 조회",
+        description = "지정된 콘서트 날짜의 좌석 정보와 가격을 조회합니다. 활성화된 대기열 토큰이 필요합니다."
+    )
     fun getConcertSeats(
-        @PathVariable concertId: Long, @PathVariable dateId: Long, @RequestHeader("Authorization") token: String
+        @Parameter(description = "콘서트 ID", example = "1")
+        @PathVariable concertId: Long,
+        @Parameter(description = "콘서트 날짜 ID", example = "1")
+        @PathVariable dateId: Long,
+        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
-        val jwtToken = token.removePrefix("Bearer ")
-        val tokenRequest = jwtQueueTokenUtil.parseToken(jwtToken)
 
-        if (tokenRequest.concertId != concertId) {
-            throw IllegalArgumentException("Token concert ID does not match requested concert ID")
-        }
-
-        val concertSeatsWithPrice = concertService.getConcertSeats(tokenRequest, dateId)
+        val concertSeatsWithPrice = concertService.getConcertSeats(tokenId, dateId)
         val response = concertSeatsWithPrice.map { seatWithPrice ->
             ConcertSeatResponse(
                 concertSeatId = seatWithPrice.seat.concertSeatId,
