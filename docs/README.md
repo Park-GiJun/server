@@ -97,15 +97,15 @@
 
     ConcertSeats {
         Int ConcertSeatId PK
-        Int ConcertDateId
-        String SeatNumber
+        Int ConcertDateId 
+        String SeatNumber 
         String SeatGrade
         String SeatStatus
     }
 
     ConcertSeatsGrade {
         Int ConcertSeatsGradeId PK
-        Int ConcertId
+        Int ConcertId         
         String SeatGrade
         Int Price
     }
@@ -141,7 +141,6 @@
         Boolean IsRefund
         DateTime CancleAt
     }
-
     QueueToken {
         String queueTokenId PK
         String userId
@@ -153,7 +152,7 @@
     PointHistory {
         Int HistoryId PK
         String UserId
-        String Type
+        String Type 
         Int Amount
         Int BalanceAfter
         String Description
