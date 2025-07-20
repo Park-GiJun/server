@@ -141,7 +141,6 @@
         Boolean IsRefund
         DateTime CancleAt
     }
-    
     QueueToken {
         String queueTokenId PK
         String userId
