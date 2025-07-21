@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.dto.result
+package kr.hhplus.be.server.application.dto.queue.result
 
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 

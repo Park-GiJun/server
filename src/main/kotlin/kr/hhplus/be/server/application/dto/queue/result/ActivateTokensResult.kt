@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.dto.result
+package kr.hhplus.be.server.application.dto.queue.result
 
 data class ActivateTokensResult(
     val activatedCount: Int,

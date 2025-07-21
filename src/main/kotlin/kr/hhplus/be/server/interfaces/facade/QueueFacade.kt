@@ -1,9 +1,15 @@
 package kr.hhplus.be.server.interfaces.facade
 
 import kr.hhplus.be.server.application.port.`in`.queue.*
-import kr.hhplus.be.server.application.dto.command.*
-import kr.hhplus.be.server.application.dto.query.*
-import kr.hhplus.be.server.application.dto.result.*
+import kr.hhplus.be.server.application.dto.queue.command.ActivateTokensCommand
+import kr.hhplus.be.server.application.dto.queue.command.CompleteTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.GenerateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.query.GetQueueStatusQuery
+import kr.hhplus.be.server.application.dto.queue.result.ActivateTokensResult
+import kr.hhplus.be.server.application.dto.queue.result.QueueStatusResult
+import kr.hhplus.be.server.application.dto.queue.result.ValidateTokenResult
 import org.springframework.stereotype.Component
 
 @Component
