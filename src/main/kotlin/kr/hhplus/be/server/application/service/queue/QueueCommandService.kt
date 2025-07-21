@@ -5,6 +5,7 @@ import kr.hhplus.be.server.application.dto.command.GenerateTokenCommand
 import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
+import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.exception.InvalidTokenStatusException
