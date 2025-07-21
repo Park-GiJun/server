@@ -13,8 +13,8 @@ class ConcertSeatRepositoryImpl(
         return concertSeatRepository.save(concertSeat)
     }
 
-    override fun findConcertSeats(concertDateId: Long): List<ConcertSeat>? {
-        return concertSeatRepository.findConcertSeats(concertDateId)
+    override fun findByConcertDateId(concertDateId: Long): List<ConcertSeat> {
+        return concertSeatRepository.findConcertSeats(concertDateId) ?: emptyList()
     }
 
     override fun findByConcertSeatId(concertSeatId: Long): ConcertSeat? {

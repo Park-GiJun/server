@@ -13,11 +13,11 @@ class ConcertDateRepositoryImpl(
        return concertDateRepository.save(concertDate)
     }
 
-    override fun findConcertDateByConcertId(concertId: Long): List<ConcertDate> {
+    override fun findByConcertId(concertId: Long): List<ConcertDate> {
         return concertDateRepository.findConcertDateByConcertId(concertId)
     }
 
-    override fun findConcertDateByConcertDateId(concertDateId: Long): ConcertDate? {
+    override fun findByConcertDateId(concertDateId: Long): ConcertDate? {
         return concertDateRepository.findConcertDateByConcertDateId(concertDateId)
     }
 

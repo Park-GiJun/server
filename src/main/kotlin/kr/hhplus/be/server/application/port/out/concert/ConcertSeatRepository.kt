@@ -4,6 +4,6 @@ import kr.hhplus.be.server.domain.concert.ConcertSeat
 
 interface ConcertSeatRepository {
     fun save(concertSeat: ConcertSeat): ConcertSeat
-    fun findConcertSeats(concertDateId: Long): List<ConcertSeat>?
+    fun findByConcertDateId(concertDateId: Long): List<ConcertSeat>
     fun findByConcertSeatId(concertSeatId: Long): ConcertSeat?
 }

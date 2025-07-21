@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.infrastructure.config
 
 import kr.hhplus.be.server.domain.concert.Concert
+import kr.hhplus.be.server.domain.concert.ConcertDate
+import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDate
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository

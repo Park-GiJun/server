@@ -5,6 +5,7 @@ import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsCommand
 import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
+import kr.hhplus.be.server.application.mapper.ConcertMapper
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
@@ -34,15 +35,7 @@ class ConcertQueryService(
 
     override fun getConcertList(): List<ConcertResult> {
         val concerts = concertRepository.findConcertList()
-
-        return concerts.map { concert ->
-            ConcertResult(
-                concertId = concert.concertId,
-                concertName = concert.concertName,
-                location = concert.location,
-                description = concert.description
-            )
-        }
+        return ConcertMapper.toResults(concerts)
     }
 
     override fun getConcertDates(command: GetConcertDatesCommand): List<ConcertDateWithStatsResult> {
@@ -61,14 +54,10 @@ class ConcertQueryService(
             val totalSeats = seats.size
             val availableSeats = seats.count { it.seatStatus == SeatStatus.AVAILABLE }
 
-            ConcertDateWithStatsResult(
-                concertDateId = concertDate.concertDateId,
-                concertId = concertDate.concertId,
-                concertSession = concertDate.concertSession,
-                date = concertDate.date,
+            ConcertMapper.toDateWithStatsResult(
+                domain = concertDate,
                 totalSeats = totalSeats,
-                availableSeats = availableSeats,
-                isSoldOut = concertDate.isSoldOut
+                availableSeats = availableSeats
             )
         }
     }
@@ -105,19 +94,8 @@ class ConcertQueryService(
         }
 
         val seatGrades = concertSeatGradeRepository.findByConcertId(concertDate.concertId)
-        val seatGradePriceMap = seatGrades.associateBy { it.seatGrade }
+        val seatGradePriceMap = seatGrades.associateBy({ it.seatGrade }, { it.price })
 
-        return seats.map { seat ->
-            val price = seatGradePriceMap[seat.seatGrade]?.price ?: 0
-
-            ConcertSeatWithPriceResult(
-                concertSeatId = seat.concertSeatId,
-                concertDateId = seat.concertDateId,
-                seatNumber = seat.seatNumber,
-                seatGrade = seat.seatGrade,
-                seatStatus = seat.seatStatus,
-                price = price
-            )
-        }
+        return ConcertMapper.toSeatWithPriceResults(seats, seatGradePriceMap)
     }
 }

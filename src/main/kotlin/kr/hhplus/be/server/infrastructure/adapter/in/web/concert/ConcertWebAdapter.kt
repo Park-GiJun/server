@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper.ConcertWebMapper
 import kr.hhplus.be.server.dto.common.ApiResponse
 import kr.hhplus.be.server.interfaces.facade.ConcertFacade
 import org.springframework.http.HttpStatus
@@ -26,14 +27,7 @@ class ConcertWebAdapter(
     )
     fun getConcertList(): ResponseEntity<ApiResponse<List<ConcertResponse>>> {
         val concerts = concertFacade.getConcertList()
-        val response = concerts.map { concert ->
-            ConcertResponse(
-                concertId = concert.concertId,
-                concertName = concert.concertName,
-                location = concert.location,
-                description = concert.description
-            )
-        }
+        val response = ConcertWebMapper.toResponses(concerts)
 
         val apiResponse = ApiResponse(
             success = true,
@@ -58,17 +52,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
         val concertDatesWithStats = concertFacade.getConcertDates(tokenId, concertId)
-        val response = concertDatesWithStats.map { dateWithStats ->
-            ConcertDateResponse(
-                concertDateId = dateWithStats.concertDateId,
-                concertId = dateWithStats.concertId,
-                concertSession = dateWithStats.concertSession,
-                date = dateWithStats.date,
-                totalSeats = dateWithStats.totalSeats,
-                availableSeats = dateWithStats.availableSeats,
-                isSoldOut = dateWithStats.isSoldOut
-            )
-        }
+        val response = ConcertWebMapper.toDateResponses(concertDatesWithStats)
 
         val apiResponse = ApiResponse(
             success = true,
@@ -95,16 +79,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
         val concertSeatsWithPrice = concertFacade.getConcertSeats(tokenId, dateId)
-        val response = concertSeatsWithPrice.map { seatWithPrice ->
-            ConcertSeatResponse(
-                concertSeatId = seatWithPrice.concertSeatId,
-                concertDateId = seatWithPrice.concertDateId,
-                seatNumber = seatWithPrice.seatNumber,
-                seatGrade = seatWithPrice.seatGrade,
-                seatStatus = seatWithPrice.seatStatus,
-                price = seatWithPrice.price
-            )
-        }
+        val response = ConcertWebMapper.toSeatResponses(concertSeatsWithPrice)
 
         val apiResponse = ApiResponse(
             success = true,

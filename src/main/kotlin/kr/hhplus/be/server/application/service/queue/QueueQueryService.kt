@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.service.queue
 
+import kr.hhplus.be.server.application.mapper.QueueMapper
 import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.dto.queue.query.GetQueueStatusQuery
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 class QueueQueryService(
     private val queueTokenRepository: QueueTokenRepository
 ) : GetQueueStatusUseCase {
-    
+
     private val queueDomainService = QueueDomainService()
 
     override fun getQueueStatus(query: GetQueueStatusQuery): QueueStatusResult {
@@ -37,12 +38,6 @@ class QueueQueryService(
             queueDomainService.calculateWaitingPosition(waitingCount)
         } else 0
 
-        return QueueStatusResult(
-            tokenId = token.queueTokenId,
-            userId = token.userId,
-            concertId = token.concertId,
-            status = token.tokenStatus,
-            position = position
-        )
+        return QueueMapper.toStatusResult(token, position)
     }
 }
