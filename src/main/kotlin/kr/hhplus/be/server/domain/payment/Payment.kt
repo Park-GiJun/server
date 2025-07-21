@@ -6,9 +6,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 import java.time.LocalDateTime
-import javax.annotation.processing.Generated
 
 @Table(name = "payments")
 @Entity
@@ -43,4 +42,4 @@ class Payment(
 
     @Column(name = "cancel_at")
     val cancelAt: LocalDateTime?
-) : BaseEntity()
+) : BaseJpaEntity()

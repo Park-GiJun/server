@@ -6,7 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 
 @Entity
 @Table(name = "concert_seat_grade")
@@ -24,5 +24,5 @@ class ConcertSeatGrade(
 
     @Column(name = "price")
     val price: Int
-) : BaseEntity() {
+) : BaseJpaEntity() {
 }

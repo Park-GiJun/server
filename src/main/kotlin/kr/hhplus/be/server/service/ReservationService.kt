@@ -11,7 +11,7 @@ import kr.hhplus.be.server.exception.*
 import kr.hhplus.be.server.repository.mock.MockConcertSeatRepository
 import kr.hhplus.be.server.repository.mock.MockReservationRepository
 import kr.hhplus.be.server.repository.mock.MockTempReservationRepository
-import kr.hhplus.be.server.repository.mock.MockUserRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime

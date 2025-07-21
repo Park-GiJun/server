@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.concert
 
 import jakarta.persistence.*
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 import java.time.LocalDateTime
 
 @Entity
@@ -36,7 +36,7 @@ class ConcertDate(
 
     @Column(name = "is_sold_out", nullable = false)
     val isSoldOut: Boolean = false
-) : BaseEntity() {
+) : BaseJpaEntity() {
 
     fun getBusinessKey(): String {
         return "${concertDateId}_${concertSession}"

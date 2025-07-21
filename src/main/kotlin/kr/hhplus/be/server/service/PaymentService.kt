@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.payment.Payment
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.dto.PaymentRequest
 import kr.hhplus.be.server.exception.*
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
 import kr.hhplus.be.server.repository.mock.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

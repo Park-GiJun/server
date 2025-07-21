@@ -8,8 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
-import kr.hhplus.be.server.domain.concert.SeatStatus
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 
 @Entity
 @Table(name = "reservation")
@@ -38,7 +37,7 @@ class Reservation(
 
     @Column("payment_amount")
     val paymentAmount: Int
-) : BaseEntity() {
+) : BaseJpaEntity() {
 
     fun isReservable(): Boolean = reservationStatus == ReservationStatus.CONFIRMED
     fun isCancelable(): Boolean = reservationStatus == ReservationStatus.CANCELLED

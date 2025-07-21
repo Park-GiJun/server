@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 
 @Entity
 @Table(
@@ -37,7 +37,7 @@ class ConcertSeat(
     @Enumerated(EnumType.STRING)
     @Column(name = "seat_status", nullable = false)
     val seatStatus: SeatStatus = SeatStatus.AVAILABLE
-) : BaseEntity() {
+) : BaseJpaEntity() {
 
     fun isAvailable(): Boolean = seatStatus == SeatStatus.AVAILABLE
     fun isReserved(): Boolean = seatStatus == SeatStatus.RESERVED

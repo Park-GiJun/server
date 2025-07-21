@@ -1,13 +1,12 @@
 package kr.hhplus.be.server.domain.log
 
-import jakarta.annotation.Generated
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 
 @Table(name = "point_history")
 @Entity
@@ -29,5 +28,5 @@ class PointHistory(
 
     @Column("description")
     val description : String,
-) : BaseEntity() {
+) : BaseJpaEntity() {
 }

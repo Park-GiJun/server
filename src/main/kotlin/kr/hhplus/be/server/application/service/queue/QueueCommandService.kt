@@ -1,16 +1,13 @@
 package kr.hhplus.be.server.application.service.queue
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.application.dto.command.GenerateTokenCommand
-import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
+import kr.hhplus.be.server.application.dto.command.*
+import kr.hhplus.be.server.application.dto.result.*
+import kr.hhplus.be.server.application.port.`in`.queue.*
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService
-import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.exception.InvalidTokenStatusException
-import kr.hhplus.be.server.exception.QueueTokenNotFoundException
-import kr.hhplus.be.server.exception.UserNotFoundException
+import kr.hhplus.be.server.exception.*
 import org.springframework.stereotype.Service
 
 @Service
@@ -19,7 +16,8 @@ class QueueCommandService(
     private val queueTokenRepository: QueueTokenRepository,
     private val userRepository: UserRepository,
     private val queueDomainService: QueueDomainService
-) : GenerateTokenUseCase, ValidateTokenUseCase {
+) : GenerateTokenUseCase, ValidateTokenUseCase, ExpireTokenUseCase,
+    CompleteTokenUseCase, ActivateTokensUseCase {
 
     override fun generateToken(command: GenerateTokenCommand): String {
         userRepository.findByUserId(command.userId)
@@ -34,15 +32,14 @@ class QueueCommandService(
         }
 
         val newToken = queueDomainService.createNewToken(command.userId, command.concertId)
-
         val savedToken = queueTokenRepository.save(newToken)
 
         return savedToken.queueTokenId
     }
 
-    override fun validateActiveToken(tokenId: String): QueueToken {
-        val token = queueTokenRepository.findByTokenId(tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: $tokenId")
+    override fun validateActiveToken(command: ValidateTokenCommand): ValidateTokenResult {
+        val token = queueTokenRepository.findByTokenId(command.tokenId)
+            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
 
         if (token.isExpired()) {
             token.expire()
@@ -54,34 +51,50 @@ class QueueCommandService(
             throw InvalidTokenStatusException("Token is not active. Current status: ${token.tokenStatus}")
         }
 
-        return token
+        return ValidateTokenResult(
+            tokenId = token.queueTokenId,
+            userId = token.userId,
+            concertId = token.concertId,
+            isValid = true
+        )
     }
 
-    override fun validateActiveTokenForConcert(tokenId: String, concertId: Long): QueueToken {
-        val token = validateActiveToken(tokenId)
+    override fun validateActiveTokenForConcert(command: ValidateTokenCommand): ValidateTokenResult {
+        val tokenResult = validateActiveToken(command)
 
-        return queueDomainService.validateActiveTokenForConcert(token, concertId)
+        command.concertId?.let { concertId ->
+            if (tokenResult.concertId != concertId) {
+                throw InvalidTokenException("Token concert ID mismatch")
+            }
+        }
+
+        return tokenResult
     }
 
-    fun expireToken(tokenId: String): Boolean {
-        val token = queueTokenRepository.findByTokenId(tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: $tokenId")
+    override fun expireToken(command: ExpireTokenCommand): Boolean {
+        val token = queueTokenRepository.findByTokenId(command.tokenId)
+            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
 
         token.expire()
         queueTokenRepository.save(token)
         return true
     }
 
-    fun completeToken(tokenId: String): Boolean {
-        val token = queueTokenRepository.findByTokenId(tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: $tokenId")
+    override fun completeToken(command: CompleteTokenCommand): Boolean {
+        val token = queueTokenRepository.findByTokenId(command.tokenId)
+            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
 
         token.complete()
         queueTokenRepository.save(token)
         return true
     }
 
-    fun activateNextTokens(concertId: Long, count: Int = 10): List<QueueToken> {
-        return queueTokenRepository.activateWaitingTokens(concertId, count)
+    override fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult {
+        val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, command.count)
+
+        return ActivateTokensResult(
+            activatedCount = activatedTokens.size,
+            tokenIds = activatedTokens.map { it.queueTokenId }
+        )
     }
 }

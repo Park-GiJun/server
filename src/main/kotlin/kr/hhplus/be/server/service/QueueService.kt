@@ -8,8 +8,8 @@ import kr.hhplus.be.server.exception.InvalidTokenException
 import kr.hhplus.be.server.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.exception.UserNotFoundException
-import kr.hhplus.be.server.repository.mock.MockQueueTokenRepository
-import kr.hhplus.be.server.repository.mock.MockUserRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.MockQueueTokenRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime

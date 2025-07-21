@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.reservation
 
 import jakarta.persistence.*
-import kr.hhplus.be.server.domain.BaseEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
 import java.time.LocalDateTime
 
 @Entity
@@ -24,7 +24,7 @@ class TempReservation(
     @Column(name = "temp_reservation_status")
     @Enumerated(EnumType.STRING)
     val status: TempReservationStatus = TempReservationStatus.RESERVED
-) : BaseEntity() {
+) : BaseJpaEntity() {
 
     fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiredAt)
     fun isReserved(): Boolean = status == TempReservationStatus.RESERVED

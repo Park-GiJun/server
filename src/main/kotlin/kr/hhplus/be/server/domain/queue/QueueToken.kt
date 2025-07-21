@@ -1,33 +1,21 @@
 package kr.hhplus.be.server.domain.queue
 
-import jakarta.persistence.*
-import kr.hhplus.be.server.domain.BaseEntity
 import java.time.LocalDateTime
 import java.util.*
 
-@Entity
-@Table(name = "queue_token")
 class QueueToken(
-    @Id
-    @Column(name = "queue_token_id")
     val queueTokenId: String = UUID.randomUUID().toString(),
-
-    @Column(name = "user_id")
     val userId: String,
-
-    @Column(name = "concert_id")
     val concertId: Long,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "token_status")
     var tokenStatus: QueueTokenStatus,
-
-    @Column(name = "entered_at")
     val enteredAt: LocalDateTime = LocalDateTime.now(),
+    var expiresAt: LocalDateTime = LocalDateTime.now().plusHours(1),
 
-    @Column(name = "expires_at")
-    var expiresAt: LocalDateTime = LocalDateTime.now().plusHours(1)
-) : BaseEntity() {
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    var isDeleted: Boolean = false,
+    var deletedAt: LocalDateTime? = null
+) {
 
     fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiresAt)
 
@@ -36,23 +24,62 @@ class QueueToken(
     fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING && !isExpired()
 
     fun activate(): QueueToken {
-        this.tokenStatus = QueueTokenStatus.ACTIVE
-        this.expiresAt = LocalDateTime.now().plusMinutes(30) // 활성화 후 30분
-        return this
+        return QueueToken(
+            queueTokenId = this.queueTokenId,
+            userId = this.userId,
+            concertId = this.concertId,
+            tokenStatus = QueueTokenStatus.ACTIVE,
+            enteredAt = this.enteredAt,
+            expiresAt = LocalDateTime.now().plusMinutes(30), // 활성화 후 30분
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
     }
 
     fun expire(): QueueToken {
-        this.tokenStatus = QueueTokenStatus.EXPIRED
-        return this
+        return QueueToken(
+            queueTokenId = this.queueTokenId,
+            userId = this.userId,
+            concertId = this.concertId,
+            tokenStatus = QueueTokenStatus.EXPIRED,
+            enteredAt = this.enteredAt,
+            expiresAt = this.expiresAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
     }
 
     fun cancel(): QueueToken {
-        this.tokenStatus = QueueTokenStatus.CANCELLED
-        return this
+        return QueueToken(
+            queueTokenId = this.queueTokenId,
+            userId = this.userId,
+            concertId = this.concertId,
+            tokenStatus = QueueTokenStatus.CANCELLED,
+            enteredAt = this.enteredAt,
+            expiresAt = this.expiresAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
     }
 
     fun complete(): QueueToken {
-        this.tokenStatus = QueueTokenStatus.COMPLETED
-        return this
+        return QueueToken(
+            queueTokenId = this.queueTokenId,
+            userId = this.userId,
+            concertId = this.concertId,
+            tokenStatus = QueueTokenStatus.COMPLETED,
+            enteredAt = this.enteredAt,
+            expiresAt = this.expiresAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
     }
 }

@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.exception.InvalidateAmountException
 import kr.hhplus.be.server.exception.UserNotFoundException
-import kr.hhplus.be.server.repository.mock.MockUserRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 

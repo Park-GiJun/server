@@ -1,13 +1,9 @@
 package kr.hhplus.be.server.interfaces.facade
 
-import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
-import kr.hhplus.be.server.application.service.queue.QueueCommandService
-import kr.hhplus.be.server.application.dto.command.GenerateTokenCommand
-import kr.hhplus.be.server.application.dto.query.GetQueueStatusQuery
-import kr.hhplus.be.server.application.dto.result.QueueStatusResult
-import kr.hhplus.be.server.domain.queue.QueueToken
+import kr.hhplus.be.server.application.port.`in`.queue.*
+import kr.hhplus.be.server.application.dto.command.*
+import kr.hhplus.be.server.application.dto.query.*
+import kr.hhplus.be.server.application.dto.result.*
 import org.springframework.stereotype.Component
 
 @Component
@@ -15,8 +11,9 @@ class QueueFacade(
     private val generateTokenUseCase: GenerateTokenUseCase,
     private val getQueueStatusUseCase: GetQueueStatusUseCase,
     private val validateTokenUseCase: ValidateTokenUseCase,
-
-    private val queueCommandService: QueueCommandService
+    private val expireTokenUseCase: ExpireTokenUseCase,
+    private val completeTokenUseCase: CompleteTokenUseCase,
+    private val activateTokensUseCase: ActivateTokensUseCase
 ) {
 
     fun generateToken(userId: String, concertId: Long): String {
@@ -29,23 +26,28 @@ class QueueFacade(
         return getQueueStatusUseCase.getQueueStatus(query)
     }
 
-    fun validateActiveToken(tokenId: String): QueueToken {
-        return validateTokenUseCase.validateActiveToken(tokenId)
+    fun validateActiveToken(tokenId: String): ValidateTokenResult {
+        val command = ValidateTokenCommand(tokenId)
+        return validateTokenUseCase.validateActiveToken(command)
     }
 
-    fun validateActiveTokenForConcert(tokenId: String, concertId: Long): QueueToken {
-        return validateTokenUseCase.validateActiveTokenForConcert(tokenId, concertId)
+    fun validateActiveTokenForConcert(tokenId: String, concertId: Long): ValidateTokenResult {
+        val command = ValidateTokenCommand(tokenId, concertId)
+        return validateTokenUseCase.validateActiveTokenForConcert(command)
     }
 
     fun expireToken(tokenId: String): Boolean {
-        return queueCommandService.expireToken(tokenId)
+        val command = ExpireTokenCommand(tokenId)
+        return expireTokenUseCase.expireToken(command)
     }
 
     fun completeToken(tokenId: String): Boolean {
-        return queueCommandService.completeToken(tokenId)
+        val command = CompleteTokenCommand(tokenId)
+        return completeTokenUseCase.completeToken(command)
     }
 
-    fun activateNextTokens(concertId: Long, count: Int = 10): List<QueueToken> {
-        return queueCommandService.activateNextTokens(concertId, count)
+    fun activateNextTokens(concertId: Long, count: Int = 10): ActivateTokensResult {
+        val command = ActivateTokensCommand(concertId, count)
+        return activateTokensUseCase.activateTokens(command)
     }
 }

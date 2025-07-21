@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config
+package kr.hhplus.be.server.infrastructure.config
 
 import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.domain.concert.ConcertDate
@@ -8,18 +8,16 @@ import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.users.User
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.MockQueueTokenRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
 import kr.hhplus.be.server.repository.mock.MockConcertDateRepository
 import kr.hhplus.be.server.repository.mock.MockConcertRepository
 import kr.hhplus.be.server.repository.mock.MockConcertSeatGradeRepository
 import kr.hhplus.be.server.repository.mock.MockConcertSeatRepository
-import kr.hhplus.be.server.repository.mock.MockQueueTokenRepository
-import kr.hhplus.be.server.repository.mock.MockUserRepository
-import kr.hhplus.be.server.util.JwtQueueTokenUtil
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDateTime
-import java.util.UUID
 
 @Configuration
 class MockDataConfiguration {
@@ -32,7 +30,6 @@ class MockDataConfiguration {
         mockConcertSeatGradeRepository: MockConcertSeatGradeRepository,
         mockConcertDateRepository: MockConcertDateRepository,
         mockConcertSeatRepository: MockConcertSeatRepository,
-        jwtQueueTokenUtil: JwtQueueTokenUtil
     ): CommandLineRunner {
         return CommandLineRunner { args ->
             val users = setUpInitialUsers(mockUserRepository)
@@ -40,7 +37,6 @@ class MockDataConfiguration {
             setUpInitialConcertSeatGrade(mockConcertSeatGradeRepository, concerts)
             val concertDates = setUpInitialConcertDates(mockConcertDateRepository, concerts)
             setUpInitialConcertSeats(mockConcertSeatRepository, concertDates)
-            setupInitialQueueTokens(mockQueueTokenRepository, users, jwtQueueTokenUtil)
         }
     }
 
@@ -189,87 +185,5 @@ class MockDataConfiguration {
         }
 
         return allSeats
-    }
-
-    private fun setupInitialQueueTokens(
-        repository: MockQueueTokenRepository,
-        users: List<User>,
-        jwtQueueTokenUtil: JwtQueueTokenUtil
-    ) {
-        val now = LocalDateTime.now()
-
-        val concert1WaitingTokens = (1..20).map { index ->
-            val jwtToken = jwtQueueTokenUtil.generateToken(
-                userId = users[index - 1].userId,
-                concertId = 1L,
-                position = index,
-                status = QueueTokenStatus.WAITING
-            )
-
-            QueueToken(
-                queueToken = jwtToken,
-                userId = users[index - 1].userId,
-                concertId = 1L,
-                tokenStatus = QueueTokenStatus.WAITING,
-                enteredAt = now.minusMinutes(30 - index.toLong())
-            )
-        }
-
-        val concert1ActiveTokens = (1..5).map { index ->
-            val jwtToken = jwtQueueTokenUtil.generateToken(
-                userId = users[19 + index].userId,
-                concertId = 1L,
-                position = 0,
-                status = QueueTokenStatus.ACTIVE
-            )
-
-            QueueToken(
-                queueToken = jwtToken,
-                userId = users[19 + index].userId,
-                concertId = 1L,
-                tokenStatus = QueueTokenStatus.ACTIVE,
-                enteredAt = now.minusMinutes(45 - index.toLong())
-            )
-        }
-
-        val concert2WaitingTokens = (1..15).map { index ->
-            val jwtToken = jwtQueueTokenUtil.generateToken(
-                userId = users[24 + index].userId,
-                concertId = 2L,
-                position = index,
-                status = QueueTokenStatus.WAITING
-            )
-
-            QueueToken(
-                queueToken = jwtToken,
-                userId = users[24 + index].userId,
-                concertId = 2L,
-                tokenStatus = QueueTokenStatus.WAITING,
-                enteredAt = now.minusMinutes(25 - index.toLong())
-            )
-        }
-
-        // 만료된 토큰들
-        val expiredTokens = (1..10).map { index ->
-            val jwtToken = jwtQueueTokenUtil.generateToken(
-                userId = users[39 + index].userId,
-                concertId = 1L,
-                position = -1, // 만료된 토큰은 position을 -1로 설정
-                status = QueueTokenStatus.EXPIRED
-            )
-
-            QueueToken(
-                queueToken = jwtToken,
-                userId = users[39 + index].userId,
-                concertId = 1L,
-                tokenStatus = QueueTokenStatus.EXPIRED,
-                enteredAt = now.minusHours(2 + index.toLong())
-            )
-        }
-
-        val allTokens = concert1WaitingTokens + concert1ActiveTokens + concert2WaitingTokens + expiredTokens
-        allTokens.forEach { token ->
-            repository.save(token)
-        }
     }
 }

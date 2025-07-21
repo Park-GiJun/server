@@ -4,7 +4,7 @@ import kr.hhplus.be.server.exception.InvalidTokenException
 import kr.hhplus.be.server.exception.InvalidTokenStatusException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 @Service
 class QueueDomainService {
@@ -15,7 +15,8 @@ class QueueDomainService {
             userId = userId,
             concertId = concertId,
             tokenStatus = QueueTokenStatus.WAITING,
-            enteredAt = LocalDateTime.now()
+            enteredAt = LocalDateTime.now(),
+            expiresAt = LocalDateTime.now().plusHours(1)
         )
     }
 
@@ -43,12 +44,7 @@ class QueueDomainService {
         return validateActiveToken(token, token.userId)
     }
 
-    fun calculateWaitingPosition(waitingTokensBeforeUser: Long): Int {
+    fun calculateWaitingPosition(token: QueueToken, waitingTokensBeforeUser: Long): Int {
         return (waitingTokensBeforeUser + 1).toInt()
-    }
-
-    fun calculateEstimatedWaitTime(position: Int): Int {
-        if (position <= 0) return 0
-        return (position / 10) * 60
     }
 }
