@@ -1,0 +1,118 @@
+package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
+
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.dto.ConcertDateResponse
+import kr.hhplus.be.server.dto.ConcertResponse
+import kr.hhplus.be.server.dto.ConcertSeatResponse
+import kr.hhplus.be.server.dto.common.ApiResponse
+import kr.hhplus.be.server.interfaces.facade.ConcertFacade
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+
+@RestController
+@RequestMapping("/concerts")
+@Tag(name = "콘서트", description = "콘서트 정보 조회 API")
+class ConcertWebAdapter(
+    private val concertFacade: ConcertFacade
+) {
+
+    @GetMapping
+    @Operation(
+        summary = "전체 콘서트 목록 조회",
+        description = "등록된 모든 콘서트의 기본 정보를 조회합니다. 대기열 토큰이 필요하지 않습니다."
+    )
+    fun getConcertList(): ResponseEntity<ApiResponse<List<ConcertResponse>>> {
+        val concerts = concertFacade.getConcertList()
+        val response = concerts.map { concert ->
+            ConcertResponse(
+                concertId = concert.concertId,
+                concertName = concert.concertName,
+                location = concert.location,
+                description = concert.description
+            )
+        }
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Concert list retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/{concertId}/dates")
+    @Operation(
+        summary = "특정 콘서트의 예약 가능 날짜 조회",
+        description = "지정된 콘서트의 예약 가능한 날짜 목록을 조회합니다. 활성화된 대기열 토큰이 필요합니다."
+    )
+    fun getConcertDates(
+        @Parameter(description = "콘서트 ID", example = "1")
+        @PathVariable concertId: Long,
+        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        @RequestHeader("Queue-Token") tokenId: String
+    ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
+
+        val concertDatesWithStats = concertFacade.getConcertDates(tokenId, concertId)
+        val response = concertDatesWithStats.map { dateWithStats ->
+            ConcertDateResponse(
+                concertDateId = dateWithStats.concertDateId,
+                concertId = dateWithStats.concertId,
+                concertSession = dateWithStats.concertSession,
+                date = dateWithStats.date,
+                totalSeats = dateWithStats.totalSeats,
+                availableSeats = dateWithStats.availableSeats,
+                isSoldOut = dateWithStats.isSoldOut
+            )
+        }
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Concert dates retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/{concertId}/dates/{dateId}/seats")
+    @Operation(
+        summary = "특정 날짜의 좌석 조회",
+        description = "지정된 콘서트 날짜의 좌석 정보와 가격을 조회합니다. 활성화된 대기열 토큰이 필요합니다."
+    )
+    fun getConcertSeats(
+        @Parameter(description = "콘서트 ID", example = "1")
+        @PathVariable concertId: Long,
+        @Parameter(description = "콘서트 날짜 ID", example = "1")
+        @PathVariable dateId: Long,
+        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
+        @RequestHeader("Queue-Token") tokenId: String
+    ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
+
+        val concertSeatsWithPrice = concertFacade.getConcertSeats(tokenId, dateId)
+        val response = concertSeatsWithPrice.map { seatWithPrice ->
+            ConcertSeatResponse(
+                concertSeatId = seatWithPrice.concertSeatId,
+                concertDateId = seatWithPrice.concertDateId,
+                seatNumber = seatWithPrice.seatNumber,
+                seatGrade = seatWithPrice.seatGrade,
+                seatStatus = seatWithPrice.seatStatus,
+                price = seatWithPrice.price
+            )
+        }
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Concert seats retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+}

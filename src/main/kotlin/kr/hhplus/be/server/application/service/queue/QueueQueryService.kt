@@ -16,14 +16,12 @@ class QueueQueryService(
     private val queueTokenRepository: QueueTokenRepository
 ) : GetQueueStatusUseCase {
     
-    // 도메인 서비스는 순수 객체로 직접 생성
     private val queueDomainService = QueueDomainService()
 
     override fun getQueueStatus(query: GetQueueStatusQuery): QueueStatusResult {
         val token = queueTokenRepository.findByTokenId(query.tokenId)
             ?: throw QueueTokenNotFoundException(query.tokenId)
 
-        // 토큰이 만료되었으면 상태를 만료로 업데이트
         if (token.isExpired()) {
             val expiredToken = token.expire()
             queueTokenRepository.save(expiredToken)
