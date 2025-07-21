@@ -16,7 +16,7 @@ class MockConcertRepository {
         return concert
     }
 
-    fun findConcertList(): List<Concert>? {
+    fun findConcertList(): List<Concert> {
         log.info("Finding all concerts, count: ${concerts.size}")
         return concerts.values.toList()
     }

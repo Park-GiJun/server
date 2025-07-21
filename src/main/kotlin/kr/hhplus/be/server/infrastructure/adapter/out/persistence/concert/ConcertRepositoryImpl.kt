@@ -3,7 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertRepository
+import org.springframework.stereotype.Repository
 
+@Repository
 class ConcertRepositoryImpl(
     private val concertRepository: MockConcertRepository
 ) : ConcertRepository {
@@ -11,7 +13,7 @@ class ConcertRepositoryImpl(
         return concertRepository.save(concert)
     }
 
-    override fun findConcertList(): List<Concert>? {
+    override fun findConcertList(): List<Concert> {
         return concertRepository.findConcertList()
     }
 

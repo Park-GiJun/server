@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.infrastructure.config
 
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertJpaEntity
+import kr.hhplus.be.server.domain.concert.Concert
+import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDate
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository
@@ -57,12 +57,13 @@ class MockDataConfiguration {
         return users
     }
 
-    private fun setUpInitialConcert(repository: MockConcertRepository): List<ConcertJpaEntity> {
+    private fun setUpInitialConcert(repository: MockConcertRepository): List<Concert> {
         val concerts = (1..2).map { index ->
-            ConcertJpaEntity(
+            Concert(
                 concertId = index.toLong(),
                 concertName = "concert $index",
-                location = "Test location $index"
+                location = "Test location $index",
+                description = "Test description $index"
             )
         }
 
@@ -70,7 +71,7 @@ class MockDataConfiguration {
         return concerts
     }
 
-    private fun setUpInitialConcertSeatGrade(repository: MockConcertSeatGradeRepository, concerts: List<ConcertJpaEntity>) {
+    private fun setUpInitialConcertSeatGrade(repository: MockConcertSeatGradeRepository, concerts: List<Concert>) {
         val seatGrades = listOf(
             Triple("STANDING", 100000, "스탠딩"),
             Triple("VIP", 170000, "VIP석"),
@@ -94,7 +95,7 @@ class MockDataConfiguration {
         }
     }
 
-    private fun setUpInitialConcertDates(repository: MockConcertDateRepository, concerts: List<ConcertJpaEntity>): List<ConcertDate> {
+    private fun setUpInitialConcertDates(repository: MockConcertDateRepository, concerts: List<Concert>): List<ConcertDate> {
         val baseDate = LocalDateTime.of(2025, 7, 18, 19, 0) // 2025년 7월 18일 금요일 오후 7시
 
         var dateId = 1L

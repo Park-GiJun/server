@@ -3,9 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.dto.ConcertDateResponse
-import kr.hhplus.be.server.dto.ConcertResponse
-import kr.hhplus.be.server.dto.ConcertSeatResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
 import kr.hhplus.be.server.dto.common.ApiResponse
 import kr.hhplus.be.server.interfaces.facade.ConcertFacade
 import org.springframework.http.HttpStatus

@@ -19,7 +19,7 @@ import java.time.LocalDateTime
         Index(name = "idx_available_seats", columnList = "available_seats")
     ]
 )
-class ConcertDate(
+class ConcertDateJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concert_date_id", nullable = false)

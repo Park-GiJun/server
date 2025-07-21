@@ -1,9 +1,7 @@
-package kr.hhplus.be.server.dto
+package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.concert.SeatStatus
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDate
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
 import java.time.LocalDateTime
 
 data class ConcertResponse(
@@ -60,40 +58,5 @@ data class ConcertSeatResponse(
     val seatStatus: SeatStatus,
 
     @field:Schema(description = "좌석 가격", example = "170000")
-    val price: Int
-)
-
-data class SeatReservationRequest(
-    @field:Schema(description = "콘서트 날짜 ID", example = "1")
-    val concertDateId: Long,
-
-    @field:Schema(description = "좌석 ID", example = "1")
-    val seatId: Long
-)
-
-data class SeatReservationResponse(
-    @field:Schema(description = "예약 ID", example = "1")
-    val reservationId: Long,
-
-    @field:Schema(description = "사용자 ID", example = "user123")
-    val userId: String,
-
-    @field:Schema(description = "좌석 정보")
-    val seatInfo: ConcertSeatResponse,
-
-    @field:Schema(description = "예약 만료 시간", example = "2025-07-18T19:05:00")
-    val expiresAt: LocalDateTime,
-
-    @field:Schema(description = "예약 상태", example = "HOLDING")
-    val reservationStatus: String
-)
-data class ConcertDateWithStatsResponse(
-    val concertDate: ConcertDate,
-    val totalSeats: Int,
-    val availableSeats: Int
-)
-
-data class ConcertSeatWithPriceResponse(
-    val seat: ConcertSeat,
     val price: Int
 )

@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.application.service.concert
 
-import kr.hhplus.be.server.application.dto.concert.command.GetConcertDatesCommand
-import kr.hhplus.be.server.application.dto.concert.command.GetConcertSeatsCommand
 import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesCommand
 import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsCommand
 import kr.hhplus.be.server.application.dto.concert.result.ConcertResult

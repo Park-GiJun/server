@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import org.slf4j.LoggerFactory
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
         Index(name = "idx_seat_status", columnList = "seat_status")
     ]
 )
-class ConcertSeat(
+class ConcertSeatJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concert_seat_id", nullable = false)
