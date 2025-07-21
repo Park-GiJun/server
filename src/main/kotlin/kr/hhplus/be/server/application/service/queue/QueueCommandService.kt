@@ -26,15 +26,12 @@ class QueueCommandService(
 ) : GenerateTokenUseCase, ValidateTokenUseCase, ExpireTokenUseCase,
     CompleteTokenUseCase, ActivateTokensUseCase {
     
-    // 도메인 서비스는 순수 객체로 직접 생성
     private val queueDomainService = QueueDomainService()
 
     override fun generateToken(command: GenerateTokenCommand): String {
-        // 사용자 존재 확인
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        // 기존 활성 토큰 확인
         val existingToken = queueTokenRepository.findActiveTokenByUserAndConcert(
             command.userId,
             command.concertId
@@ -43,7 +40,6 @@ class QueueCommandService(
             return existingToken.queueTokenId
         }
 
-        // 새 토큰 생성
         val newToken = queueDomainService.createNewToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
@@ -54,14 +50,12 @@ class QueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        // 토큰이 만료되었으면 상태를 만료로 업데이트
         if (token.isExpired()) {
             val expiredToken = token.expire()
             queueTokenRepository.save(expiredToken)
             throw InvalidTokenStatusException(token.tokenStatus, kr.hhplus.be.server.domain.queue.QueueTokenStatus.ACTIVE)
         }
 
-        // 도메인 서비스를 통한 검증
         val validatedToken = queueDomainService.validateActiveToken(token)
 
         return ValidateTokenResult(

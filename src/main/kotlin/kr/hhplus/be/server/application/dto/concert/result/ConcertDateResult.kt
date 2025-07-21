@@ -2,7 +2,7 @@ package kr.hhplus.be.server.application.dto.concert.result
 
 import java.time.LocalDateTime
 
-data class GetConcertDateResult (
+data class ConcertDateResult (
     val concertDateId: Long,
     val concertId: Long,
     val concertSession: Long,

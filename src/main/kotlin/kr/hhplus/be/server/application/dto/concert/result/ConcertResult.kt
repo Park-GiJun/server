@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.dto.concert.result
 
-data class GetConcertResult (
+data class ConcertResult (
     val concertId: String,
     val concertName : String,
     val location: String,
