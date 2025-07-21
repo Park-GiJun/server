@@ -1,17 +1,17 @@
 package kr.hhplus.be.server.infrastructure.config
 
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertJpaEntity
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertDate
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeat
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDate
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.domain.users.User
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.MockQueueTokenRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertDateRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatGradeRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock.MockUserRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertDateRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.MockConcertSeatGradeRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

@@ -2,8 +2,8 @@ package kr.hhplus.be.server.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.concert.SeatStatus
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertDate
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeat
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDate
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
 import java.time.LocalDateTime
 
 data class ConcertResponse(

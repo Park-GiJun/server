@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.repository.mock
 
 import kr.hhplus.be.server.domain.reservation.Reservation
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.MockQueueTokenRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap

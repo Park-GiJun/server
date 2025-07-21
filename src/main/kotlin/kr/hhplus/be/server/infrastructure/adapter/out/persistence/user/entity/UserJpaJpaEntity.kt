@@ -1,6 +1,10 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.user
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 

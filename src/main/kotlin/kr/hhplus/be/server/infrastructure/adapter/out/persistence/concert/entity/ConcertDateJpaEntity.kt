@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity
 
 import jakarta.persistence.*
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity

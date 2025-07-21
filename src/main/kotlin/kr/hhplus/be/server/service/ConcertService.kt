@@ -1,16 +1,16 @@
 package kr.hhplus.be.server.service
 
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertJpaEntity
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.dto.ConcertDateWithStatsResponse
 import kr.hhplus.be.server.dto.ConcertSeatWithPriceResponse
 import kr.hhplus.be.server.exception.ConcertDateExpiredException
 import kr.hhplus.be.server.exception.ConcertNotFoundException
 import kr.hhplus.be.server.exception.ConcertSoldOutException
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertDateRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatGradeRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertDateRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.MockConcertSeatGradeRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

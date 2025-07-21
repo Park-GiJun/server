@@ -2,6 +2,7 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue
 
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.QueueToken
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 

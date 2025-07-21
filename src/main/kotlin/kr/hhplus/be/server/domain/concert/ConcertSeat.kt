@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.domain.concert
 
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeat
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeat
 import java.time.LocalDateTime
 
 class ConcertSeat(

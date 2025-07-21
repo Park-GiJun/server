@@ -1,6 +1,11 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
