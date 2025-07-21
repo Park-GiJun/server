@@ -47,12 +47,12 @@ class MockQueueTokenRepository {
             .sortedBy { it.enteredAt }
     }
 
-    fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Long {
+    fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Int {
         return queueTokens.values.count {
             it.concertId == concertId &&
                     it.tokenStatus == QueueTokenStatus.WAITING &&
                     it.enteredAt.isBefore(enteredAt)
-        }.toLong()
+        }
     }
 
     fun updateTokenStatus(tokenId: String, status: QueueTokenStatus): QueueToken? {

@@ -8,5 +8,4 @@ data class QueueStatusResult(
     val concertId: Long,
     val status: QueueTokenStatus,
     val position: Int,
-    val estimatedWaitTime: Int
 )

@@ -6,7 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 
 @Table(name = "point_history")
 @Entity
@@ -28,5 +28,5 @@ class PointHistory(
 
     @Column("description")
     val description : String,
-) : BaseJpaEntity() {
+) : BaseEntity() {
 }

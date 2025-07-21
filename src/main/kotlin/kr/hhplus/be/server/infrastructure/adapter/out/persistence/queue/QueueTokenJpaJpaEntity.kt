@@ -25,9 +25,6 @@ class QueueTokenJpaJpaEntity(
 
     @Column(name = "entered_at")
     val enteredAt: LocalDateTime,
-
-    @Column(name = "expires_at")
-    var expiresAt: LocalDateTime
 ) : BaseEntity() {
 
     fun toDomain(): QueueToken {
@@ -37,7 +34,6 @@ class QueueTokenJpaJpaEntity(
             concertId = this.concertId,
             tokenStatus = this.tokenStatus,
             enteredAt = this.enteredAt,
-            expiresAt = this.expiresAt,
             createdAt = this.createdAt,
             updatedAt = this.updatedAt,
             isDeleted = this.isDeleted,
@@ -53,14 +49,8 @@ class QueueTokenJpaJpaEntity(
                 concertId = domain.concertId,
                 tokenStatus = domain.tokenStatus,
                 enteredAt = domain.enteredAt,
-                expiresAt = domain.expiresAt
             ).apply {
             }
         }
-    }
-
-    fun updateFromDomain(domain: QueueToken) {
-        this.tokenStatus = domain.tokenStatus
-        this.expiresAt = domain.expiresAt
     }
 }

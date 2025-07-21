@@ -1,11 +1,13 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.exception
 
 import kr.hhplus.be.server.domain.common.exception.*
-import kr.hhplus.be.server.domain.user.exception.*
 import kr.hhplus.be.server.domain.queue.exception.*
 import kr.hhplus.be.server.domain.concert.exception.*
 import kr.hhplus.be.server.domain.reservation.exception.*
 import kr.hhplus.be.server.domain.payment.exception.*
+import kr.hhplus.be.server.domain.users.exception.InsufficientPointException
+import kr.hhplus.be.server.domain.users.exception.InvalidPointAmountException
+import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.dto.common.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

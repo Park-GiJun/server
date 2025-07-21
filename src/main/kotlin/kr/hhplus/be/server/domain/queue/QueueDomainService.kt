@@ -1,12 +1,11 @@
 package kr.hhplus.be.server.domain.queue
 
-import kr.hhplus.be.server.exception.InvalidTokenException
-import kr.hhplus.be.server.exception.InvalidTokenStatusException
-import org.springframework.stereotype.Service
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
+import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
 import java.time.LocalDateTime
 import java.util.*
 
-@Service
 class QueueDomainService {
 
     fun createNewToken(userId: String, concertId: Long): QueueToken {
@@ -20,17 +19,13 @@ class QueueDomainService {
         )
     }
 
-    fun validateActiveToken(token: QueueToken, userId: String): QueueToken {
-        if (token.userId != userId) {
-            throw InvalidTokenException("Token user mismatch")
-        }
-
+    fun validateActiveToken(token: QueueToken): QueueToken {
         if (token.isExpired()) {
-            throw InvalidTokenStatusException("Token has expired")
+            throw TokenExpiredException(token.queueTokenId)
         }
 
         if (!token.isActive()) {
-            throw InvalidTokenStatusException("Token is not active. Current status: ${token.tokenStatus}")
+            throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
         }
 
         return token
@@ -38,13 +33,20 @@ class QueueDomainService {
 
     fun validateActiveTokenForConcert(token: QueueToken, concertId: Long): QueueToken {
         if (token.concertId != concertId) {
-            throw InvalidTokenException("Token concert ID mismatch")
+            throw InvalidTokenException("Token concert ID mismatch. Expected: $concertId, Actual: ${token.concertId}")
         }
 
-        return validateActiveToken(token, token.userId)
+        return validateActiveToken(token)
     }
 
-    fun calculateWaitingPosition(token: QueueToken, waitingTokensBeforeUser: Long): Int {
+    fun calculateWaitingPosition(waitingTokensBeforeUser: Int): Int {
         return (waitingTokensBeforeUser + 1).toInt()
+    }
+
+    fun validateTokenForUser(token: QueueToken, requestUserId: String): QueueToken {
+        if (token.userId != requestUserId) {
+            throw InvalidTokenException("Token user mismatch. Expected: $requestUserId, Actual: ${token.userId}")
+        }
+        return token
     }
 }

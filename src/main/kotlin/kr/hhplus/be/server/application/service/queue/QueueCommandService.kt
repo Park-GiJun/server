@@ -12,22 +12,29 @@ import kr.hhplus.be.server.application.port.`in`.queue.*
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService
-import kr.hhplus.be.server.exception.*
+import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
+import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
 @Transactional
 class QueueCommandService(
     private val queueTokenRepository: QueueTokenRepository,
-    private val userRepository: UserRepository,
-    private val queueDomainService: QueueDomainService
+    private val userRepository: UserRepository
 ) : GenerateTokenUseCase, ValidateTokenUseCase, ExpireTokenUseCase,
     CompleteTokenUseCase, ActivateTokensUseCase {
+    
+    // 도메인 서비스는 순수 객체로 직접 생성
+    private val queueDomainService = QueueDomainService()
 
     override fun generateToken(command: GenerateTokenCommand): String {
+        // 사용자 존재 확인
         userRepository.findByUserId(command.userId)
-            ?: throw UserNotFoundException("User not found with id: ${command.userId}")
+            ?: throw UserNotFoundException(command.userId)
 
+        // 기존 활성 토큰 확인
         val existingToken = queueTokenRepository.findActiveTokenByUserAndConcert(
             command.userId,
             command.concertId
@@ -36,6 +43,7 @@ class QueueCommandService(
             return existingToken.queueTokenId
         }
 
+        // 새 토큰 생성
         val newToken = queueDomainService.createNewToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
@@ -44,22 +52,22 @@ class QueueCommandService(
 
     override fun validateActiveToken(command: ValidateTokenCommand): ValidateTokenResult {
         val token = queueTokenRepository.findByTokenId(command.tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
+            ?: throw QueueTokenNotFoundException(command.tokenId)
 
+        // 토큰이 만료되었으면 상태를 만료로 업데이트
         if (token.isExpired()) {
-            token.expire()
-            queueTokenRepository.save(token)
-            throw InvalidTokenStatusException("Token has expired")
+            val expiredToken = token.expire()
+            queueTokenRepository.save(expiredToken)
+            throw InvalidTokenStatusException(token.tokenStatus, kr.hhplus.be.server.domain.queue.QueueTokenStatus.ACTIVE)
         }
 
-        if (!token.isActive()) {
-            throw InvalidTokenStatusException("Token is not active. Current status: ${token.tokenStatus}")
-        }
+        // 도메인 서비스를 통한 검증
+        val validatedToken = queueDomainService.validateActiveToken(token)
 
         return ValidateTokenResult(
-            tokenId = token.queueTokenId,
-            userId = token.userId,
-            concertId = token.concertId,
+            tokenId = validatedToken.queueTokenId,
+            userId = validatedToken.userId,
+            concertId = validatedToken.concertId,
             isValid = true
         )
     }
@@ -69,7 +77,7 @@ class QueueCommandService(
 
         command.concertId?.let { concertId ->
             if (tokenResult.concertId != concertId) {
-                throw InvalidTokenException("Token concert ID mismatch")
+                throw InvalidTokenException("Token concert ID mismatch. Expected: $concertId, Actual: ${tokenResult.concertId}")
             }
         }
 
@@ -78,19 +86,19 @@ class QueueCommandService(
 
     override fun expireToken(command: ExpireTokenCommand): Boolean {
         val token = queueTokenRepository.findByTokenId(command.tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
+            ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        token.expire()
-        queueTokenRepository.save(token)
+        val expiredToken = token.expire()
+        queueTokenRepository.save(expiredToken)
         return true
     }
 
     override fun completeToken(command: CompleteTokenCommand): Boolean {
         val token = queueTokenRepository.findByTokenId(command.tokenId)
-            ?: throw QueueTokenNotFoundException("Token not found: ${command.tokenId}")
+            ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        token.complete()
-        queueTokenRepository.save(token)
+        val completedToken = token.complete()
+        queueTokenRepository.save(completedToken)
         return true
     }
 

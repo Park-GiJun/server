@@ -2,6 +2,8 @@ package kr.hhplus.be.server.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import kr.hhplus.be.server.domain.concert.SeatStatus
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertDate
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeat
 import java.time.LocalDateTime
 
 data class ConcertResponse(
@@ -86,12 +88,12 @@ data class SeatReservationResponse(
     val reservationStatus: String
 )
 data class ConcertDateWithStatsResponse(
-    val concertDate: kr.hhplus.be.server.domain.concert.ConcertDate,
+    val concertDate: ConcertDate,
     val totalSeats: Int,
     val availableSeats: Int
 )
 
 data class ConcertSeatWithPriceResponse(
-    val seat: kr.hhplus.be.server.domain.concert.ConcertSeat,
+    val seat: ConcertSeat,
     val price: Int
 )

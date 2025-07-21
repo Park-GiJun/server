@@ -1,19 +1,17 @@
 package kr.hhplus.be.server.infrastructure.config
 
-import kr.hhplus.be.server.domain.concert.Concert
-import kr.hhplus.be.server.domain.concert.ConcertDate
-import kr.hhplus.be.server.domain.concert.ConcertSeat
-import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertDate
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeat
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.concert.SeatStatus
-import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.MockQueueTokenRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository
-import kr.hhplus.be.server.repository.mock.MockConcertDateRepository
-import kr.hhplus.be.server.repository.mock.MockConcertRepository
-import kr.hhplus.be.server.repository.mock.MockConcertSeatGradeRepository
-import kr.hhplus.be.server.repository.mock.MockConcertSeatRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertDateRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatGradeRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -59,9 +57,9 @@ class MockDataConfiguration {
         return users
     }
 
-    private fun setUpInitialConcert(repository: MockConcertRepository): List<Concert> {
+    private fun setUpInitialConcert(repository: MockConcertRepository): List<ConcertJpaEntity> {
         val concerts = (1..2).map { index ->
-            Concert(
+            ConcertJpaEntity(
                 concertId = index.toLong(),
                 concertName = "concert $index",
                 location = "Test location $index"
@@ -72,7 +70,7 @@ class MockDataConfiguration {
         return concerts
     }
 
-    private fun setUpInitialConcertSeatGrade(repository: MockConcertSeatGradeRepository, concerts: List<Concert>) {
+    private fun setUpInitialConcertSeatGrade(repository: MockConcertSeatGradeRepository, concerts: List<ConcertJpaEntity>) {
         val seatGrades = listOf(
             Triple("STANDING", 100000, "스탠딩"),
             Triple("VIP", 170000, "VIP석"),
@@ -96,7 +94,7 @@ class MockDataConfiguration {
         }
     }
 
-    private fun setUpInitialConcertDates(repository: MockConcertDateRepository, concerts: List<Concert>): List<ConcertDate> {
+    private fun setUpInitialConcertDates(repository: MockConcertDateRepository, concerts: List<ConcertJpaEntity>): List<ConcertDate> {
         val baseDate = LocalDateTime.of(2025, 7, 18, 19, 0) // 2025년 7월 18일 금요일 오후 7시
 
         var dateId = 1L

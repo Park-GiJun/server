@@ -9,7 +9,6 @@ class QueueToken(
     val concertId: Long,
     var tokenStatus: QueueTokenStatus,
     val enteredAt: LocalDateTime = LocalDateTime.now(),
-    var expiresAt: LocalDateTime = LocalDateTime.now().plusHours(1),
 
     val createdAt: LocalDateTime = LocalDateTime.now(),
     var updatedAt: LocalDateTime = LocalDateTime.now(),
@@ -17,7 +16,7 @@ class QueueToken(
     var deletedAt: LocalDateTime? = null
 ) {
 
-    fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiresAt)
+    fun isExpired(): Boolean = tokenStatus == QueueTokenStatus.EXPIRED
 
     fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE && !isExpired()
 
@@ -30,7 +29,6 @@ class QueueToken(
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.ACTIVE,
             enteredAt = this.enteredAt,
-            expiresAt = LocalDateTime.now().plusMinutes(30), // 활성화 후 30분
             createdAt = this.createdAt,
             updatedAt = LocalDateTime.now(),
             isDeleted = this.isDeleted,
@@ -45,7 +43,6 @@ class QueueToken(
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.EXPIRED,
             enteredAt = this.enteredAt,
-            expiresAt = this.expiresAt,
             createdAt = this.createdAt,
             updatedAt = LocalDateTime.now(),
             isDeleted = this.isDeleted,
@@ -60,7 +57,6 @@ class QueueToken(
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.CANCELLED,
             enteredAt = this.enteredAt,
-            expiresAt = this.expiresAt,
             createdAt = this.createdAt,
             updatedAt = LocalDateTime.now(),
             isDeleted = this.isDeleted,
@@ -75,7 +71,6 @@ class QueueToken(
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.COMPLETED,
             enteredAt = this.enteredAt,
-            expiresAt = this.expiresAt,
             createdAt = this.createdAt,
             updatedAt = LocalDateTime.now(),
             isDeleted = this.isDeleted,

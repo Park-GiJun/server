@@ -26,7 +26,7 @@ class QueueTokenRepositoryImpl(
         return queueTokenRepository.findByUserIdAndConcertId(userId, concertId)
     }
 
-    override fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Long {
+    override fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Int {
         return queueTokenRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 

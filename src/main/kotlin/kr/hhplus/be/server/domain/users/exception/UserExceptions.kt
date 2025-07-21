@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.user.exception
+package kr.hhplus.be.server.domain.users.exception
 
 import kr.hhplus.be.server.domain.common.exception.EntityNotFoundException
 import kr.hhplus.be.server.domain.common.exception.BusinessRuleViolationException

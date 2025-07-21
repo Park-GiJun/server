@@ -8,7 +8,7 @@ import kr.hhplus.be.server.dto.ReservationCancelRequest
 import kr.hhplus.be.server.dto.ReservationConfirmRequest
 import kr.hhplus.be.server.dto.TempReservationRequest
 import kr.hhplus.be.server.exception.*
-import kr.hhplus.be.server.repository.mock.MockConcertSeatRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.MockConcertSeatRepository
 import kr.hhplus.be.server.repository.mock.MockReservationRepository
 import kr.hhplus.be.server.repository.mock.MockTempReservationRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.MockUserRepository

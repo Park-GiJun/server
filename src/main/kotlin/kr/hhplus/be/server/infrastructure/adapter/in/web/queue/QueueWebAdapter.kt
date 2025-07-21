@@ -40,9 +40,10 @@ class QueueWebAdapter(
     ): ResponseEntity<ApiResponse<QueueStatusResponse>> {
 
         val result = queueFacade.getQueueStatus(tokenId)
+        // estimatedWaitTime 제거 - 포지션, 상태, tokenId만 반환
         val response = QueueStatusResponse(
             result.tokenId, result.userId, result.concertId,
-            result.status, result.position, result.estimatedWaitTime
+            result.status, result.position
         )
 
         return ResponseEntity.ok(ApiResponse.success(response))
