@@ -1,0 +1,16 @@
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue
+
+import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.domain.users.User
+import kr.hhplus.be.server.repository.mock.MockUserRepository
+import org.springframework.stereotype.Repository
+
+@Repository
+class UserRepositoryImpl(
+    private val mockUserRepository: MockUserRepository
+) : UserRepository {
+
+    override fun findByUserId(userId: String): User? {
+        return mockUserRepository.findByUserId(userId)
+    }
+}
