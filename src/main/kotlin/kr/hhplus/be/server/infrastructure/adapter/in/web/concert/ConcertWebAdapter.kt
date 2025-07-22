@@ -3,14 +3,16 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
+import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper.ConcertWebMapper
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
-import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
-import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
-import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,7 +23,8 @@ import org.springframework.web.bind.annotation.*
 class ConcertWebAdapter(
     private val getConcertListUseCase: GetConcertListUseCase,
     private val getConcertDatesUseCase: GetConcertDatesUseCase,
-    private val getConcertSeatsUseCase: GetConcertSeatsUseCase
+    private val getConcertSeatsUseCase: GetConcertSeatsUseCase,
+    private val validateTokenUseCase: ValidateTokenUseCase
 ) {
 
     @GetMapping
@@ -55,6 +58,11 @@ class ConcertWebAdapter(
         @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
+        validateTokenUseCase.validateActiveTokenForConcert(
+            ValidateTokenCommand(tokenId, concertId)
+        )
+
+
         val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
         val concertDatesWithStats = getConcertDatesUseCase.getConcertDates(command)
         val response = ConcertWebMapper.toDateResponses(concertDatesWithStats)
@@ -82,6 +90,10 @@ class ConcertWebAdapter(
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
+
+        validateTokenUseCase.validateActiveTokenForConcert(
+            ValidateTokenCommand(tokenId, concertId)
+        )
 
         val command = ConcertWebMapper.toGetConcertSeatsCommand(tokenId, dateId)
         val concertSeatsWithPrice = getConcertSeatsUseCase.getConcertSeats(command)

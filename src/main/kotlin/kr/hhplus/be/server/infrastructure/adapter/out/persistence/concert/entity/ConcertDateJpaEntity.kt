@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(
-    name = "concert_dates",
+    name = "concertDate",
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_concert_date_session",

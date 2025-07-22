@@ -9,7 +9,11 @@ import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.result.ActivateTokensResult
 import kr.hhplus.be.server.application.dto.queue.result.ValidateTokenResult
 import kr.hhplus.be.server.application.mapper.QueueMapper
-import kr.hhplus.be.server.application.port.`in`.queue.*
+import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
+import kr.hhplus.be.server.application.port.`in`.CompleteTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.ExpireTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.GenerateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService
