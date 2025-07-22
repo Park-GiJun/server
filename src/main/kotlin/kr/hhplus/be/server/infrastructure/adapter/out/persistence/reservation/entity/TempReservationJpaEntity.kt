@@ -1,28 +1,39 @@
-package kr.hhplus.be.server.domain.reservation
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity
 
 import jakarta.persistence.*
+import kr.hhplus.be.server.domain.reservation.TempReservation
+import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import java.time.LocalDateTime
 
-class TempReservation(
+@Entity
+@Table(name = "temp_reservation")
+class TempReservationJpaEntity(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "temp_reservation_id")
     var tempReservationId: Long = 0,
-    val userId: String,
-    val concertSeatId: Long,
-    val expiredAt: LocalDateTime,
-    val status: TempReservationStatus = TempReservationStatus.RESERVED,
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-    var isDeleted: Boolean = false,
-    var deletedAt: LocalDateTime? = null
-) {
+    @Column(name = "user_id")
+    val userId: String,
+
+    @Column(name = "concert_seat_id")
+    val concertSeatId: Long,
+
+    @Column(name = "expired_at")
+    val expiredAt: LocalDateTime,
+
+    @Column(name = "temp_reservation_status")
+    @Enumerated(EnumType.STRING)
+    val status: TempReservationStatus = TempReservationStatus.RESERVED
+) : BaseEntity() {
 
     fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiredAt)
     fun isReserved(): Boolean = status == TempReservationStatus.RESERVED
     fun isConfirmed(): Boolean = status == TempReservationStatus.CONFIRMED
 
-    fun confirm(): TempReservation {
-        return TempReservation(
+    fun confirm(): TempReservationJpaEntity {
+        return TempReservationJpaEntity(
             tempReservationId = this.tempReservationId,
             userId = this.userId,
             concertSeatId = this.concertSeatId,
@@ -31,8 +42,8 @@ class TempReservation(
         )
     }
 
-    fun expire(): TempReservation {
-        return TempReservation(
+    fun expire(): TempReservationJpaEntity {
+        return TempReservationJpaEntity(
             tempReservationId = this.tempReservationId,
             userId = this.userId,
             concertSeatId = this.concertSeatId,

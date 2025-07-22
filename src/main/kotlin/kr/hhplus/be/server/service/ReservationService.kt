@@ -2,7 +2,7 @@ package kr.hhplus.be.server.service
 
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
-import kr.hhplus.be.server.domain.reservation.TempReservation
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest

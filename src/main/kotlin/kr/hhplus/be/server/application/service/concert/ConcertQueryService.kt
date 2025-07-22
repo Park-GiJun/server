@@ -80,12 +80,12 @@ class ConcertQueryService(
         }
 
         if (concertDate.isSoldOut) {
-            throw ConcertSoldOutException("Concert date is sold out")
+            throw ConcertSoldOutException(concert.concertName)
         }
 
         val now = LocalDateTime.now()
         if (concertDate.date.isBefore(now)) {
-            throw ConcertDateExpiredException("Concert date has passed")
+            throw ConcertDateExpiredException(concertDate.date)
         }
 
         val seats = concertSeatRepository.findByConcertDateId(command.concertDateId)
