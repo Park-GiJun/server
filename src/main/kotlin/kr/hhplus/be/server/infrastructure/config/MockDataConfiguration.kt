@@ -30,7 +30,7 @@ class MockDataConfiguration {
         mockConcertSeatRepository: MockConcertSeatRepository,
     ): CommandLineRunner {
         return CommandLineRunner { args ->
-            val users = setUpInitialUsers(mockUserRepository)
+            setUpInitialUsers(mockUserRepository)
             val concerts = setUpInitialConcert(mockConcertRepository)
             setUpInitialConcertSeatGrade(mockConcertSeatGradeRepository, concerts)
             val concertDates = setUpInitialConcertDates(mockConcertDateRepository, concerts)

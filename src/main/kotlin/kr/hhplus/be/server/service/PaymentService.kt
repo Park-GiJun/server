@@ -68,7 +68,7 @@ class PaymentService(
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
             ?: throw ConcertNotFoundException("Seat not found")
 
-        val concertDate = concertSeatRepository.findConcertSeats(seat.concertDateId)
+        concertSeatRepository.findConcertSeats(seat.concertDateId)
             ?.firstOrNull()?.let {
                 seat.concertDateId
             }

@@ -138,8 +138,8 @@ class WebExceptionHandler {
         return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid reservation status")
     }
 
-    @ExceptionHandler(kr.hhplus.be.server.domain.reservation.exception.ReservationNotReservedException::class)
-    fun handleReservationNotReservedException(ex: kr.hhplus.be.server.domain.reservation.exception.ReservationNotReservedException): ResponseEntity<ApiResponse<Any>> {
+    @ExceptionHandler(ReservationNotReservedException::class)
+    fun handleReservationNotReservedException(ex: ReservationNotReservedException): ResponseEntity<ApiResponse<Any>> {
         log.warn("Reservation not in reserved status: ${ex.message}")
         return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Reservation not in reserved status")
     }

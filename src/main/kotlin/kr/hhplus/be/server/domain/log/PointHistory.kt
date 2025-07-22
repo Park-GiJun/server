@@ -28,5 +28,4 @@ class PointHistory(
 
     @Column("description")
     val description : String,
-) : BaseEntity() {
-}
+) : BaseEntity()

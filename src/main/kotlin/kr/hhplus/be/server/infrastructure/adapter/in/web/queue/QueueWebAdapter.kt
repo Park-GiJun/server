@@ -45,11 +45,10 @@ class QueueWebAdapter(
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
-    @GetMapping("/status/{tokenId}")
+    @GetMapping("/status")
     @Operation(summary = "대기열 상태 조회")
     fun getQueueStatus(
-        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<QueueStatusResponse>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
@@ -77,11 +76,10 @@ class QueueWebAdapter(
         return ResponseEntity.ok(ApiResponse.success("Activated ${result.activatedCount} tokens"))
     }
 
-    @DeleteMapping("/token/{tokenId}")
+    @DeleteMapping("/token")
     @Operation(summary = "대기열 토큰 취소")
     fun expireToken(
-        @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<String>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(

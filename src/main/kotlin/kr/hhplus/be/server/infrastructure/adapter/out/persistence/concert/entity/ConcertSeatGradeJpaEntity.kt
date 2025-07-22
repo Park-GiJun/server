@@ -24,5 +24,4 @@ class ConcertSeatGradeJpaEntity(
 
     @Column(name = "price")
     val price: Int
-) : BaseEntity() {
-}
+) : BaseEntity()

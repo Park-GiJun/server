@@ -55,7 +55,7 @@ class ConcertWebAdapter(
         @Parameter(description = "콘서트 ID", example = "1")
         @PathVariable concertId: Long,
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @RequestHeader("Queue-Token") tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
@@ -87,7 +87,7 @@ class ConcertWebAdapter(
         @Parameter(description = "콘서트 날짜 ID", example = "1")
         @PathVariable dateId: Long,
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @RequestHeader("Queue-Token") tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
