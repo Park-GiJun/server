@@ -62,7 +62,6 @@ class ConcertWebAdapter(
             ValidateTokenCommand(tokenId, concertId)
         )
 
-
         val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
         val concertDatesWithStats = getConcertDatesUseCase.getConcertDates(command)
         val response = ConcertWebMapper.toDateResponses(concertDatesWithStats)

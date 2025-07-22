@@ -1,10 +1,6 @@
 package kr.hhplus.be.server.application.port.`in`
 
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesQuery
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsQuery
-import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
-import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
-import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
+import kr.hhplus.be.server.application.dto.concert.*
 
 interface GetConcertDatesUseCase {
     fun getConcertDates(command: GetConcertDatesQuery): List<ConcertDateWithStatsResult>

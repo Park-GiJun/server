@@ -1,11 +1,7 @@
 package kr.hhplus.be.server.application.mapper
 
-import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
-import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
-import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
-import kr.hhplus.be.server.domain.concert.Concert
-import kr.hhplus.be.server.domain.concert.ConcertDate
-import kr.hhplus.be.server.domain.concert.ConcertSeat
+import kr.hhplus.be.server.application.dto.concert.*
+import kr.hhplus.be.server.domain.concert.*
 
 object ConcertMapper {
 

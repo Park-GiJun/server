@@ -8,9 +8,14 @@ import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTok
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.mapper.QueueWebMapper
-import kr.hhplus.be.server.application.port.`in`.queue.*
 import kr.hhplus.be.server.application.dto.queue.command.ActivateTokensCommand
 import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
+import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
+import kr.hhplus.be.server.application.port.`in`.ExpireTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.GenerateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.GetQueueStatusUseCase
+import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -21,7 +26,8 @@ class QueueWebAdapter(
     private val generateTokenUseCase: GenerateTokenUseCase,
     private val getQueueStatusUseCase: GetQueueStatusUseCase,
     private val activateTokensUseCase: ActivateTokensUseCase,
-    private val expireTokenUseCase: ExpireTokenUseCase
+    private val expireTokenUseCase: ExpireTokenUseCase,
+    private val validateTokenUseCase: ValidateTokenUseCase
 ) {
 
     @PostMapping("/token/{concertId}")
@@ -45,6 +51,10 @@ class QueueWebAdapter(
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable tokenId: String
     ): ResponseEntity<ApiResponse<QueueStatusResponse>> {
+
+        validateTokenUseCase.validateActiveTokenForConcert(
+            ValidateTokenCommand(tokenId)
+        )
 
         val query = QueueWebMapper.toGetQueueStatusQuery(tokenId)
         val result = getQueueStatusUseCase.getQueueStatus(query)
@@ -73,6 +83,10 @@ class QueueWebAdapter(
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable tokenId: String
     ): ResponseEntity<ApiResponse<String>> {
+
+        validateTokenUseCase.validateActiveTokenForConcert(
+            ValidateTokenCommand(tokenId)
+        )
 
         val command = ExpireTokenCommand(tokenId)
         expireTokenUseCase.expireToken(command)
