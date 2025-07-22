@@ -29,14 +29,4 @@ abstract class BaseEntity {
     @Column(name = "deleted_at")
     var deletedAt: LocalDateTime? = null
         private set
-
-    fun delete() {
-        isDeleted = true
-        deletedAt = LocalDateTime.now()
-    }
-
-    fun restore() {
-        isDeleted = false
-        deletedAt = null
-    }
 }

@@ -23,10 +23,6 @@ class MockQueueTokenRepository {
         return queueTokens[tokenId]
     }
 
-    fun findByQueueToken(queueToken: String): QueueToken? {
-        return queueTokens[queueToken]
-    }
-
     fun findByUserIdAndConcertId(userId: String, concertId: Long): QueueToken? {
         return queueTokens.values.find {
             it.userId == userId && it.concertId == concertId
@@ -55,14 +51,6 @@ class MockQueueTokenRepository {
         }
     }
 
-    fun updateTokenStatus(tokenId: String, status: QueueTokenStatus): QueueToken? {
-        val token = queueTokens[tokenId] ?: return null
-        token.tokenStatus = status
-        queueTokens[tokenId] = token
-        log.info("Updated token status: tokenId=$tokenId, status=$status")
-        return token
-    }
-
     fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
         val waitingTokens = findWaitingTokensByConcertIdOrderByEnteredAt(concertId)
             .take(count)
@@ -73,21 +61,5 @@ class MockQueueTokenRepository {
             log.info("Activated token: tokenId=${token.queueTokenId}, userId=${token.userId}")
             token
         }
-    }
-
-    fun findAll(): List<QueueToken> {
-        return queueTokens.values.toList()
-    }
-
-    fun deleteByQueueToken(queueToken: String): Boolean {
-        return queueTokens.remove(queueToken) != null
-    }
-
-    fun deleteByTokenId(tokenId: String): Boolean {
-        return queueTokens.remove(tokenId) != null
-    }
-
-    fun clear() {
-        queueTokens.clear()
     }
 }

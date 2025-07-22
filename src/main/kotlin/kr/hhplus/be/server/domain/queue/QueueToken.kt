@@ -50,20 +50,6 @@ class QueueToken(
         )
     }
 
-    fun cancel(): QueueToken {
-        return QueueToken(
-            queueTokenId = this.queueTokenId,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.CANCELLED,
-            enteredAt = this.enteredAt,
-            createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(),
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
-    }
-
     fun complete(): QueueToken {
         return QueueToken(
             queueTokenId = this.queueTokenId,

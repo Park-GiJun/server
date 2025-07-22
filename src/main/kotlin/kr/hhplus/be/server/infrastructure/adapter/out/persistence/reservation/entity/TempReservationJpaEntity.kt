@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity
 
 import jakarta.persistence.*
-import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import java.time.LocalDateTime
