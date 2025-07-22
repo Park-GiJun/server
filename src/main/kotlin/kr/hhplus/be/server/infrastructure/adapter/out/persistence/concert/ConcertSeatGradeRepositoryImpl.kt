@@ -2,7 +2,6 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert
 
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.MockConcertSeatGradeRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatGradeRepository
 import org.springframework.stereotype.Repository
 
