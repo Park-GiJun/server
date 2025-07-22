@@ -21,9 +21,17 @@ class ConcertFacade(
         return getConcertListUseCase.getConcertList()
     }
 
+    fun getConcertDates(command: GetConcertDatesCommand): List<ConcertDateWithStatsResult> {
+        return getConcertDatesUseCase.getConcertDates(command)
+    }
+
     fun getConcertDates(tokenId: String, concertId: Long): List<ConcertDateWithStatsResult> {
         val command = GetConcertDatesCommand(tokenId, concertId)
         return getConcertDatesUseCase.getConcertDates(command)
+    }
+
+    fun getConcertSeats(command: GetConcertSeatsCommand): List<ConcertSeatWithPriceResult> {
+        return getConcertSeatsUseCase.getConcertSeats(command)
     }
 
     fun getConcertSeats(tokenId: String, concertDateId: Long): List<ConcertSeatWithPriceResult> {

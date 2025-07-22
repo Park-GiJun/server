@@ -8,6 +8,7 @@ import kr.hhplus.be.server.application.dto.queue.command.GenerateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.result.ActivateTokensResult
 import kr.hhplus.be.server.application.dto.queue.result.ValidateTokenResult
+import kr.hhplus.be.server.application.mapper.QueueMapper
 import kr.hhplus.be.server.application.port.`in`.queue.*
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
@@ -58,12 +59,7 @@ class QueueCommandService(
 
         val validatedToken = queueDomainService.validateActiveToken(token)
 
-        return ValidateTokenResult(
-            tokenId = validatedToken.queueTokenId,
-            userId = validatedToken.userId,
-            concertId = validatedToken.concertId,
-            isValid = true
-        )
+        return QueueMapper.toValidateResult(validatedToken, true)
     }
 
     override fun validateActiveTokenForConcert(command: ValidateTokenCommand): ValidateTokenResult {

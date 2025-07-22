@@ -46,33 +46,4 @@ class UserJpaJpaEntity(
             deletedAt = this.deletedAt
         )
     }
-
-    fun updateFromDomain(domain: User) {
-        this.totalPoint = domain.totalPoint
-        this.availablePoint = domain.availablePoint
-        this.usedPoint = domain.usedPoint
-        if (domain.isDeleted && !this.isDeleted) {
-            this.delete()
-        } else if (!domain.isDeleted && this.isDeleted) {
-            this.restore()
-        }
-    }
-
-    companion object {
-        fun fromDomain(domain: User): UserJpaJpaEntity {
-            val entity = UserJpaJpaEntity(
-                userId = domain.userId,
-                userName = domain.userName,
-                totalPoint = domain.totalPoint,
-                availablePoint = domain.availablePoint,
-                usedPoint = domain.usedPoint
-            )
-
-            if (domain.isDeleted) {
-                entity.delete()
-            }
-
-            return entity
-        }
-    }
 }

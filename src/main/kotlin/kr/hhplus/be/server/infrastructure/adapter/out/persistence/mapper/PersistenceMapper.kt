@@ -10,7 +10,7 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDateJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatGradeJpaEntity
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.entity.UserJpaJpaEntity
 
 object PersistenceMapper {
@@ -127,7 +127,7 @@ object PersistenceMapper {
         )
     }
 
-    fun toQueueTokenDomain(entity: QueueTokenJpaJpaEntity): QueueToken {
+    fun toQueueTokenDomain(entity: QueueTokenJpaEntity): QueueToken {
         return QueueToken(
             queueTokenId = entity.queueTokenId,
             userId = entity.userId,
@@ -141,8 +141,8 @@ object PersistenceMapper {
         )
     }
 
-    fun toQueueTokenEntity(domain: QueueToken): QueueTokenJpaJpaEntity {
-        return QueueTokenJpaJpaEntity(
+    fun toQueueTokenEntity(domain: QueueToken): QueueTokenJpaEntity {
+        return QueueTokenJpaEntity(
             queueTokenId = domain.queueTokenId,
             userId = domain.userId,
             concertId = domain.concertId,

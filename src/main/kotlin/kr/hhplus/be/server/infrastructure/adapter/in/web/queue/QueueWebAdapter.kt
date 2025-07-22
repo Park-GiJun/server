@@ -7,6 +7,7 @@ import kr.hhplus.be.server.dto.common.ApiResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.mapper.QueueWebMapper
 import kr.hhplus.be.server.interfaces.facade.QueueFacade
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -26,8 +27,9 @@ class QueueWebAdapter(
         @RequestBody request: GenerateTokenRequest
     ): ResponseEntity<ApiResponse<GenerateTokenResponse>> {
 
-        val tokenId = queueFacade.generateToken(request.userId, concertId)
-        val response = GenerateTokenResponse(tokenId, "Queue token generated successfully")
+        val command = QueueWebMapper.toGenerateTokenCommand(request, concertId)
+        val tokenId = queueFacade.generateToken(command)
+        val response = QueueWebMapper.toGenerateTokenResponse(tokenId)
 
         return ResponseEntity.ok(ApiResponse.success(response))
     }
@@ -39,11 +41,9 @@ class QueueWebAdapter(
         @PathVariable tokenId: String
     ): ResponseEntity<ApiResponse<QueueStatusResponse>> {
 
-        val result = queueFacade.getQueueStatus(tokenId)
-        val response = QueueStatusResponse(
-            result.tokenId, result.userId, result.concertId,
-            result.status, result.position
-        )
+        val query = QueueWebMapper.toGetQueueStatusQuery(tokenId)
+        val result = queueFacade.getQueueStatus(query)
+        val response = QueueWebMapper.toStatusResponse(result)
 
         return ResponseEntity.ok(ApiResponse.success(response))
     }

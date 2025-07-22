@@ -51,7 +51,8 @@ class ConcertWebAdapter(
         @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
-        val concertDatesWithStats = concertFacade.getConcertDates(tokenId, concertId)
+        val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
+        val concertDatesWithStats = concertFacade.getConcertDates(command)
         val response = ConcertWebMapper.toDateResponses(concertDatesWithStats)
 
         val apiResponse = ApiResponse(
@@ -78,7 +79,8 @@ class ConcertWebAdapter(
         @RequestHeader("Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
-        val concertSeatsWithPrice = concertFacade.getConcertSeats(tokenId, dateId)
+        val command = ConcertWebMapper.toGetConcertSeatsCommand(tokenId, dateId)
+        val concertSeatsWithPrice = concertFacade.getConcertSeats(command)
         val response = ConcertWebMapper.toSeatResponses(concertSeatsWithPrice)
 
         val apiResponse = ApiResponse(

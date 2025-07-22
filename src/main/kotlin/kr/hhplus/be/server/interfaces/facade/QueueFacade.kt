@@ -18,17 +18,14 @@ class QueueFacade(
     private val getQueueStatusUseCase: GetQueueStatusUseCase,
     private val validateTokenUseCase: ValidateTokenUseCase,
     private val expireTokenUseCase: ExpireTokenUseCase,
-    private val completeTokenUseCase: CompleteTokenUseCase,
     private val activateTokensUseCase: ActivateTokensUseCase
 ) {
 
-    fun generateToken(userId: String, concertId: Long): String {
-        val command = GenerateTokenCommand(userId, concertId)
+    fun generateToken(command: GenerateTokenCommand): String {
         return generateTokenUseCase.generateToken(command)
     }
 
-    fun getQueueStatus(tokenId: String): QueueStatusResult {
-        val query = GetQueueStatusQuery(tokenId)
+    fun getQueueStatus(query: GetQueueStatusQuery): QueueStatusResult {
         return getQueueStatusUseCase.getQueueStatus(query)
     }
 
@@ -45,11 +42,6 @@ class QueueFacade(
     fun expireToken(tokenId: String): Boolean {
         val command = ExpireTokenCommand(tokenId)
         return expireTokenUseCase.expireToken(command)
-    }
-
-    fun completeToken(tokenId: String): Boolean {
-        val command = CompleteTokenCommand(tokenId)
-        return completeTokenUseCase.completeToken(command)
     }
 
     fun activateNextTokens(concertId: Long, count: Int = 10): ActivateTokensResult {

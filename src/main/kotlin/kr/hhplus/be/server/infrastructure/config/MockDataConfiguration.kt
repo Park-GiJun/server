@@ -10,7 +10,7 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.Moc
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock.MockUserRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertDateRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.MockConcertSeatGradeRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatGradeRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
