@@ -3,14 +3,14 @@ package kr.hhplus.be.server.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.dto.PointChargeRequest
-import kr.hhplus.be.server.dto.PointResponse
-import kr.hhplus.be.server.dto.PointUseRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.point.dto.PointChargeRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.point.dto.PointResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.point.dto.PointUseRequest
 import kr.hhplus.be.server.service.PointService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import kr.hhplus.be.server.dto.common.ApiResponse as CommonApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse as CommonApiResponse
 
 @RestController
 @RequestMapping("/points")

@@ -3,12 +3,14 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.dto.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.mapper.QueueWebMapper
-import kr.hhplus.be.server.interfaces.facade.QueueFacade
+import kr.hhplus.be.server.application.port.`in`.queue.*
+import kr.hhplus.be.server.application.dto.queue.command.ActivateTokensCommand
+import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -16,7 +18,10 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/queue")
 @Tag(name = "대기열", description = "대기열 토큰 관리 API")
 class QueueWebAdapter(
-    private val queueFacade: QueueFacade
+    private val generateTokenUseCase: GenerateTokenUseCase,
+    private val getQueueStatusUseCase: GetQueueStatusUseCase,
+    private val activateTokensUseCase: ActivateTokensUseCase,
+    private val expireTokenUseCase: ExpireTokenUseCase
 ) {
 
     @PostMapping("/token/{concertId}")
@@ -28,7 +33,7 @@ class QueueWebAdapter(
     ): ResponseEntity<ApiResponse<GenerateTokenResponse>> {
 
         val command = QueueWebMapper.toGenerateTokenCommand(request, concertId)
-        val tokenId = queueFacade.generateToken(command)
+        val tokenId = generateTokenUseCase.generateToken(command)
         val response = QueueWebMapper.toGenerateTokenResponse(tokenId)
 
         return ResponseEntity.ok(ApiResponse.success(response))
@@ -42,7 +47,7 @@ class QueueWebAdapter(
     ): ResponseEntity<ApiResponse<QueueStatusResponse>> {
 
         val query = QueueWebMapper.toGetQueueStatusQuery(tokenId)
-        val result = queueFacade.getQueueStatus(query)
+        val result = getQueueStatusUseCase.getQueueStatus(query)
         val response = QueueWebMapper.toStatusResponse(result)
 
         return ResponseEntity.ok(ApiResponse.success(response))
@@ -57,7 +62,8 @@ class QueueWebAdapter(
         @RequestParam(defaultValue = "10") count: Int
     ): ResponseEntity<ApiResponse<String>> {
 
-        val result = queueFacade.activateNextTokens(concertId, count)
+        val command = ActivateTokensCommand(concertId, count)
+        val result = activateTokensUseCase.activateTokens(command)
         return ResponseEntity.ok(ApiResponse.success("Activated ${result.activatedCount} tokens"))
     }
 
@@ -68,7 +74,8 @@ class QueueWebAdapter(
         @PathVariable tokenId: String
     ): ResponseEntity<ApiResponse<String>> {
 
-        queueFacade.expireToken(tokenId)
+        val command = ExpireTokenCommand(tokenId)
+        expireTokenUseCase.expireToken(command)
         return ResponseEntity.ok(ApiResponse.success("Token expired successfully"))
     }
 }

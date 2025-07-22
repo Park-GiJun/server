@@ -1,17 +1,21 @@
 package kr.hhplus.be.server.service
 
-import kr.hhplus.be.server.domain.reservation.Reservation
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
-import kr.hhplus.be.server.dto.ReservationCancelRequest
-import kr.hhplus.be.server.dto.ReservationConfirmRequest
-import kr.hhplus.be.server.dto.TempReservationRequest
-import kr.hhplus.be.server.exception.*
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.TempReservationRequest
+import kr.hhplus.be.server.domain.concert.exception.*
+import kr.hhplus.be.server.domain.queue.exception.*
+import kr.hhplus.be.server.domain.reservation.exception.*
+import kr.hhplus.be.server.domain.users.exception.*
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatRepository
-import kr.hhplus.be.server.repository.mock.MockReservationRepository
-import kr.hhplus.be.server.repository.mock.MockTempReservationRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock.MockReservationRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock.MockTempReservationRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock.MockUserRepository
+import kr.hhplus.be.server.interfaces.facade.QueueFacade
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -23,7 +27,7 @@ class ReservationService(
     private val reservationRepository: MockReservationRepository,
     private val concertSeatRepository: MockConcertSeatRepository,
     private val userRepository: MockUserRepository,
-    private val queueService: QueueService
+    private val queueService: QueueFacade
 ) {
 
     fun createTempReservation(tokenId: String, request: TempReservationRequest): TempReservation {
@@ -36,7 +40,7 @@ class ReservationService(
         }
 
         val seat = concertSeatRepository.findByConcertSeatId(request.concertSeatId)
-            ?: throw ConcertNotFoundException("Concert seat not found: ${request.concertSeatId}")
+            ?: throw ConcertNotFoundException(request.concertSeatId)
 
         if (!seat.isAvailable()) {
             throw SeatAlreadyBookedException("Seat is already booked")
@@ -67,14 +71,14 @@ class ReservationService(
         val token = queueService.validateActiveToken(tokenId)
 
         val tempReservation = tempReservationRepository.findByTempReservationId(request.tempReservationId)
-            ?: throw QueueTokenNotFoundException("Temporary reservation not found: ${request.tempReservationId}")
+            ?: throw TempReservationNotFoundException(request.tempReservationId)
 
         if (tempReservation.isExpired()) {
-            throw ConcertDateExpiredException("Temporary reservation has expired")
+            throw ReservationExpiredException(request.tempReservationId)
         }
 
         if (!tempReservation.isReserved()) {
-            throw InvalidTokenStatusException("Invalid temporary reservation status: ${tempReservation.status}")
+            throw InvalidReservationStatusException(tempReservation.status, TempReservationStatus.RESERVED)
         }
 
         if (tempReservation.userId != token.userId) {
@@ -82,10 +86,10 @@ class ReservationService(
         }
 
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
-            ?: throw ConcertNotFoundException("Concert seat not found: ${tempReservation.concertSeatId}")
+            ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
 
         if (request.paymentAmount <= 0) {
-            throw InvalidateAmountException("Invalid payment amount: ${request.paymentAmount}")
+            throw InvalidPaymentAmountException(request.paymentAmount)
         }
 
         val reservation = Reservation(

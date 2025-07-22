@@ -8,7 +8,7 @@ import kr.hhplus.be.server.domain.payment.exception.*
 import kr.hhplus.be.server.domain.users.exception.InsufficientPointException
 import kr.hhplus.be.server.domain.users.exception.InvalidPointAmountException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
-import kr.hhplus.be.server.dto.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -58,6 +58,12 @@ class WebExceptionHandler {
     fun handleInvalidPointAmountException(ex: InvalidPointAmountException): ResponseEntity<ApiResponse<Any>> {
         log.warn("Invalid point amount: ${ex.message}")
         return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid point amount")
+    }
+
+    @ExceptionHandler(kr.hhplus.be.server.domain.users.exception.InvalidAmountException::class)
+    fun handleInvalidAmountException(ex: kr.hhplus.be.server.domain.users.exception.InvalidAmountException): ResponseEntity<ApiResponse<Any>> {
+        log.warn("Invalid amount: ${ex.message}")
+        return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid amount")
     }
 
     // ======== Queue Domain Exceptions ========
@@ -130,6 +136,12 @@ class WebExceptionHandler {
     fun handleInvalidReservationStatusException(ex: InvalidReservationStatusException): ResponseEntity<ApiResponse<Any>> {
         log.warn("Invalid reservation status: ${ex.message}")
         return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Invalid reservation status")
+    }
+
+    @ExceptionHandler(kr.hhplus.be.server.domain.reservation.exception.ReservationNotReservedException::class)
+    fun handleReservationNotReservedException(ex: kr.hhplus.be.server.domain.reservation.exception.ReservationNotReservedException): ResponseEntity<ApiResponse<Any>> {
+        log.warn("Reservation not in reserved status: ${ex.message}")
+        return createErrorResponse(HttpStatus.BAD_REQUEST, ex.message ?: "Reservation not in reserved status")
     }
 
     // ======== Payment Domain Exceptions ========

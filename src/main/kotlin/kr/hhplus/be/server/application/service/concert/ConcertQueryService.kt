@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.service.concert
 
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesCommand
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsCommand
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesQuery
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsQuery
 import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
@@ -38,7 +38,7 @@ class ConcertQueryService(
         return ConcertMapper.toResults(concerts)
     }
 
-    override fun getConcertDates(command: GetConcertDatesCommand): List<ConcertDateWithStatsResult> {
+    override fun getConcertDates(command: GetConcertDatesQuery): List<ConcertDateWithStatsResult> {
         validateTokenUseCase.validateActiveTokenForConcert(
             ValidateTokenCommand(command.tokenId, command.concertId)
         )
@@ -62,7 +62,7 @@ class ConcertQueryService(
         }
     }
 
-    override fun getConcertSeats(command: GetConcertSeatsCommand): List<ConcertSeatWithPriceResult> {
+    override fun getConcertSeats(command: GetConcertSeatsQuery): List<ConcertSeatWithPriceResult> {
         val token = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )

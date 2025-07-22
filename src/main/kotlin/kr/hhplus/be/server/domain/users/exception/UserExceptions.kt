@@ -10,3 +10,6 @@ class InsufficientPointException(required: Int, available: Int) :
 
 class InvalidPointAmountException(amount: Int) :
     BusinessRuleViolationException("Point amount must be positive. Given: $amount")
+
+class InvalidAmountException(amount: Int) :
+    BusinessRuleViolationException("Invalid amount: $amount")

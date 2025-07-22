@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.repository.mock
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.mock
 
 import kr.hhplus.be.server.domain.log.PointHistory
 import org.slf4j.LoggerFactory

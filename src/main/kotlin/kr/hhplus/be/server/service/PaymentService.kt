@@ -1,12 +1,21 @@
 package kr.hhplus.be.server.service
 
 import kr.hhplus.be.server.domain.log.PointHistory
-import kr.hhplus.be.server.domain.payment.Payment
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.entity.Payment
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
-import kr.hhplus.be.server.dto.PaymentRequest
-import kr.hhplus.be.server.exception.*
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.MockConcertSeatGradeRepository
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.payment.dto.PaymentRequest
+import kr.hhplus.be.server.domain.concert.exception.*
+import kr.hhplus.be.server.domain.queue.exception.*
+import kr.hhplus.be.server.domain.reservation.exception.*
+import kr.hhplus.be.server.domain.users.exception.*
+import kr.hhplus.be.server.domain.payment.exception.*
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatGradeRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock.MockConcertSeatRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.mock.MockPointHistoryRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.mock.MockPaymentRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.Reservation
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock.MockReservationRepository
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock.MockTempReservationRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock.MockUserRepository
 import kr.hhplus.be.server.repository.mock.*
 import org.slf4j.LoggerFactory
@@ -100,7 +109,7 @@ class PaymentService(
         val soldSeat = seat.sell()
         concertSeatRepository.save(soldSeat)
 
-        val reservation = kr.hhplus.be.server.domain.reservation.Reservation(
+        val reservation = Reservation(
             reservationId = 0L,
             userId = token.userId,
             concertDateId = seat.concertDateId,

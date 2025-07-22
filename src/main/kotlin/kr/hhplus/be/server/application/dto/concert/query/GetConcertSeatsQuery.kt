@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.dto.concert.query
 
-data class GetConcertSeatsCommand(
+data class GetConcertSeatsQuery(
     val tokenId: String,
     val concertDateId: Long
 )

@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper
 
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesCommand
-import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsCommand
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesQuery
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsQuery
 import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
 import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
@@ -11,15 +11,15 @@ import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSe
 
 object ConcertWebMapper {
 
-    fun toGetConcertDatesCommand(tokenId: String, concertId: Long): GetConcertDatesCommand {
-        return GetConcertDatesCommand(
+    fun toGetConcertDatesCommand(tokenId: String, concertId: Long): GetConcertDatesQuery {
+        return GetConcertDatesQuery(
             tokenId = tokenId,
             concertId = concertId
         )
     }
 
-    fun toGetConcertSeatsCommand(tokenId: String, concertDateId: Long): GetConcertSeatsCommand {
-        return GetConcertSeatsCommand(
+    fun toGetConcertSeatsCommand(tokenId: String, concertDateId: Long): GetConcertSeatsQuery {
+        return GetConcertSeatsQuery(
             tokenId = tokenId,
             concertDateId = concertDateId
         )

@@ -2,8 +2,8 @@ package kr.hhplus.be.server.service
 
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.domain.users.User
-import kr.hhplus.be.server.exception.InvalidateAmountException
-import kr.hhplus.be.server.exception.UserNotFoundException
+import kr.hhplus.be.server.domain.users.exception.InvalidAmountException
+import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock.MockUserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -47,6 +47,6 @@ class PointService(private val userRepository: MockUserRepository) {
     }
 
     private fun validatePoint(point: Int) : Boolean{
-        return if(point>0) true else throw InvalidateAmountException("Point must be Positive $point")
+        return if(point>0) true else throw InvalidAmountException(point)
     }
 }

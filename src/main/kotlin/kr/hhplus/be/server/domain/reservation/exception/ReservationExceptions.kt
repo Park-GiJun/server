@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.reservation.exception
 
 import kr.hhplus.be.server.domain.common.exception.EntityNotFoundException
 import kr.hhplus.be.server.domain.common.exception.EntityStateException
+import kr.hhplus.be.server.domain.common.exception.BusinessRuleViolationException
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 
 class TempReservationNotFoundException(reservationId: Long) :
@@ -14,3 +15,6 @@ class InvalidReservationStatusException(
     currentStatus: TempReservationStatus,
     expectedStatus: TempReservationStatus
 ) : EntityStateException("Reservation status is $currentStatus, but $expectedStatus is expected")
+
+class ReservationNotReservedException(message: String) :
+    EntityStateException(message)

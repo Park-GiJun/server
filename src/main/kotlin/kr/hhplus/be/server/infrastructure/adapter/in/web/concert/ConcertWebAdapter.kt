@@ -7,8 +7,10 @@ import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDa
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper.ConcertWebMapper
-import kr.hhplus.be.server.dto.common.ApiResponse
-import kr.hhplus.be.server.interfaces.facade.ConcertFacade
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -17,7 +19,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/concerts")
 @Tag(name = "콘서트", description = "콘서트 정보 조회 API")
 class ConcertWebAdapter(
-    private val concertFacade: ConcertFacade
+    private val getConcertListUseCase: GetConcertListUseCase,
+    private val getConcertDatesUseCase: GetConcertDatesUseCase,
+    private val getConcertSeatsUseCase: GetConcertSeatsUseCase
 ) {
 
     @GetMapping
@@ -26,7 +30,7 @@ class ConcertWebAdapter(
         description = "등록된 모든 콘서트의 기본 정보를 조회합니다. 대기열 토큰이 필요하지 않습니다."
     )
     fun getConcertList(): ResponseEntity<ApiResponse<List<ConcertResponse>>> {
-        val concerts = concertFacade.getConcertList()
+        val concerts = getConcertListUseCase.getConcertList()
         val response = ConcertWebMapper.toResponses(concerts)
 
         val apiResponse = ApiResponse(
@@ -52,7 +56,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
         val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
-        val concertDatesWithStats = concertFacade.getConcertDates(command)
+        val concertDatesWithStats = getConcertDatesUseCase.getConcertDates(command)
         val response = ConcertWebMapper.toDateResponses(concertDatesWithStats)
 
         val apiResponse = ApiResponse(
@@ -80,7 +84,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
         val command = ConcertWebMapper.toGetConcertSeatsCommand(tokenId, dateId)
-        val concertSeatsWithPrice = concertFacade.getConcertSeats(command)
+        val concertSeatsWithPrice = getConcertSeatsUseCase.getConcertSeats(command)
         val response = ConcertWebMapper.toSeatResponses(concertSeatsWithPrice)
 
         val apiResponse = ApiResponse(

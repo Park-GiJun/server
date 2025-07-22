@@ -3,9 +3,9 @@ package kr.hhplus.be.server.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.dto.PaymentRequest
-import kr.hhplus.be.server.dto.PaymentResponse
-import kr.hhplus.be.server.dto.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.payment.dto.PaymentRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.payment.dto.PaymentResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import kr.hhplus.be.server.service.PaymentService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

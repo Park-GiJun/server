@@ -1,5 +1,5 @@
 package kr.hhplus.be.server.application.dto.concert.query
 
-data class GetConcertCommand (
+data class GetConcertQuery (
     val concertId: Long
 )

@@ -4,12 +4,14 @@ import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.domain.concert.ConcertDate
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
+import kr.hhplus.be.server.domain.payment.Payment
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertDateJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatGradeJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.entity.PaymentJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.entity.UserJpaJpaEntity
 
@@ -148,6 +150,21 @@ object PersistenceMapper {
             concertId = domain.concertId,
             tokenStatus = domain.tokenStatus,
             enteredAt = domain.enteredAt
+        )
+    }
+
+    fun toPaymentEntity(domain: Payment) : PaymentJpaEntity {
+        return PaymentJpaEntity(
+            paymentId = domain.paymentId,
+            reservationId = domain.reservationId,
+            userId = domain.userId,
+            totalAmount = domain.totalAmount,
+            discountAmount = domain.discountAmount,
+            actualAmount = domain.actualAmount,
+            paymentAt = domain.paymentAt,
+            isCancel = domain.isCancel,
+            isRefund = domain.isRefund,
+            cancelAt = domain.cancelAt
         )
     }
 }

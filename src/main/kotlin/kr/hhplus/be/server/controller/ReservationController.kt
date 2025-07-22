@@ -4,11 +4,17 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.hhplus.be.server.dto.*
-import kr.hhplus.be.server.dto.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.TempReservationRequest
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.TempReservationResponse
 import kr.hhplus.be.server.service.ReservationService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/reservations")
@@ -68,7 +74,7 @@ class ReservationController(
             seatId = reservation.seatId,
             reservationStatus = reservation.reservationStatus,
             paymentAmount = reservation.paymentAmount,
-            reservationAt = java.time.LocalDateTime.now()
+            reservationAt = LocalDateTime.now()
         )
 
         val apiResponse = ApiResponse(

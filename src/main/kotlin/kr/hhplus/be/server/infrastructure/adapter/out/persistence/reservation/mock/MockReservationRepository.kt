@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.repository.mock
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock
 
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock.MockQueueTokenRepository
