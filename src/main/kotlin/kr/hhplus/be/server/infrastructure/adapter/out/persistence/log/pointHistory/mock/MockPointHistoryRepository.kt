@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.mock
 
-import kr.hhplus.be.server.domain.log.PointHistoryJpaEntity
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.entity.PointHistoryJpaEntity
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
@@ -30,4 +30,7 @@ class MockPointHistoryRepository {
         return newPointHistoryJpaEntity
     }
 
+    fun findByUserId(userId: String): List<PointHistoryJpaEntity> {
+        return pointHistories.values
+            .filter { it.userId == userId }}
 }
