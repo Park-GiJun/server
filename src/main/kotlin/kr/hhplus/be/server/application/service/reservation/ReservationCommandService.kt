@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.application.service.reservation
 
-import kr.hhplus.be.server.application.dto.queue.command.CompleteTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.reservation.CancelReservationCommand
 import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationCommand
 import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
