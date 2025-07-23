@@ -2,7 +2,7 @@ package kr.hhplus.be.server.domain.log
 
 import java.time.LocalDateTime
 
-class PointHistoryJpaEntity(
+class PointHistory(
     val pointHistoryId : Long,
     val userId : String,
     val pointHistoryType : String,
