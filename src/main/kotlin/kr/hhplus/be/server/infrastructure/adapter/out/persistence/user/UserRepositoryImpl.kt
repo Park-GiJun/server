@@ -13,4 +13,8 @@ class UserRepositoryImpl(
     override fun findByUserId(userId: String): User? {
         return mockUserRepository.findByUserId(userId)
     }
+
+    override fun save(user: User): User {
+        return mockUserRepository.save(user)
+    }
 }
