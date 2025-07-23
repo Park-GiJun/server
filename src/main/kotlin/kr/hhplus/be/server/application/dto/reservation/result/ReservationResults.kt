@@ -4,7 +4,7 @@ import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import java.time.LocalDateTime
 
-data class CancelReservationResult(
+data class TempReservationResult(
     val tempReservationId: Long,
     val userId: String,
     val concertSeatId: Long,
@@ -22,7 +22,7 @@ data class ConfirmTempReservationResult(
     val reservationAt: LocalDateTime
 )
 
-data class TempReservationResult(
+data class CancelReservationResult(
     val tempReservationId: Long,
     val userId: String,
     val concertSeatId: Long,

@@ -1,26 +1,32 @@
-package kr.hhplus.be.server.controller
+package kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.dto.*
+import kr.hhplus.be.server.application.dto.reservation.command.CancelReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.command.ConfirmTempReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.command.TempReservationCommand
+import kr.hhplus.be.server.application.port.`in`.CancelReservationUseCase
+import kr.hhplus.be.server.application.port.`in`.ConfirmTempReservationUseCase
+import kr.hhplus.be.server.application.port.`in`.TempReservationUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.TempReservationRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.TempReservationResponse
-import kr.hhplus.be.server.service.ReservationService
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.mapper.ReservationWebMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/reservations")
 @Tag(name = "예약", description = "콘서트 좌석 예약 관리 API")
-class ReservationController(
-    private val reservationService: ReservationService
+class ReservationWebAdapter(
+    private val tempReservationUseCase: TempReservationUseCase,
+    private val confirmTempReservationUseCase: ConfirmTempReservationUseCase,
+    private val cancelReservationUseCase: CancelReservationUseCase
 ) {
 
     @PostMapping("/temp")
@@ -31,18 +37,12 @@ class ReservationController(
     fun createTempReservation(
         @RequestBody request: TempReservationRequest,
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @RequestHeader("Queue-Token") tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<TempReservationResponse>> {
 
-        val tempReservation = reservationService.createTempReservation(tokenId, request)
-
-        val response = TempReservationResponse(
-            tempReservationId = tempReservation.tempReservationId,
-            userId = tempReservation.userId,
-            concertSeatId = tempReservation.concertSeatId,
-            expiredAt = tempReservation.expiredAt,
-            status = tempReservation.status
-        )
+        val command = ReservationWebMapper.toTempReservationCommand(request, tokenId)
+        val result = tempReservationUseCase.tempReservation(command)
+        val response = ReservationWebMapper.toTempReservationResponse(result)
 
         val apiResponse = ApiResponse(
             success = true,
@@ -62,20 +62,12 @@ class ReservationController(
     fun confirmReservation(
         @RequestBody request: ReservationConfirmRequest,
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @RequestHeader("Queue-Token") tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<ReservationResponse>> {
 
-        val reservation = reservationService.confirmReservation(tokenId, request)
-
-        val response = ReservationResponse(
-            reservationId = reservation.reservationId,
-            userId = reservation.userId,
-            concertDateId = reservation.concertDateId,
-            seatId = reservation.seatId,
-            reservationStatus = reservation.reservationStatus,
-            paymentAmount = reservation.paymentAmount,
-            reservationAt = LocalDateTime.now()
-        )
+        val command = ReservationWebMapper.toConfirmTempReservationCommand(request, tokenId)
+        val result = confirmTempReservationUseCase.confirmTempReservation(command)
+        val response = ReservationWebMapper.toReservationResponse(result)
 
         val apiResponse = ApiResponse(
             success = true,
@@ -95,18 +87,12 @@ class ReservationController(
     fun cancelReservation(
         @RequestBody request: ReservationCancelRequest,
         @Parameter(description = "대기열 토큰 ID", example = "550e8400-e29b-41d4-a716-446655440000")
-        @RequestHeader("Queue-Token") tokenId: String
+        @RequestHeader("X-Queue-Token") tokenId: String
     ): ResponseEntity<ApiResponse<TempReservationResponse>> {
 
-        val canceledTempReservation = reservationService.cancelReservation(tokenId, request)
-
-        val response = TempReservationResponse(
-            tempReservationId = canceledTempReservation.tempReservationId,
-            userId = canceledTempReservation.userId,
-            concertSeatId = canceledTempReservation.concertSeatId,
-            expiredAt = canceledTempReservation.expiredAt,
-            status = canceledTempReservation.status
-        )
+        val command = ReservationWebMapper.toCancelReservationCommand(request, tokenId)
+        val result = cancelReservationUseCase.cancelReservation(command)
+        val response = ReservationWebMapper.toTempReservationResponseFromCancel(result)
 
         val apiResponse = ApiResponse(
             success = true,
