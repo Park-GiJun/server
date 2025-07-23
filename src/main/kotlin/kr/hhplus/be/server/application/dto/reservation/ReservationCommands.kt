@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.dto.reservation.command
+package kr.hhplus.be.server.application.dto.reservation
 
 data class TempReservationCommand(
     val tokenId: String,

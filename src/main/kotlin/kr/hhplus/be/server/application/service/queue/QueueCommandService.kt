@@ -1,13 +1,13 @@
 package kr.hhplus.be.server.application.service.queue
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.application.dto.queue.command.ActivateTokensCommand
-import kr.hhplus.be.server.application.dto.queue.command.CompleteTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.GenerateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.result.ActivateTokensResult
-import kr.hhplus.be.server.application.dto.queue.result.ValidateTokenResult
+import kr.hhplus.be.server.application.dto.queue.ActivateTokensCommand
+import kr.hhplus.be.server.application.dto.queue.ActivateTokensResult
+import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
+import kr.hhplus.be.server.application.dto.queue.GenerateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 import kr.hhplus.be.server.application.mapper.QueueMapper
 import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
 import kr.hhplus.be.server.application.port.`in`.CompleteTokenUseCase

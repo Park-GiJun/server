@@ -3,9 +3,6 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.dto.reservation.command.CancelReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.command.ConfirmTempReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.command.TempReservationCommand
 import kr.hhplus.be.server.application.port.`in`.CancelReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.ConfirmTempReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.TempReservationUseCase

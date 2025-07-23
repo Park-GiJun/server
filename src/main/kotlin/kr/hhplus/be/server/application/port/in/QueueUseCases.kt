@@ -1,14 +1,14 @@
 package kr.hhplus.be.server.application.port.`in`
 
-import kr.hhplus.be.server.application.dto.queue.command.ActivateTokensCommand
-import kr.hhplus.be.server.application.dto.queue.command.CompleteTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ExpireTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.GenerateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.command.ValidateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.query.GetQueueStatusQuery
-import kr.hhplus.be.server.application.dto.queue.result.ActivateTokensResult
-import kr.hhplus.be.server.application.dto.queue.result.QueueStatusResult
-import kr.hhplus.be.server.application.dto.queue.result.ValidateTokenResult
+import kr.hhplus.be.server.application.dto.queue.ActivateTokensCommand
+import kr.hhplus.be.server.application.dto.queue.ActivateTokensResult
+import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
+import kr.hhplus.be.server.application.dto.queue.GenerateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
+import kr.hhplus.be.server.application.dto.queue.QueueStatusResult
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 
 interface ActivateTokensUseCase {
     fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult

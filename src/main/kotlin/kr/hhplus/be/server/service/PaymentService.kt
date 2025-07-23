@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.service
 
-import kr.hhplus.be.server.domain.log.PointHistory
+import kr.hhplus.be.server.domain.log.PointHistoryJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.entity.Payment
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.payment.dto.PaymentRequest
@@ -122,14 +122,14 @@ class PaymentService(
         reservationRepository.save(reservation)
 
         if (pointsToUse > 0) {
-            val pointHistory = PointHistory(
+            val pointHistoryJpaEntity = PointHistoryJpaEntity(
                 pointHistoryId = 0L,
                 userId = token.userId,
                 pointHistoryType = "USED",
                 pointHistoryAmount = pointsToUse,
                 description = "Concert ticket payment"
             )
-            pointHistoryRepository.save(pointHistory)
+            pointHistoryRepository.save(pointHistoryJpaEntity)
         }
 
         queueService.completeToken(tokenId)

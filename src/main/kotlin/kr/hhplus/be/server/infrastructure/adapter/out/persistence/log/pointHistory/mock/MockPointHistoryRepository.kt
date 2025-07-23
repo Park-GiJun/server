@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.mock
 
-import kr.hhplus.be.server.domain.log.PointHistory
+import kr.hhplus.be.server.domain.log.PointHistoryJpaEntity
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
@@ -9,25 +9,25 @@ import java.util.concurrent.atomic.AtomicLong
 @Repository
 class MockPointHistoryRepository {
     private val log = LoggerFactory.getLogger(MockPointHistoryRepository::class.java)
-    private val pointHistories = ConcurrentHashMap<Long, PointHistory>()
+    private val pointHistories = ConcurrentHashMap<Long, PointHistoryJpaEntity>()
     private val idGenerator = AtomicLong(1)
 
-    fun save(pointHistory: PointHistory): PointHistory {
-        val newPointHistory = if (pointHistory.pointHistoryId == 0L) {
-            PointHistory(
+    fun save(pointHistoryJpaEntity: PointHistoryJpaEntity): PointHistoryJpaEntity {
+        val newPointHistoryJpaEntity = if (pointHistoryJpaEntity.pointHistoryId == 0L) {
+            PointHistoryJpaEntity(
                 pointHistoryId = idGenerator.getAndIncrement(),
-                userId = pointHistory.userId,
-                pointHistoryType = pointHistory.pointHistoryType,
-                pointHistoryAmount = pointHistory.pointHistoryAmount,
-                description = pointHistory.description
+                userId = pointHistoryJpaEntity.userId,
+                pointHistoryType = pointHistoryJpaEntity.pointHistoryType,
+                pointHistoryAmount = pointHistoryJpaEntity.pointHistoryAmount,
+                description = pointHistoryJpaEntity.description
             )
         } else {
-            pointHistory
+            pointHistoryJpaEntity
         }
 
-        pointHistories[newPointHistory.pointHistoryId] = newPointHistory
-        log.info("Saved point history: ${newPointHistory.pointHistoryId}")
-        return newPointHistory
+        pointHistories[newPointHistoryJpaEntity.pointHistoryId] = newPointHistoryJpaEntity
+        log.info("Saved point history: ${newPointHistoryJpaEntity.pointHistoryId}")
+        return newPointHistoryJpaEntity
     }
 
 }

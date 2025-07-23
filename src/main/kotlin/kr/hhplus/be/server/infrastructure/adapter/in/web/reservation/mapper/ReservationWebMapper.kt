@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.mapper
 
-import kr.hhplus.be.server.application.dto.reservation.command.CancelReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.command.ConfirmTempReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.command.TempReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.result.CancelReservationResult
-import kr.hhplus.be.server.application.dto.reservation.result.ConfirmTempReservationResult
-import kr.hhplus.be.server.application.dto.reservation.result.TempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.CancelReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.CancelReservationResult
+import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.TempReservationResult
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationResponse
