@@ -1,60 +1,94 @@
 package kr.hhplus.be.server.domain.queue
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
-import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.BaseEntity
-import kr.hhplus.be.server.dto.QueueTokenResponse
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
+import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
-@Entity
-@Table(name = "queue_token")
 class QueueToken(
-    @Id
-    @Column(name = "queue_token_id")
-    val queueToken: String = UUID.randomUUID().toString(),
-
-    @Column(name = "user_id")
+    val queueTokenId: String = UUID.randomUUID().toString(),
     val userId: String,
-
-    @Column(name = "concert_id")
     val concertId: Long,
+    var tokenStatus: QueueTokenStatus,
+    val enteredAt: LocalDateTime = LocalDateTime.now(),
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "token_status")
-    val tokenStatus: QueueTokenStatus,
-
-    @Column(name = "entered_at")
-    val enteredAt: LocalDateTime = LocalDateTime.now()
-) : BaseEntity() {
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    var isDeleted: Boolean = false,
+    var deletedAt: LocalDateTime? = null
+) {
 
     fun isExpired(): Boolean = tokenStatus == QueueTokenStatus.EXPIRED
 
-    fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE
+    fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE && !isExpired()
 
-    fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING
+    fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING && !isExpired()
 
     fun activate(): QueueToken {
         return QueueToken(
-            queueToken = this.queueToken,
+            queueTokenId = this.queueTokenId,
             userId = this.userId,
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.ACTIVE,
-            enteredAt = this.enteredAt
+            enteredAt = this.enteredAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
         )
     }
 
     fun expire(): QueueToken {
         return QueueToken(
-            queueToken = this.queueToken,
+            queueTokenId = this.queueTokenId,
             userId = this.userId,
             concertId = this.concertId,
             tokenStatus = QueueTokenStatus.EXPIRED,
-            enteredAt = this.enteredAt
+            enteredAt = this.enteredAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
         )
+    }
+
+    fun complete(): QueueToken {
+        return QueueToken(
+            queueTokenId = this.queueTokenId,
+            userId = this.userId,
+            concertId = this.concertId,
+            tokenStatus = QueueTokenStatus.COMPLETED,
+            enteredAt = this.enteredAt,
+            createdAt = this.createdAt,
+            updatedAt = LocalDateTime.now(),
+            isDeleted = this.isDeleted,
+            deletedAt = this.deletedAt
+        )
+    }
+
+    fun validateActiveToken(token: QueueToken): QueueToken {
+        if (token.isExpired()) {
+            throw TokenExpiredException(token.queueTokenId)
+        }
+
+        if (!token.isActive()) {
+            throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
+        }
+
+        return token
+    }
+
+    fun createNewToken(userId: String, concertId: Long): QueueToken {
+        return QueueToken(
+            queueTokenId = UUID.randomUUID().toString(),
+            userId = userId,
+            concertId = concertId,
+            tokenStatus = QueueTokenStatus.WAITING,
+            enteredAt = LocalDateTime.now(),
+        )
+    }
+
+    fun calculateWaitingPosition(waitingTokensBeforeUser: Int): Int {
+        return (waitingTokensBeforeUser + 1)
     }
 }
