@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.repository.mock
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock
 
 import kr.hhplus.be.server.domain.concert.ConcertDate
 import org.springframework.stereotype.Repository

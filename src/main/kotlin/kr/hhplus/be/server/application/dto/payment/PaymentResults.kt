@@ -1,15 +1,11 @@
-package kr.hhplus.be.server.dto
+package kr.hhplus.be.server.application.dto.payment
 
 import java.time.LocalDateTime
 
-data class PaymentRequest(
-    val reservationId: Long,
-    val pointsToUse: Int = 0
-)
-
-data class PaymentResponse(
+data class PaymentResult(
     val paymentId: Long,
     val reservationId: Long,
+    val userId: String,
     val totalAmount: Int,
     val pointsUsed: Int,
     val actualAmount: Int,

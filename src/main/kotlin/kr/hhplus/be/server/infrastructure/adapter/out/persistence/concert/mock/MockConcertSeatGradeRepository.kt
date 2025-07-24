@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.repository.mock
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock
 
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import org.slf4j.LoggerFactory
@@ -29,17 +29,5 @@ class MockConcertSeatGradeRepository {
 
     fun findById(id: Long): ConcertSeatGrade? {
         return concertSeatGrades[id]
-    }
-
-    fun findAll(): List<ConcertSeatGrade> {
-        return concertSeatGrades.values.toList()
-    }
-
-    fun deleteById(id: Long): Boolean {
-        return concertSeatGrades.remove(id) != null
-    }
-
-    fun clear() {
-        concertSeatGrades.clear()
     }
 }

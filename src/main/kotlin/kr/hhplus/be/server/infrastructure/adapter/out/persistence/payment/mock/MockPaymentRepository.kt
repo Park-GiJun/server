@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.repository.mock
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.mock
 
 import kr.hhplus.be.server.domain.payment.Payment
 import org.slf4j.LoggerFactory
