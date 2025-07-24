@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.dto
+package kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto
 
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus

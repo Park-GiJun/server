@@ -1,21 +1,21 @@
-package kr.hhplus.be.server.dto
+package kr.hhplus.be.server.infrastructure.adapter.`in`.web.user.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "포인트 충전 요청")
-data class PointChargeRequest(
+data class UserPointChargeRequest(
     @field:Schema(description = "충전할 포인트 금액", example = "1000", minimum = "1")
     val amount: Int
 )
 
 @Schema(description = "포인트 사용 요청")
-data class PointUseRequest(
+data class UserPointUseRequest(
     @field:Schema(description = "사용할 포인트 금액", example = "500", minimum = "1")
     val amount: Int
 )
 
-@Schema(description = "포인트 조회 및 업데이트 응답")
-data class PointResponse(
+@Schema(description = "사용자 포인트 응답")
+data class UserPointResponse(
     @field:Schema(description = "사용자 ID", example = "user-1")
     val userId: String,
 
