@@ -8,11 +8,11 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class PointHistoryRepositoryImpl(
-    private val mockPointHistoryRepository: MockPointHistoryRepository
+    private val mockPointHistoryRepository: PointHistoryRepository
 ) : PointHistoryRepository {
 
     override fun save(pointHistory: PointHistory): PointHistory {
-        val mockEntity = PointHistoryJpaEntity(
+        val entity = PointHistoryJpaEntity(
             pointHistoryId = pointHistory.pointHistoryId,
             userId = pointHistory.userId,
             pointHistoryType = pointHistory.pointHistoryType,
@@ -20,7 +20,7 @@ class PointHistoryRepositoryImpl(
             description = pointHistory.description
         )
 
-        val savedEntity = mockPointHistoryRepository.save(mockEntity)
+        val savedEntity = mockPointHistoryRepository.save(entity)
 
         return PointHistory(
             pointHistoryId = savedEntity.pointHistoryId,

@@ -7,6 +7,8 @@ import java.time.LocalDateTime
 
 class ConcertNotFoundException(concertId: Long) : EntityNotFoundException("Concert", concertId.toString())
 
+class ConcertDateNotFoundException(concertDateId: Long) : EntityNotFoundException("ConcertDate", concertDateId.toString())
+
 class ConcertSeatNotFoundException(seatId: Long) : EntityNotFoundException("ConcertSeat", seatId.toString())
 
 class SeatAlreadyBookedException(seatNumber: String) :

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class ConcertSeatRepositoryImpl(
-    private val concertSeatRepository: MockConcertSeatRepository
+    private val concertSeatRepository: ConcertSeatRepository
 ) : ConcertSeatRepository {
     override fun save(concertSeat: ConcertSeat): ConcertSeat {
         return concertSeatRepository.save(concertSeat)

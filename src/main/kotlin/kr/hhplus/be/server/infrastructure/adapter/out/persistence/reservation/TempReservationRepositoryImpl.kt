@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class TempReservationRepositoryImpl(
-    private val mockTempReservationRepository: MockTempReservationRepository
+    private val mockTempReservationRepository: TempReservationRepository
 ) : TempReservationRepository {
 
     override fun save(tempReservation: TempReservation): TempReservation {

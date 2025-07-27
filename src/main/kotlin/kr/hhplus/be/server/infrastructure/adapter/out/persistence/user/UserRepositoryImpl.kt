@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepositoryImpl(
-    private val mockUserRepository: MockUserRepository
+    private val mockUserRepository: UserRepository
 ) : UserRepository {
 
     override fun findByUserId(userId: String): User? {
