@@ -38,7 +38,6 @@ object PersistenceMapper {
             description = domain.description
         )
     }
-
     fun toConcertDateDomain(entity: ConcertDateJpaEntity?): ConcertDate {
         return ConcertDate(
             concertDateId = entity.concertDateId,
