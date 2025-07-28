@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 
 @Repository
 class QueueTokenRepositoryImpl(
-    private val queueTokenRepository: MockQueueTokenRepository
+    private val queueTokenRepository: QueueTokenRepository
 ) : QueueTokenRepository {
 
     override fun save(token: QueueToken): QueueToken {

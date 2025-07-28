@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class PaymentRepositoryImpl(
-    private val mockPaymentRepository: MockPaymentRepository
+    private val mockPaymentRepository: PaymentRepository
 ) : PaymentRepository {
 
     override fun save(payment: Payment): Payment {
