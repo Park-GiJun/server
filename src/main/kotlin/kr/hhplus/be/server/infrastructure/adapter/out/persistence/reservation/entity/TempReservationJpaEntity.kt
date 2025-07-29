@@ -31,8 +31,8 @@ class TempReservationJpaEntity(
     fun isReserved(): Boolean = status == TempReservationStatus.RESERVED
     fun isConfirmed(): Boolean = status == TempReservationStatus.CONFIRMED
 
-    fun confirm(): TempReservationJpaEntity {
-        return TempReservationJpaEntity(
+    fun confirm(): TempReservationJpaEntity  {
+        return TempReservationJpaEntity (
             tempReservationId = this.tempReservationId,
             userId = this.userId,
             concertSeatId = this.concertSeatId,
@@ -41,8 +41,8 @@ class TempReservationJpaEntity(
         )
     }
 
-    fun expire(): TempReservationJpaEntity {
-        return TempReservationJpaEntity(
+    fun expire(): TempReservationJpaEntity  {
+        return TempReservationJpaEntity (
             tempReservationId = this.tempReservationId,
             userId = this.userId,
             concertSeatId = this.concertSeatId,

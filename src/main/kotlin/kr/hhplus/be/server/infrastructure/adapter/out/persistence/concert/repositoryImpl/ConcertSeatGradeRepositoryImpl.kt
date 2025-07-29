@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.repositoryImpl
 
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade

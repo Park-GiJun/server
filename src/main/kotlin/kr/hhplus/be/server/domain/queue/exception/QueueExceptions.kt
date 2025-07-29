@@ -6,6 +6,7 @@ import kr.hhplus.be.server.domain.common.exception.BusinessRuleViolationExceptio
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 
 class QueueTokenNotFoundException(tokenId: String) : EntityNotFoundException("QueueToken", tokenId)
+class QueueTokenNotFoundExceptionWithUserIdAndConcertId(userId: String, concertId: Long) : EntityNotFoundException("QueueToken", "userId=$userId, concertId=$concertId")
 
 class InvalidTokenStatusException(
     currentStatus: QueueTokenStatus,

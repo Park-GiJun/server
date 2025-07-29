@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity
+package kr.hhplus.be.server.domain.reservation
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -8,7 +8,6 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 
 @Entity
