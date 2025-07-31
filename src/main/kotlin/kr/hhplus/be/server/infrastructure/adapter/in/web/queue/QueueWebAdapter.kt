@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/queue")
+@RequestMapping("/queue")
 @Tag(name = "대기열", description = "대기열 토큰 관리 API")
 class QueueWebAdapter(
     private val generateTokenUseCase: GenerateTokenUseCase,
