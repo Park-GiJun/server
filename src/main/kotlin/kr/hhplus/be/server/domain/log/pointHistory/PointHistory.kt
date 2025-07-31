@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.log
+package kr.hhplus.be.server.domain.log.pointHistory
 
 import java.time.LocalDateTime
 

@@ -6,7 +6,13 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "temp_reservation")
+@Table(name = "temp_reservation",
+    indexes = [
+        Index(name = "TEMPRESERVATIONX0", columnList = "user_id"),
+        Index(name = "TEMPRESERVATIONX1", columnList = "concert_seat_id"),
+        Index(name = "TEMPRESERVATIONX2", columnList = "temp_reservation_status"),
+    Index(name = "TEMPRESERVATIONX3", columnList = "user_id, concert_seat_id"),
+    ])
 class TempReservationJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

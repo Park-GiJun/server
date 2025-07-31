@@ -5,11 +5,17 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import java.time.LocalDateTime
 
-@Table(name = "payments")
+@Table(name = "payments",
+    indexes = [
+        Index(name = "PAYMENTX0", columnList = "payment_id"),
+    Index(name = "PAYMENTX1", columnList = "reservation_id"),
+    Index(name = "PAYMENTX2", columnList = "reservation_id, user_id"),
+    ])
 @Entity
 class PaymentJpaEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

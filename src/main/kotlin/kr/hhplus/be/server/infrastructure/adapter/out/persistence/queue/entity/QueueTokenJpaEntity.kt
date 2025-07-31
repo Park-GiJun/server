@@ -5,13 +5,20 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "queue_token")
+@Table(
+    name = "queue_token",
+    indexes = [
+        Index(name = "QUEUETOKENX0", columnList = "concert_id, token_status"),
+        Index(name = "QUEUETOKENX1", columnList = "concert_id, entered_at"),
+    ]
+)
 class QueueTokenJpaEntity(
     @Id
     @Column(name = "queue_token_id")

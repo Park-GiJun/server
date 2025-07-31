@@ -12,10 +12,10 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 @Table(
     name = "users",
     indexes = [
-        Index(name = "idx_user_id", columnList = "user_id"),
+        Index(name = "USERX0", columnList = "user_id"),
     ]
 )
-class UserJpaJpaEntity(
+class UserJpaEntity(
     @Id
     @Column(name = "user_id")
     val userId: String,
