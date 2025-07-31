@@ -2,29 +2,30 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.repos
 
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.domain.concert.ConcertSeat
-import kr.hhplus.be.server.domain.concert.exception.ConcertSeatNotFoundException
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.jpa.ConcertSeatJpaRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 
-@Repository
+@Component
 class ConcertSeatRepositoryImpl(
-    private val concertSeatRepository: ConcertSeatJpaRepository
+    private val concertSeatJpaRepository: ConcertSeatJpaRepository
 ) : ConcertSeatRepository {
+
     override fun save(concertSeat: ConcertSeat): ConcertSeat {
         return PersistenceMapper.toConcertSeatEntity(concertSeat)
-            .let { concertSeatRepository.save(it) }
+            .let { concertSeatJpaRepository.save(it) }
             .let { PersistenceMapper.toConcertSeatDomain(it) }
     }
 
     override fun findByConcertDateId(concertDateId: Long): List<ConcertSeat> {
-        return  concertSeatRepository.findByConcertDateId(concertDateId)
+        return concertSeatJpaRepository.findByConcertDateId(concertDateId)
             ?.map { PersistenceMapper.toConcertSeatDomain(it) }
-            ?: throw ConcertSeatNotFoundException(concertDateId)
+            ?: emptyList()
     }
 
     override fun findByConcertSeatId(concertSeatId: Long): ConcertSeat? {
-        return concertSeatRepository.findById(concertSeatId)
+        return concertSeatJpaRepository.findById(concertSeatId)
             .map { PersistenceMapper.toConcertSeatDomain(it) }
             .orElse(null)
     }

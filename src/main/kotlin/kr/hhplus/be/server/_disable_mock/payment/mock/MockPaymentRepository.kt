@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.mock
+package kr.hhplus.be.server._disable_mock.payment.mock
 
 import kr.hhplus.be.server.domain.payment.Payment
 import org.slf4j.LoggerFactory
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-@Repository
 class MockPaymentRepository {
     private val log = LoggerFactory.getLogger(MockPaymentRepository::class.java)
     private val payments = ConcurrentHashMap<Long, Payment>()

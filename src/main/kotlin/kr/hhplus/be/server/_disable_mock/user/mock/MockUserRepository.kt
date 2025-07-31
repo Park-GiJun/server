@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.mock
+package kr.hhplus.be.server._disable_mock.user.mock
 
 import kr.hhplus.be.server.domain.users.User
 import org.slf4j.LoggerFactory

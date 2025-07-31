@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.mock
+package kr.hhplus.be.server._disable_mock.reservation.mock
 
 import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-@Repository
 class MockTempReservationRepository {
     private val log = LoggerFactory.getLogger(MockTempReservationRepository::class.java)
     private val tempReservations = ConcurrentHashMap<Long, TempReservation>()

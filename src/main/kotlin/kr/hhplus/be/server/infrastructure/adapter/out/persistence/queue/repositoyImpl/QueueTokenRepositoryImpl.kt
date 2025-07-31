@@ -1,49 +1,69 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.repositoyImpl
 
+import jakarta.transaction.Transactional
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
-import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundExceptionWithUserIdAndConcertId
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa.QueueTokenJpaRepository
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
-@Repository
+@Component
 class QueueTokenRepositoryImpl(
-    private val queueTokenRepository: QueueTokenJpaRepository
+    private val queueTokenJpaRepository: QueueTokenJpaRepository
 ) : QueueTokenRepository {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun save(token: QueueToken): QueueToken {
         return PersistenceMapper.toQueueTokenEntity(token)
-            .let { queueTokenRepository.save(it) }
+            .let { queueTokenJpaRepository.save(it) }
             .let { PersistenceMapper.toQueueTokenDomain(it) }
     }
 
     override fun findByTokenId(tokenId: String): QueueToken? {
-        return queueTokenRepository.findByQueueTokenId(tokenId)
+        return queueTokenJpaRepository.findByQueueTokenId(tokenId)
             ?.let { PersistenceMapper.toQueueTokenDomain(it) }
-            ?: throw QueueTokenNotFoundException(tokenId)
     }
 
     override fun findActiveTokenByUserAndConcert(userId: String, concertId: Long): QueueToken? {
-        return queueTokenRepository.findActiveTokenByUserIdAndConcertId(userId, concertId)
+        return queueTokenJpaRepository.findActiveTokenByUserIdAndConcertId(userId, concertId)
             ?.let { PersistenceMapper.toQueueTokenDomain(it) }
-            ?: throw QueueTokenNotFoundExceptionWithUserIdAndConcertId(userId, concertId)
     }
 
     override fun findByUserIdAndConcertId(userId: String, concertId: Long): QueueToken? {
-        return queueTokenRepository.findByUserIdAndConcertId(userId, concertId)
+        return queueTokenJpaRepository.findByUserIdAndConcertId(userId, concertId)
             ?.let { PersistenceMapper.toQueueTokenDomain(it) }
-            ?: throw QueueTokenNotFoundExceptionWithUserIdAndConcertId(userId, concertId)
     }
 
     override fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Int {
-        return queueTokenRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
+        return queueTokenJpaRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 
+    @Transactional
     override fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
-        return queueTokenRepository.activateWaitingTokens(concertId, count)
+        val waitingTokens = queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAt(
+            concertId,
+            PageRequest.of(0, count)
+        )
+
+        if (waitingTokens.isEmpty()) {
+            return emptyList()
+        }
+
+        val tokenIds = waitingTokens.map { it.queueTokenId }
+        queueTokenJpaRepository.updateTokensToActive(tokenIds)
+
+        return waitingTokens.onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
+            .map { PersistenceMapper.toQueueTokenDomain(it) }
+    }
+
+    override fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken> {
+        return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
             .map { PersistenceMapper.toQueueTokenDomain(it) }
     }
 }

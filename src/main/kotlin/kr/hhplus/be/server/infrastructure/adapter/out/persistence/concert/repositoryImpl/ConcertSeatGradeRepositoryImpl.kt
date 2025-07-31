@@ -4,9 +4,10 @@ import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeReposito
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.jpa.ConcertSeatGradeJpaRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 
-@Repository
+@Component
 class ConcertSeatGradeRepositoryImpl(
     private val concertSeatGradeJpaRepository: ConcertSeatGradeJpaRepository
 ) : ConcertSeatGradeRepository {

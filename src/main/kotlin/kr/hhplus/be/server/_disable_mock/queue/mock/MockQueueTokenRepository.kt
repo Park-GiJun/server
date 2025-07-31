@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.mock
+package kr.hhplus.be.server._disable_mock.queue.mock
 
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 
-@Repository
 class MockQueueTokenRepository {
 
     private val log = LoggerFactory.getLogger(MockQueueTokenRepository::class.java)

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.mock
+package kr.hhplus.be.server._disable_mock.concert.mock
 
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import org.slf4j.LoggerFactory
@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-@Repository
 class MockConcertSeatRepository {
     private val log = LoggerFactory.getLogger(MockConcertSeatRepository::class.java)
     private val seats = ConcurrentHashMap<Long, ConcertSeat>()

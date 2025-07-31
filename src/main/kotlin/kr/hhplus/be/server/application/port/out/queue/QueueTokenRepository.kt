@@ -10,4 +10,5 @@ interface QueueTokenRepository {
     fun findByUserIdAndConcertId(userId: String, concertId: Long): QueueToken?
     fun countWaitingTokensBeforeUser(userId: String, concertId: Long, enteredAt: LocalDateTime): Int
     fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken>
+    fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken>
 }
