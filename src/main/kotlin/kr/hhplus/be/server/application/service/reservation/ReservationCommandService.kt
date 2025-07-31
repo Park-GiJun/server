@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.application.service.reservation
 
+import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
+import kr.hhplus.be.server.domain.queue.QueueToken
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
@@ -20,19 +23,12 @@ import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.reservation.ReservationRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.domain.concert.exception.ConcertSeatNotFoundException
-import kr.hhplus.be.server.domain.concert.exception.SeatAlreadyBookedException
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
-import kr.hhplus.be.server.domain.reservation.Reservation
-import kr.hhplus.be.server.domain.reservation.ReservationStatus
-import kr.hhplus.be.server.domain.reservation.TempReservation
-import kr.hhplus.be.server.domain.reservation.TempReservationStatus
-import kr.hhplus.be.server.domain.reservation.exception.InvalidReservationStatusException
-import kr.hhplus.be.server.domain.reservation.exception.ReservationExpiredException
+import kr.hhplus.be.server.domain.reservation.ReservationDomainService
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
+import kr.hhplus.be.server.application.mapper.ReservationMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -46,39 +42,31 @@ class ReservationCommandService(
     private val completeTokenUseCase: CompleteTokenUseCase
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
+    private val reservationDomainService = ReservationDomainService()
+
     override fun tempReservation(command: TempReservationCommand): TempReservationResult {
-        val token = validateTokenUseCase.validateActiveToken(
+        val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
 
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        if (token.userId != command.userId) {
-            throw InvalidTokenException("Token user ID (${token.userId}) does not match request user ID (${command.userId})")
-        }
-
         val seat = concertSeatRepository.findByConcertSeatId(command.concertSeatId)
             ?: throw ConcertSeatNotFoundException(command.concertSeatId)
 
-        if (!seat.isAvailable()) {
-            throw SeatAlreadyBookedException(seat.seatNumber)
-        }
-
-        val existingTempReservation = tempReservationRepository.findByUserIdAndConcertSeatId(
-            command.userId, command.concertSeatId
+        val existingTempReservation = tempReservationRepository.findByTempReservationId(
+            command.concertSeatId
         )
 
-        if (existingTempReservation != null && existingTempReservation.isReserved()) {
-            throw SeatAlreadyBookedException(seat.seatNumber)
-        }
+        val token = createQueueTokenFromResult(tokenResult)
 
-        val tempReservation = TempReservation(
-            tempReservationId = 0L,
-            userId = command.userId,
-            concertSeatId = command.concertSeatId,
-            expiredAt = LocalDateTime.now().plusMinutes(5),
-            status = TempReservationStatus.RESERVED
+        reservationDomainService.validateTempReservationCreation(
+            token, command.userId, seat, existingTempReservation
+        )
+
+        val tempReservation = reservationDomainService.createTempReservation(
+            command.userId, command.concertSeatId
         )
 
         val updatedSeat = seat.reserve()
@@ -90,37 +78,22 @@ class ReservationCommandService(
     }
 
     override fun confirmTempReservation(command: ConfirmTempReservationCommand): ConfirmTempReservationResult {
-        val token = validateTokenUseCase.validateActiveToken(
+        val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
 
         val tempReservation = tempReservationRepository.findByTempReservationId(command.tempReservationId)
             ?: throw TempReservationNotFoundException(command.tempReservationId)
 
-        if (tempReservation.isExpired()) {
-            throw ReservationExpiredException(command.tempReservationId)
-        }
+        val token = createQueueTokenFromResult(tokenResult)
 
-        if (!tempReservation.isReserved()) {
-            throw InvalidReservationStatusException(tempReservation.status, TempReservationStatus.RESERVED)
-        }
-
-        if (tempReservation.userId != token.userId) {
-            throw InvalidTokenException("Temporary reservation user (${tempReservation.userId}) does not match token user (${token.userId})")
-        }
+        reservationDomainService.validateTempReservationConfirmation(token, tempReservation)
 
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
 
-        val reservation = Reservation(
-            reservationId = 0L,
-            userId = tempReservation.userId,
-            concertDateId = seat.concertDateId,
-            seatId = seat.concertSeatId,
-            reservationAt = System.currentTimeMillis(),
-            cancelAt = 0,
-            reservationStatus = ReservationStatus.CONFIRMED,
-            paymentAmount = command.paymentAmount
+        val reservation = reservationDomainService.createConfirmedReservation(
+            tempReservation, seat, command.paymentAmount
         )
 
         val soldSeat = seat.sell()
@@ -137,24 +110,16 @@ class ReservationCommandService(
     }
 
     override fun cancelReservation(command: CancelReservationCommand): CancelReservationResult {
-        val token = validateTokenUseCase.validateActiveToken(
+        val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
 
         val tempReservation = tempReservationRepository.findByTempReservationId(command.tempReservationId)
             ?: throw TempReservationNotFoundException(command.tempReservationId)
 
-        if (tempReservation.isExpired()) {
-            throw ReservationExpiredException(command.tempReservationId)
-        }
+        val token = createQueueTokenFromResult(tokenResult)
 
-        if (!tempReservation.isReserved()) {
-            throw InvalidReservationStatusException(tempReservation.status, TempReservationStatus.RESERVED)
-        }
-
-        if (tempReservation.userId != token.userId) {
-            throw InvalidTokenException("Temporary reservation user (${tempReservation.userId}) does not match token user (${token.userId})")
-        }
+        reservationDomainService.validateTempReservationCancellation(token, tempReservation)
 
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
@@ -168,5 +133,14 @@ class ReservationCommandService(
         expireTokenUseCase.expireToken(ExpireTokenCommand(command.tokenId))
 
         return ReservationMapper.toCancelReservationResult(savedTempReservation)
+    }
+
+    private fun createQueueTokenFromResult(tokenResult: ValidateTokenResult): QueueToken {
+        return QueueToken(
+            queueTokenId = tokenResult.tokenId,
+            userId = tokenResult.userId,
+            concertId = tokenResult.concertId,
+            tokenStatus = QueueTokenStatus.ACTIVE
+        )
     }
 }

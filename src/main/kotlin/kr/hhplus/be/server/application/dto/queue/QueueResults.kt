@@ -21,3 +21,9 @@ data class ValidateTokenResult(
     val concertId: Long,
     val isValid: Boolean
 )
+
+data class UpdateQueuePositionsResult(
+    val concertId: Long,
+    val updatedCount: Int,
+    val positionChanges: List<QueuePositionChange>
+)

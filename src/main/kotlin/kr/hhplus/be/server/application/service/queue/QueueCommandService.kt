@@ -1,46 +1,41 @@
 package kr.hhplus.be.server.application.service.queue
 
 import jakarta.transaction.Transactional
-import kr.hhplus.be.server.application.dto.queue.ActivateTokensCommand
-import kr.hhplus.be.server.application.dto.queue.ActivateTokensResult
-import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
-import kr.hhplus.be.server.application.dto.queue.GenerateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
+import kr.hhplus.be.server.application.dto.queue.*
 import kr.hhplus.be.server.application.mapper.QueueMapper
-import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
-import kr.hhplus.be.server.application.port.`in`.CompleteTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.ExpireTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.GenerateTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.*
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService
-import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
+import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
+import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueActivationEvent
+import kr.hhplus.be.server.infrastructure.adapter.out.event.QueueWebSocketEventPublisher
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 @Transactional
 class QueueCommandService(
     private val queueTokenRepository: QueueTokenRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val queueWebSocketEventPublisher: QueueWebSocketEventPublisher
 ) : GenerateTokenUseCase, ValidateTokenUseCase, ExpireTokenUseCase,
-    CompleteTokenUseCase, ActivateTokensUseCase {
-    
+    CompleteTokenUseCase, ActivateTokensUseCase, UpdateQueuePositionsUseCase {
+
     private val queueDomainService = QueueDomainService()
+    private val log = LoggerFactory.getLogger(QueueCommandService::class.java)
 
     override fun generateToken(command: GenerateTokenCommand): String {
-        userRepository.findByUserId(command.userId)
+        val user = userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
         val existingToken = queueTokenRepository.findActiveTokenByUserAndConcert(
-            command.userId,
-            command.concertId
+            command.userId, command.concertId
         )
+
         if (existingToken != null) {
             return existingToken.queueTokenId
         }
@@ -55,25 +50,28 @@ class QueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        if (token.isExpired()) {
-            val expiredToken = token.expire()
-            queueTokenRepository.save(expiredToken)
-            throw InvalidTokenStatusException(token.tokenStatus, kr.hhplus.be.server.domain.queue.QueueTokenStatus.ACTIVE)
+        val validatedOrExpiredToken = queueDomainService.validateTokenAndExpireIfNeeded(token)
+
+        if (validatedOrExpiredToken.isExpired()) {
+            queueTokenRepository.save(validatedOrExpiredToken)
+            queueWebSocketEventPublisher.publishExpiration(command.tokenId)
+            throw InvalidTokenStatusException(
+                token.tokenStatus,
+                QueueTokenStatus.ACTIVE
+            )
         }
 
-        val validatedToken = queueDomainService.validateActiveToken(token)
-
+        val validatedToken = queueDomainService.validateActiveToken(validatedOrExpiredToken)
         return QueueMapper.toValidateResult(validatedToken, true)
     }
 
     override fun validateActiveTokenForConcert(command: ValidateTokenCommand): ValidateTokenResult {
         val tokenResult = validateActiveToken(command)
 
-        command.concertId?.let { concertId ->
-            if (tokenResult.concertId != concertId) {
-                throw InvalidTokenException("Token concert ID mismatch. Expected: $concertId, Actual: ${tokenResult.concertId}")
-            }
-        }
+        val token = queueTokenRepository.findByTokenId(command.tokenId)
+            ?: throw QueueTokenNotFoundException(command.tokenId)
+
+        queueDomainService.validateTokenForConcert(token, command.concertId)
 
         return tokenResult
     }
@@ -82,8 +80,11 @@ class QueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        val expiredToken = token.expire()
+        val expiredToken = queueDomainService.expireToken(token)
         queueTokenRepository.save(expiredToken)
+
+        queueWebSocketEventPublisher.publishExpiration(command.tokenId)
+
         return true
     }
 
@@ -91,7 +92,7 @@ class QueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        val completedToken = token.complete()
+        val completedToken = queueDomainService.completeToken(token)
         queueTokenRepository.save(completedToken)
         return true
     }
@@ -99,9 +100,61 @@ class QueueCommandService(
     override fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult {
         val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, command.count)
 
+        activatedTokens.forEach { token ->
+            queueWebSocketEventPublisher.publishActivation(
+                QueueActivationEvent(
+                    tokenId = token.queueTokenId,
+                    userId = token.userId,
+                    concertId = token.concertId
+                )
+            )
+        }
+
         return ActivateTokensResult(
             activatedCount = activatedTokens.size,
             tokenIds = activatedTokens.map { it.queueTokenId }
+        )
+    }
+
+    override fun updateQueuePositions(command: UpdateQueuePositionsCommand): UpdateQueuePositionsResult {
+        val waitingTokens = queueTokenRepository.findWaitingTokensByConcertIdOrderByEnteredAt(command.concertId)
+
+        waitingTokens.forEach { token ->
+            log.info("Update tokens ${token.queueTokenId}")
+        }
+
+
+        if (waitingTokens.isEmpty()) {
+            return UpdateQueuePositionsResult(
+                concertId = command.concertId,
+                updatedCount = 0,
+                positionChanges = emptyList()
+            )
+        }
+
+        val newPositions = queueDomainService.calculatePositionByIndex(waitingTokens)
+
+        val oldPositions = waitingTokens.associate { token ->
+            token.queueTokenId to (queueTokenRepository.countWaitingTokensBeforeUser(
+                token.userId, command.concertId, token.enteredAt
+            ) + 1)
+        }
+
+        val changedTokenIds = queueDomainService.findChangedTokenIds(oldPositions, newPositions)
+
+        val positionChanges = changedTokenIds.map { tokenId ->
+            val token = waitingTokens.first { it.queueTokenId == tokenId }
+            QueuePositionChange(
+                token = token,
+                oldPosition = oldPositions[tokenId] ?: 0,
+                newPosition = newPositions[tokenId] ?: 0
+            )
+        }
+
+        return UpdateQueuePositionsResult(
+            concertId = command.concertId,
+            updatedCount = positionChanges.size,
+            positionChanges = positionChanges
         )
     }
 }

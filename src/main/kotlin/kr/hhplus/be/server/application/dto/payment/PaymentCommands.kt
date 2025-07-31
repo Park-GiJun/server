@@ -5,13 +5,3 @@ data class ProcessPaymentCommand(
     val reservationId: Long,
     val pointsToUse: Int = 0
 )
-
-data class GetPaymentCommand(
-    val tokenId: String,
-    val paymentId: Long
-)
-
-data class GetUserPaymentsCommand(
-    val tokenId: String,
-    val userId: String
-)
