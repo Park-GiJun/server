@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.users
 
+import kr.hhplus.be.server.domain.users.exception.InsufficientPointException
+import kr.hhplus.be.server.domain.users.exception.InvalidPointAmountException
 import java.time.LocalDateTime
 
 class User(
@@ -16,7 +18,7 @@ class User(
 ) {
 
     fun chargePoint(amount: Int): User {
-        require(amount > 0) { "충전 금액은 0보다 커야 합니다" }
+        if (amount <= 0) throw InvalidPointAmountException(amount)
         require(!isDeleted) { "삭제된 사용자는 포인트를 충전할 수 없습니다" }
 
         return User(
@@ -33,9 +35,11 @@ class User(
     }
 
     fun usePoint(amount: Int): User {
-        require(amount > 0) { "사용 금액은 0보다 커야 합니다" }
+        if (amount <= 0) throw InvalidPointAmountException(amount)
         require(!isDeleted) { "삭제된 사용자는 포인트를 사용할 수 없습니다" }
-        require(availablePoint >= amount) { "잔액이 부족합니다. 필요: $amount, 사용가능: $availablePoint" }
+        if (availablePoint < amount) {
+            throw InsufficientPointException(amount, availablePoint)
+        }
 
         return User(
             userId = this.userId,

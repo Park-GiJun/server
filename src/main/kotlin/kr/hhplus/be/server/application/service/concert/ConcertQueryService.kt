@@ -10,16 +10,13 @@ import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
+import kr.hhplus.be.server.domain.concert.ConcertDomainService
 import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
-import kr.hhplus.be.server.domain.concert.exception.ConcertSoldOutException
-import kr.hhplus.be.server.domain.concert.exception.ConcertDateExpiredException
-import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 @Transactional(readOnly = true)
@@ -29,6 +26,8 @@ class ConcertQueryService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository
 ) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase {
+
+    private val concertDomainService = ConcertDomainService()
 
     override fun getConcertList(): List<ConcertResult> {
         val concerts = concertRepository.findConcertList()
@@ -44,8 +43,7 @@ class ConcertQueryService(
 
         return concertDates.map { concertDate ->
             val seats = concertSeatRepository.findByConcertDateId(concertDate.concertDateId)
-            val totalSeats = seats.size
-            val availableSeats = seats.count { it.seatStatus == SeatStatus.AVAILABLE }
+            val (totalSeats, availableSeats) = concertDomainService.calculateSeatStatistics(seats)
 
             ConcertMapper.toDateWithStatsResult(
                 domain = concertDate,
@@ -57,27 +55,18 @@ class ConcertQueryService(
 
     override fun getConcertSeats(command: GetConcertSeatsQuery): List<ConcertSeatWithPriceResult> {
         val concertDate = concertDateRepository.findByConcertDateId(command.concertDateId)
-            ?: throw ConcertNotFoundException(command.concertDateId)
+        concertDomainService.validateConcertDateExists(concertDate, command.concertDateId)
 
-        val concert = concertRepository.findByConcertId(concertDate.concertId)
-            ?: throw ConcertNotFoundException(concertDate.concertId)
+        val concert = concertRepository.findByConcertId(concertDate!!.concertId)
+        concertDomainService.validateConcertExists(concert)
 
-        if (concertDate.isSoldOut) {
-            throw ConcertSoldOutException(concert.concertName)
-        }
-
-        val now = LocalDateTime.now()
-        if (concertDate.date.isBefore(now)) {
-            throw ConcertDateExpiredException(concertDate.date)
-        }
+        concertDomainService.validateConcertAvailability(concertDate, concert!!.concertName)
 
         val seats = concertSeatRepository.findByConcertDateId(command.concertDateId)
-        if (seats.isEmpty()) {
-            throw ConcertNotFoundException(command.concertDateId)
-        }
+        concertDomainService.validateSeatsExist(seats, command.concertDateId)
 
         val seatGrades = concertSeatGradeRepository.findByConcertId(concertDate.concertId)
-        val seatGradePriceMap = seatGrades.associateBy({ it.seatGrade }, { it.price })
+        val seatGradePriceMap = concertDomainService.buildSeatPriceMap(seatGrades)
 
         return ConcertMapper.toSeatWithPriceResults(seats, seatGradePriceMap)
     }

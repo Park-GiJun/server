@@ -6,17 +6,18 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(
-    name = "concertDate",
+    name = "concert_date",
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_concert_date_session",
+            name = "UKCONCERTDATEX0",
             columnNames = ["concert_Id", "concert_session"]
         )
     ],
     indexes = [
-        Index(name = "idx_concert", columnList = "concert_id"),
-        Index(name = "idx_date", columnList = "date"),
-        Index(name = "idx_available_seats", columnList = "available_seats")
+        Index(name = "CONCERTDATEX0", columnList = "concert_id"),
+        Index(name = "CONCERTDATEX1", columnList = "date"),
+        Index(name = "CONCERTDATEX2", columnList = "is_sold_out"),
+    Index(name = "CONCERTDATEX3", columnList = "date,concert_id")
     ]
 )
 class ConcertDateJpaEntity(

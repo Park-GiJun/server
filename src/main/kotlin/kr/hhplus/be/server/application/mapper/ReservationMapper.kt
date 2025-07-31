@@ -1,3 +1,5 @@
+package kr.hhplus.be.server.application.mapper
+
 import kr.hhplus.be.server.application.dto.reservation.CancelReservationResult
 import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationResult
 import kr.hhplus.be.server.application.dto.reservation.TempReservationResult

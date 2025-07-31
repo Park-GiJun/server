@@ -5,14 +5,13 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.orm.jpa.JpaTransactionManager
-import org.springframework.transaction.PlatformTransactionManager
 
 @Configuration
 @EnableJpaAuditing
-@EnableJpaRepositories
+@EnableJpaRepositories("kr.hhplus.be.server.infrastructure.adapter.out.persistence")
 class JpaConfig {
     @Bean
-    fun transactionManager(): PlatformTransactionManager {
+    fun transactionManager(): JpaTransactionManager {
         return JpaTransactionManager()
     }
 }

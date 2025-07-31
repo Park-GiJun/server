@@ -48,6 +48,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
@@ -60,6 +61,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("io.mockk:mockk:1.13.8")
     testImplementation("org.assertj:assertj-core:3.24.2")
+    testImplementation("org.springframework:spring-websocket")
+    testImplementation("org.java-websocket:Java-WebSocket:1.5.3")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

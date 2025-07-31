@@ -7,6 +7,8 @@ import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
 import kr.hhplus.be.server.application.dto.queue.GenerateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
 import kr.hhplus.be.server.application.dto.queue.QueueStatusResult
+import kr.hhplus.be.server.application.dto.queue.UpdateQueuePositionsCommand
+import kr.hhplus.be.server.application.dto.queue.UpdateQueuePositionsResult
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 
@@ -35,3 +37,6 @@ interface ValidateTokenUseCase {
     fun validateActiveTokenForConcert(command: ValidateTokenCommand): ValidateTokenResult
 }
 
+interface UpdateQueuePositionsUseCase {
+    fun updateQueuePositions(command: UpdateQueuePositionsCommand): UpdateQueuePositionsResult
+}

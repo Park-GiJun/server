@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>콘서트 예약 대기열</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .auto-connections {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .connection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .connection-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .connection-card.connected {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.2);
+        }
+
+        .connection-card.waiting {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.2);
+        }
+
+        .connection-card.active {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .connection-card.expired {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.2);
+        }
+
+        .connection-card.error {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.3);
+        }
+
+        .queue-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .waiting {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid #ffc107;
+        }
+
+        .active {
+            background: rgba(40, 167, 69, 0.2);
+            border: 2px solid #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .expired {
+            background: rgba(220, 53, 69, 0.2);
+            border: 2px solid #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .position-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto;
+            font-size: 1.5em;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .manual-connection {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .message {
+            font-size: 1.0em;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .connection-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        .input-group input {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .step-info {
+            background: rgba(0, 123, 255, 0.2);
+            border: 1px solid rgba(0, 123, 255, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 style="text-align: center; margin-bottom: 30px;">🎵 콘서트 예약 대기열 시뮬레이터</h1>
+
+    <div class="step-info">
+        <strong>올바른 플로우:</strong> 1) 토큰 생성 API 호출 → 2) 받은 토큰으로 WebSocket 연결
+    </div>
+
+    <!-- 통계 정보 -->
+    <div class="stats">
+        <div class="stat-card">
+            <div>총 연결</div>
+            <div class="stat-number" id="totalConnections">0</div>
+        </div>
+        <div class="stat-card">
+            <div>활성 (예약 가능)</div>
+            <div class="stat-number" id="activeConnections">0</div>
+        </div>
+        <div class="stat-card">
+            <div>대기 중</div>
+            <div class="stat-number" id="waitingConnections">0</div>
+        </div>
+        <div class="stat-card">
+            <div>에러/만료</div>
+            <div class="stat-number" id="errorConnections">0</div>
+        </div>
+    </div>
+
+    <!-- 자동 연결 (1~10번) -->
+    <div class="auto-connections">
+        <h3>🤖 자동 연결 (1~10번) - 올바른 플로우로 생성</h3>
+        <div class="controls">
+            <button class="btn" onclick="createAutoConnections()">자동 연결 생성 (토큰 생성 + WebSocket)</button>
+            <button class="btn" onclick="disconnectAllAuto()">모든 자동 연결 해제</button>
+        </div>
+        <div class="connection-grid" id="autoConnectionGrid">
+            <!-- 자동 연결들이 여기에 표시됩니다 -->
+        </div>
+    </div>
+
+    <!-- 수동 연결 (11번부터) -->
+    <div class="manual-connection">
+        <h3>👤 수동 연결 (11번부터)</h3>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="manualUserId" placeholder="사용자 ID" value="">
+                <input type="number" id="concertId" placeholder="콘서트 ID" value="1">
+            </div>
+            <button class="btn" onclick="connectManual()">수동 연결 (토큰 생성 + WebSocket)</button>
+            <button class="btn" onclick="disconnectManual()">수동 연결 해제</button>
+        </div>
+
+        <div id="manualQueueStatus" class="queue-status" style="display: none;">
+            <div class="position-circle" id="manualPositionCircle">-</div>
+            <div class="message" id="manualStatusMessage">연결 중...</div>
+            <div id="manualAdditionalInfo"></div>
+        </div>
+    </div>
+
+    <div class="connection-info">
+        <div><strong>수동 연결 상태:</strong> <span id="manualConnectionStatus">연결 안됨</span></div>
+        <div><strong>수동 토큰 ID:</strong> <span id="manualTokenId">-</span></div>
+        <div><strong>마지막 업데이트:</strong> <span id="lastUpdate">-</span></div>
+        <div><strong>WebSocket URL:</strong> <span id="wsUrl">-</span></div>
+    </div>
+
+    <div id="messageLog" style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-top: 20px;">
+        <h3>메시지 로그</h3>
+        <div id="logContent"></div>
+    </div>
+</div>
+
+<script>
+    let autoConnections = {}; // 자동 연결들 저장
+    let manualWebsocket = null; // 수동 연결
+    let manualTokenId = null; // 수동 연결 토큰
+    let nextUserId = 11; // 다음 수동 연결 사용자 ID
+
+    // 페이지 로드 시 자동으로 1~10번 연결 생성
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            createAutoConnections();
+        }, 1000);
+    });
+
+    async function createAutoConnections() {
+        addLogMessage('자동 연결 생성을 시작합니다... (토큰 생성 → WebSocket 연결)', 'info');
+
+        for (let i = 1; i <= 10; i++) {
+            setTimeout(() => {
+                createAutoConnection(i);
+            }, i * 500); // 500ms 간격으로 순차 연결 (API 호출 시간 고려)
+        }
+    }
+
+    async function createAutoConnection(userId) {
+        const concertId = 1;
+        const userIdStr = `user-${userId}`;
+
+        try {
+            // 연결 카드 생성
+            createConnectionCard(userId, 'auto');
+            updateConnectionCard(userId, 'connecting', '토큰 생성 중...', '-');
+
+            // 1단계: 토큰 생성 API 호출
+            addLogMessage(`자동 연결 ${userId}번: 토큰 생성 API 호출 중...`, 'info');
+
+            const tokenResponse = await fetch(`http://localhost:8080/queue/token/${concertId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userIdStr
+                })
+            });
+
+            if (!tokenResponse.ok) {
+                throw new Error(`토큰 생성 실패: ${tokenResponse.status}`);
+            }
+
+            const tokenData = await tokenResponse.json();
+
+            // API 응답 구조에 맞게 토큰 ID 추출
+            let tokenId;
+            if (tokenData && tokenData.data && tokenData.data.tokenId) {
+                tokenId = tokenData.data.tokenId;
+            } else if (tokenData && tokenData.data && typeof tokenData.data === 'string') {
+                tokenId = tokenData.data;
+            } else if (typeof tokenData === 'string') {
+                tokenId = tokenData;
+            } else {
+                console.log('토큰 응답 데이터:', tokenData);
+                throw new Error('토큰 응답 형식이 올바르지 않습니다');
+            }
+
+            // tokenId가 문자열인지 확인
+            if (typeof tokenId !== 'string') {
+                console.log('토큰 ID 타입:', typeof tokenId, '값:', tokenId);
+                throw new Error(`토큰 ID가 문자열이 아닙니다: ${typeof tokenId}`);
+            }
+
+            addLogMessage(`자동 연결 ${userId}번: 토큰 생성 완료 (${tokenId})`, 'success');
+            updateConnectionCard(userId, 'token-created', 'WebSocket 연결 중...', '-');
+
+            // 2단계: WebSocket 연결
+            const wsUrl = `ws://localhost:8080/ws/queue?tokenId=${encodeURIComponent(tokenId)}&userId=${encodeURIComponent(userIdStr)}&concertId=${concertId}`;
+            const websocket = new WebSocket(wsUrl);
+
+            websocket.onopen = function(event) {
+                addLogMessage(`자동 연결 ${userId}번: WebSocket 연결 성공`, 'success');
+                updateConnectionCard(userId, 'connected', '연결됨', '-');
+                updateStats();
+            };
+
+            websocket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    addLogMessage(`자동 연결 ${userId}번: ${data.message}`, 'info');
+                    updateConnectionCard(userId, data.status.toLowerCase(), data.message, data.position);
+                    updateStats();
+                } catch (e) {
+                    console.error('메시지 파싱 오류:', e);
+                }
+            };
+
+            websocket.onclose = function(event) {
+                addLogMessage(`자동 연결 ${userId}번: WebSocket 종료`, 'warning');
+                updateConnectionCard(userId, 'expired', '연결 종료됨', '-');
+                updateStats();
+            };
+
+            websocket.onerror = function(error) {
+                addLogMessage(`자동 연결 ${userId}번: WebSocket 오류`, 'error');
+                updateConnectionCard(userId, 'error', '연결 오류', '-');
+                updateStats();
+            };
+
+            autoConnections[userId] = {
+                websocket: websocket,
+                tokenId: tokenId
+            };
+
+        } catch (error) {
+            console.error(`자동 연결 ${userId}번 생성 실패:`, error);
+            addLogMessage(`자동 연결 ${userId}번 생성 실패: ${error.message}`, 'error');
+            updateConnectionCard(userId, 'error', '생성 실패', '-');
+            updateStats();
+        }
+    }
+
+    function createConnectionCard(userId, type) {
+        const grid = document.getElementById('autoConnectionGrid');
+        const card = document.createElement('div');
+        card.className = 'connection-card';
+        card.id = `connection-${userId}`;
+
+        card.innerHTML = `
+            <div style="text-align: center;">
+                <strong>${type === 'auto' ? '자동' : '수동'} ${userId}번</strong>
+                <div class="position-circle" id="position-${userId}">-</div>
+                <div class="message" id="message-${userId}">준비 중...</div>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    }
+
+    function updateConnectionCard(userId, status, message, position) {
+        const card = document.getElementById(`connection-${userId}`);
+        const positionElement = document.getElementById(`position-${userId}`);
+        const messageElement = document.getElementById(`message-${userId}`);
+
+        if (card) {
+            card.className = `connection-card ${status}`;
+        }
+
+        if (positionElement) {
+            if (position > 0) {
+                positionElement.textContent = position;
+            } else if (status === 'active') {
+                positionElement.innerHTML = '✓';
+            } else {
+                positionElement.textContent = '-';
+            }
+        }
+
+        if (messageElement) {
+            messageElement.textContent = message || '상태 업데이트';
+        }
+    }
+
+    async function connectManual() {
+        if (manualWebsocket) {
+            alert('이미 수동 연결이 활성화되어 있습니다.');
+            return;
+        }
+
+        let userId = document.getElementById('manualUserId').value;
+        if (!userId) {
+            userId = `user-${nextUserId}`;
+            document.getElementById('manualUserId').value = userId;
+            nextUserId++;
+        }
+
+        const concertId = document.getElementById('concertId').value;
+
+        if (!concertId) {
+            alert('콘서트 ID를 입력해주세요.');
+            return;
+        }
+
+        try {
+            updateManualConnectionStatus('토큰 생성 중...', 'orange');
+
+            // 1단계: 토큰 생성 API 호출
+            addLogMessage(`수동 연결(${userId}): 토큰 생성 API 호출 중...`, 'info');
+
+            const tokenResponse = await fetch(`http://localhost:8080/queue/token/${concertId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId
+                })
+            });
+
+            if (!tokenResponse.ok) {
+                throw new Error(`토큰 생성 실패: ${tokenResponse.status}`);
+            }
+
+            const tokenData = await tokenResponse.json();
+
+            // tokenData가 객체인지 확인하고 올바르게 추출
+            if (typeof tokenData === 'object' && tokenData.data) {
+                manualTokenId = tokenData.data;
+            } else if (typeof tokenData === 'string') {
+                manualTokenId = tokenData;
+            } else {
+                throw new Error('토큰 응답 형식이 올바르지 않습니다');
+            }
+
+            // tokenId가 문자열인지 확인
+            if (typeof manualTokenId !== 'string') {
+                throw new Error(`토큰 ID가 문자열이 아닙니다: ${typeof manualTokenId}`);
+            }
+
+            document.getElementById('manualTokenId').textContent = manualTokenId;
+            addLogMessage(`수동 연결(${userId}): 토큰 생성 완료 (${manualTokenId})`, 'success');
+
+            updateManualConnectionStatus('WebSocket 연결 중...', 'orange');
+
+            // 2단계: WebSocket 연결
+            const wsUrl = `ws://localhost:8080/ws/queue?tokenId=${encodeURIComponent(manualTokenId)}&userId=${encodeURIComponent(userId)}&concertId=${concertId}`;
+            document.getElementById('wsUrl').textContent = wsUrl;
+
+            manualWebsocket = new WebSocket(wsUrl);
+
+            manualWebsocket.onopen = function(event) {
+                addLogMessage(`수동 연결(${userId}): WebSocket 연결 성공`, 'success');
+                updateManualConnectionStatus('연결됨', 'green');
+                document.getElementById('manualQueueStatus').style.display = 'block';
+            };
+
+            manualWebsocket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    updateManualQueueStatus(data);
+                    addLogMessage(`수동 연결 메시지: ${data.message}`, 'info');
+                } catch (e) {
+                    console.error('메시지 파싱 오류:', e);
+                    addLogMessage('메시지 파싱 오류: ' + event.data, 'error');
+                }
+            };
+
+            manualWebsocket.onclose = function(event) {
+                addLogMessage(`수동 연결(${userId}): WebSocket 종료`, 'warning');
+                updateManualConnectionStatus('연결 종료됨', 'red');
+                document.getElementById('manualQueueStatus').style.display = 'none';
+                manualWebsocket = null;
+                manualTokenId = null;
+            };
+
+            manualWebsocket.onerror = function(error) {
+                addLogMessage(`수동 연결(${userId}): WebSocket 오류`, 'error');
+                updateManualConnectionStatus('연결 오류', 'red');
+                manualWebsocket = null;
+                manualTokenId = null;
+            };
+
+        } catch (error) {
+            console.error('수동 연결 생성 실패:', error);
+            addLogMessage(`수동 연결 생성 실패: ${error.message}`, 'error');
+            updateManualConnectionStatus('생성 실패', 'red');
+        }
+    }
+
+    function disconnectManual() {
+        if (manualWebsocket) {
+            manualWebsocket.close();
+            manualWebsocket = null;
+            manualTokenId = null;
+            updateManualConnectionStatus('연결 해제됨', 'gray');
+            document.getElementById('manualQueueStatus').style.display = 'none';
+            document.getElementById('manualTokenId').textContent = '-';
+            addLogMessage('수동 WebSocket 연결을 해제했습니다.', 'info');
+        }
+    }
+
+    function disconnectAllAuto() {
+        Object.keys(autoConnections).forEach(userId => {
+            const connection = autoConnections[userId];
+            if (connection && connection.websocket) {
+                connection.websocket.close();
+                delete autoConnections[userId];
+            }
+        });
+
+        document.getElementById('autoConnectionGrid').innerHTML = '';
+        addLogMessage('모든 자동 연결을 해제했습니다.', 'info');
+        updateStats();
+    }
+
+    function updateManualQueueStatus(data) {
+        const statusElement = document.getElementById('manualQueueStatus');
+        const positionElement = document.getElementById('manualPositionCircle');
+        const messageElement = document.getElementById('manualStatusMessage');
+        const infoElement = document.getElementById('manualAdditionalInfo');
+
+        if (data.position > 0) {
+            positionElement.textContent = data.position;
+        } else if (data.status === 'ACTIVE') {
+            positionElement.innerHTML = '✓';
+        } else {
+            positionElement.textContent = '-';
+        }
+
+        messageElement.textContent = data.message || '상태 업데이트';
+
+        infoElement.innerHTML = `
+            <div>상태: ${data.status}</div>
+            <div>콘서트 ID: ${data.concertId}</div>
+            <div>토큰 ID: ${data.tokenId}</div>
+        `;
+
+        statusElement.className = 'queue-status';
+        switch(data.status) {
+            case 'WAITING':
+                statusElement.classList.add('waiting');
+                break;
+            case 'ACTIVE':
+                statusElement.classList.add('active');
+                break;
+            case 'EXPIRED':
+                statusElement.classList.add('expired');
+                break;
+        }
+
+        updateLastUpdate();
+    }
+
+    function updateManualConnectionStatus(status, color) {
+        const statusElement = document.getElementById('manualConnectionStatus');
+        statusElement.textContent = status;
+        statusElement.style.color = color;
+        updateLastUpdate();
+    }
+
+    function updateStats() {
+        const cards = document.querySelectorAll('.connection-card');
+        let total = cards.length;
+        let active = document.querySelectorAll('.connection-card.active').length;
+        let waiting = document.querySelectorAll('.connection-card.waiting').length;
+        let expired = document.querySelectorAll('.connection-card.expired, .connection-card.error').length;
+
+        document.getElementById('totalConnections').textContent = total;
+        document.getElementById('activeConnections').textContent = active;
+        document.getElementById('waitingConnections').textContent = waiting;
+        document.getElementById('errorConnections').textContent = expired;
+    }
+
+    function updateLastUpdate() {
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+    }
+
+    function addLogMessage(message, type) {
+        const logContent = document.getElementById('logContent');
+        const timestamp = new Date().toLocaleTimeString();
+        const colorMap = {
+            'success': '#28a745',
+            'info': '#17a2b8',
+            'warning': '#ffc107',
+            'error': '#dc3545'
+        };
+
+        const logEntry = document.createElement('div');
+        logEntry.style.color = colorMap[type] || '#ffffff';
+        logEntry.style.marginBottom = '5px';
+        logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+
+        if (logContent.children.length > 100) {
+            logContent.removeChild(logContent.firstChild);
+        }
+    }
+
+    window.addEventListener('beforeunload', function() {
+        Object.values(autoConnections).forEach(connection => {
+            if (connection && connection.websocket) connection.websocket.close();
+        });
+        if (manualWebsocket) {
+            manualWebsocket.close();
+        }
+    });
+</script>
+</body>
+</html>
