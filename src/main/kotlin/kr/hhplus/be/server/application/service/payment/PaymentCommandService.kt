@@ -6,9 +6,9 @@ import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 import kr.hhplus.be.server.application.mapper.PaymentMapper
-import kr.hhplus.be.server.application.port.`in`.CompleteTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.ProcessPaymentUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.CompleteTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.log.PointHistoryRepository
@@ -26,7 +26,6 @@ import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
 import kr.hhplus.be.server.domain.users.UserDomainService
-import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

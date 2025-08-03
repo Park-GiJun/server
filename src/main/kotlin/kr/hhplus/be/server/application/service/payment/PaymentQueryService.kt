@@ -6,9 +6,9 @@ import kr.hhplus.be.server.application.dto.payment.PaymentResult
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 import kr.hhplus.be.server.application.mapper.PaymentMapper
-import kr.hhplus.be.server.application.port.`in`.GetPaymentUseCase
-import kr.hhplus.be.server.application.port.`in`.GetUserPaymentsUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.payment.GetPaymentUseCase
+import kr.hhplus.be.server.application.port.`in`.payment.GetUserPaymentsUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.payment.PaymentRepository
 import kr.hhplus.be.server.domain.payment.PaymentDomainService
 import kr.hhplus.be.server.domain.queue.QueueToken

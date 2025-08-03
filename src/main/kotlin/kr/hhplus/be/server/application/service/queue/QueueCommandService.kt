@@ -3,7 +3,12 @@ package kr.hhplus.be.server.application.service.queue
 import jakarta.transaction.Transactional
 import kr.hhplus.be.server.application.dto.queue.*
 import kr.hhplus.be.server.application.mapper.QueueMapper
-import kr.hhplus.be.server.application.port.`in`.*
+import kr.hhplus.be.server.application.port.`in`.queue.ActivateTokensUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.CompleteTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ExpireTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.UpdateQueuePositionsUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.queue.QueueDomainService

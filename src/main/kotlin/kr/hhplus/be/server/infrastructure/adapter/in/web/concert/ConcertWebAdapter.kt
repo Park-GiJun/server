@@ -3,10 +3,10 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse

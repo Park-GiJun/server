@@ -12,9 +12,9 @@ import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.domain.concert.ConcertDomainService
 import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
-import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

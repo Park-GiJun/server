@@ -11,11 +11,11 @@ import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTok
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.mapper.QueueWebMapper
-import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
-import kr.hhplus.be.server.application.port.`in`.ExpireTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.GenerateTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.GetQueueStatusUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ActivateTokensUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ExpireTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 

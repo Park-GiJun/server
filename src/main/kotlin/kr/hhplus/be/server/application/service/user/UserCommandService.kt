@@ -4,8 +4,8 @@ import kr.hhplus.be.server.application.dto.user.ChargeUserPointCommand
 import kr.hhplus.be.server.application.dto.user.UseUserPointCommand
 import kr.hhplus.be.server.application.dto.user.UserResult
 import kr.hhplus.be.server.application.mapper.UserMapper
-import kr.hhplus.be.server.application.port.`in`.ChargeUserPointUseCase
-import kr.hhplus.be.server.application.port.`in`.UseUserPointUseCase
+import kr.hhplus.be.server.application.port.`in`.user.ChargeUserPointUseCase
+import kr.hhplus.be.server.application.port.`in`.user.UseUserPointUseCase
 import kr.hhplus.be.server.application.port.out.queue.UserRepository
 import kr.hhplus.be.server.domain.users.UserDomainService
 import org.springframework.stereotype.Service

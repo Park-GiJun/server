@@ -2,10 +2,9 @@ package kr.hhplus.be.server.infrastructure.adapter.out.scheduler
 
 import kr.hhplus.be.server.application.dto.queue.ActivateTokensCommand
 import kr.hhplus.be.server.application.dto.queue.UpdateQueuePositionsCommand
-import kr.hhplus.be.server.application.port.`in`.ActivateTokensUseCase
-import kr.hhplus.be.server.application.port.`in`.UpdateQueuePositionsUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ActivateTokensUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.UpdateQueuePositionsUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
-import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueActivationEvent
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.service.QueueWebSocketService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.EnableAsync

@@ -3,8 +3,8 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.handler
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
 import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
-import kr.hhplus.be.server.application.port.`in`.ExpireTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.GetQueueStatusUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ExpireTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueWebSocketConnectRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.service.QueueWebSocketService

@@ -4,7 +4,7 @@ import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
 import kr.hhplus.be.server.application.dto.queue.QueueStatusResult
 import kr.hhplus.be.server.application.mapper.QueueMapper
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
-import kr.hhplus.be.server.application.port.`in`.GetQueueStatusUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.domain.queue.QueueDomainService
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
