@@ -30,7 +30,7 @@ springdoc:
     operations-sorter: alpha
 
 ---
-spring.config.activate.on-profile: local, test
+spring.config.activate.on-profile: local
 
 spring:
   datasource:
