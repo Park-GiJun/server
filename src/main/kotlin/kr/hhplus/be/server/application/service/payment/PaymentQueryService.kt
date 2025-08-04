@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-class PaymentQueryService(
+class  PaymentQueryService(
     private val paymentRepository: PaymentRepository,
     private val validateTokenUseCase: ValidateTokenUseCase
 ) : GetPaymentUseCase, GetUserPaymentsUseCase {

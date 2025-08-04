@@ -103,17 +103,41 @@ class QueueCommandService(
     }
 
     override fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult {
+        log.info("Starting token activation for concert ${command.concertId}, requested count: ${command.count}")
+
+        log.info("Calling queueTokenRepository.activateWaitingTokens...")
+
         val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, command.count)
 
-        activatedTokens.forEach { token ->
-            queueWebSocketEventPublisher.publishActivation(
-                QueueActivationEvent(
-                    tokenId = token.queueTokenId,
-                    userId = token.userId,
-                    concertId = token.concertId
-                )
-            )
+        log.info("Repository returned ${activatedTokens.size} activated tokens")
+
+        if (activatedTokens.isEmpty()) {
+            log.warn("No tokens were activated by repository for concert ${command.concertId}")
+            return ActivateTokensResult(0, emptyList())
         }
+
+        activatedTokens.forEachIndexed { index, token ->
+            log.info("Activated token [$index]: ${token.queueTokenId}, user: ${token.userId}, status: ${token.tokenStatus}")
+        }
+
+        log.info("Publishing activation events...")
+
+        activatedTokens.forEach { token ->
+            try {
+                queueWebSocketEventPublisher.publishActivation(
+                    QueueActivationEvent(
+                        tokenId = token.queueTokenId,
+                        userId = token.userId,
+                        concertId = token.concertId
+                    )
+                )
+                log.debug("Published activation event for token: ${token.queueTokenId}")
+            } catch (e: Exception) {
+                log.error("Failed to publish activation event for token: ${token.queueTokenId}", e)
+            }
+        }
+
+        log.info("Token activation completed. Activated: ${activatedTokens.size}, TokenIds: ${activatedTokens.map { it.queueTokenId }}")
 
         return ActivateTokensResult(
             activatedCount = activatedTokens.size,

@@ -22,4 +22,9 @@ class UserRepositoryImpl(
         return userJpaRepository.findByUserId(userId)
             ?.let { PersistenceMapper.toUserDomain(it) }
     }
+
+    override fun findByUserIdWithLock(userId: String): User? {
+        return userJpaRepository.findByUserIdWithLock(userId)
+            ?.let { PersistenceMapper.toUserDomain(it) }
+    }
 }

@@ -20,7 +20,7 @@ class UserCommandService(
     private val userDomainService = UserDomainService()
 
     override fun chargeUserPoint(command: ChargeUserPointCommand): UserResult {
-        val user = userRepository.findByUserId(command.userId)
+        val user = userRepository.findByUserIdWithLock(command.userId)
         userDomainService.validateUserExists(user, command.userId)
 
         val updatedUser = userDomainService.chargeUserPoint(user!!, command.amount)
@@ -30,7 +30,7 @@ class UserCommandService(
     }
 
     override fun useUserPoint(command: UseUserPointCommand): UserResult {
-        val user = userRepository.findByUserId(command.userId)
+        val user = userRepository.findByUserIdWithLock(command.userId)
         userDomainService.validateUserExists(user, command.userId)
 
         val updatedUser = userDomainService.useUserPoint(user!!, command.amount)

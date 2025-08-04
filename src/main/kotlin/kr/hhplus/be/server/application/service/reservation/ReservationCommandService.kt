@@ -52,7 +52,7 @@ class ReservationCommandService(
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        val seat = concertSeatRepository.findByConcertSeatId(command.concertSeatId)
+        val seat = concertSeatRepository.findByConcertSeatIdWithLock(command.concertSeatId)
             ?: throw ConcertSeatNotFoundException(command.concertSeatId)
 
         val existingTempReservation = tempReservationRepository.findByTempReservationId(
@@ -89,7 +89,7 @@ class ReservationCommandService(
 
         reservationDomainService.validateTempReservationConfirmation(token, tempReservation)
 
-        val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
+        val seat = concertSeatRepository.findByConcertSeatIdWithLock(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
 
         val reservation = reservationDomainService.createConfirmedReservation(
@@ -121,7 +121,7 @@ class ReservationCommandService(
 
         reservationDomainService.validateTempReservationCancellation(token, tempReservation)
 
-        val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
+        val seat = concertSeatRepository.findByConcertSeatIdWithLock(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
 
         val releasedSeat = seat.release()

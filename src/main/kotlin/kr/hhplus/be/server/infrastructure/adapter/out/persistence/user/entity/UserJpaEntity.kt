@@ -32,18 +32,4 @@ class UserJpaEntity(
     @Column(name = "used_point", nullable = false)
     var usedPoint: Int = 0
 ) : BaseEntity() {
-
-    fun toDomain(): User {
-        return User(
-            userId = this.userId,
-            userName = this.userName,
-            totalPoint = this.totalPoint,
-            availablePoint = this.availablePoint,
-            usedPoint = this.usedPoint,
-            createdAt = this.createdAt,
-            updatedAt = this.updatedAt,
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
-    }
 }
