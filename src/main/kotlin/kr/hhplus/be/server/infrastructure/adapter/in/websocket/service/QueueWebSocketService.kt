@@ -5,7 +5,9 @@ import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueActivationEvent
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueuePositionUpdateEvent
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueWebSocketResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.event.TokenExpiredByDisconnectionEvent
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
@@ -13,23 +15,19 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class QueueWebSocketService(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val eventPublisher: ApplicationEventPublisher // ✅ 이벤트 퍼블리셔로 변경
 ) {
     private val log = LoggerFactory.getLogger(QueueWebSocketService::class.java)
 
-    // 세션 관리: tokenId -> WebSocketSession
     private val sessions = ConcurrentHashMap<String, WebSocketSession>()
-    // 토큰별 콘서트 정보: tokenId -> concertId
     private val tokenConcertMap = ConcurrentHashMap<String, Long>()
-    // 콘서트별 세션 그룹: concertId -> Set<tokenId>
     private val concertSessions = ConcurrentHashMap<Long, MutableSet<String>>()
 
     fun addSession(tokenId: String, concertId: Long, session: WebSocketSession) {
         sessions[tokenId] = session
         tokenConcertMap[tokenId] = concertId
         concertSessions.computeIfAbsent(concertId) { mutableSetOf() }.add(tokenId)
-
-        log.info("WebSocket session added: tokenId=$tokenId, concertId=$concertId")
     }
 
     fun removeSession(tokenId: String) {
@@ -40,7 +38,15 @@ class QueueWebSocketService(
                     concertSessions.remove(concertId)
                 }
             }
-            log.info("WebSocket session removed: tokenId=$tokenId")
+            publishTokenExpiredEvent(tokenId, "WebSocket session removed")
+        }
+    }
+
+    private fun publishTokenExpiredEvent(tokenId: String, reason: String) {
+        try {
+            eventPublisher.publishEvent(TokenExpiredByDisconnectionEvent(tokenId, reason))
+        } catch (e: Exception) {
+            log.error("Failed to publish token expiry event: $tokenId", e)
         }
     }
 
@@ -103,6 +109,18 @@ class QueueWebSocketService(
                     message = message
                 )
                 sendMessage(session, response)
+                removeSessionOnly(tokenId)
+            }
+        }
+    }
+
+    private fun removeSessionOnly(tokenId: String) {
+        sessions.remove(tokenId)?.let {
+            tokenConcertMap.remove(tokenId)?.let { concertId ->
+                concertSessions[concertId]?.remove(tokenId)
+                if (concertSessions[concertId]?.isEmpty() == true) {
+                    concertSessions.remove(concertId)
+                }
             }
         }
     }
@@ -112,18 +130,11 @@ class QueueWebSocketService(
             if (session.isOpen) {
                 val message = TextMessage(objectMapper.writeValueAsString(response))
                 session.sendMessage(message)
-                log.debug("Message sent to session: ${response.tokenId}")
+            } else {
+                publishTokenExpiredEvent(response.tokenId, "Session already closed")
             }
         } catch (e: Exception) {
-            log.error("Failed to send WebSocket message", e)
+            publishTokenExpiredEvent(response.tokenId, "Message send failed: ${e.message}")
         }
-    }
-
-    fun getActiveSessionCount(concertId: Long): Int {
-        return concertSessions[concertId]?.size ?: 0
-    }
-
-    fun getAllActiveSessions(): Map<Long, Int> {
-        return concertSessions.mapValues { it.value.size }
     }
 }

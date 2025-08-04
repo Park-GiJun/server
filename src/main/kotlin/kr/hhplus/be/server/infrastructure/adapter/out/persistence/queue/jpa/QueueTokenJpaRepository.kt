@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa
 
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -55,4 +56,6 @@ interface QueueTokenJpaRepository : JpaRepository<QueueTokenJpaEntity, String> {
         WHERE qt.queueTokenId IN :tokenIds
     """)
     fun updateTokensToActive(@Param("tokenIds") tokenIds: List<String>): Int
+
+    fun countByConcertIdAndTokenStatus(concertId: Long, status: QueueTokenStatus): Int
 }

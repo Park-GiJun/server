@@ -17,6 +17,7 @@ import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueueActivationEvent
+import kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.dto.QueuePositionUpdateEvent
 import kr.hhplus.be.server.infrastructure.adapter.out.event.QueueWebSocketEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -103,24 +104,21 @@ class QueueCommandService(
     }
 
     override fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult {
-        log.info("Starting token activation for concert ${command.concertId}, requested count: ${command.count}")
+        val currentActiveCount = queueTokenRepository.countActiveTokensByConcert(command.concertId)
+        val maxActiveUsers = 3
+        val actualSlotsAvailable = maxActiveUsers - currentActiveCount
 
-        log.info("Calling queueTokenRepository.activateWaitingTokens...")
-
-        val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, command.count)
-
-        log.info("Repository returned ${activatedTokens.size} activated tokens")
-
-        if (activatedTokens.isEmpty()) {
-            log.warn("No tokens were activated by repository for concert ${command.concertId}")
+        if (actualSlotsAvailable <= 0) {
             return ActivateTokensResult(0, emptyList())
         }
 
-        activatedTokens.forEachIndexed { index, token ->
-            log.info("Activated token [$index]: ${token.queueTokenId}, user: ${token.userId}, status: ${token.tokenStatus}")
-        }
+        val tokensToActivate = minOf(command.count, actualSlotsAvailable)
 
-        log.info("Publishing activation events...")
+        val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, tokensToActivate)
+
+        if (activatedTokens.isEmpty()) {
+            return ActivateTokensResult(0, emptyList())
+        }
 
         activatedTokens.forEach { token ->
             try {
@@ -131,13 +129,10 @@ class QueueCommandService(
                         concertId = token.concertId
                     )
                 )
-                log.debug("Published activation event for token: ${token.queueTokenId}")
             } catch (e: Exception) {
                 log.error("Failed to publish activation event for token: ${token.queueTokenId}", e)
             }
         }
-
-        log.info("Token activation completed. Activated: ${activatedTokens.size}, TokenIds: ${activatedTokens.map { it.queueTokenId }}")
 
         return ActivateTokensResult(
             activatedCount = activatedTokens.size,
@@ -147,11 +142,6 @@ class QueueCommandService(
 
     override fun updateQueuePositions(command: UpdateQueuePositionsCommand): UpdateQueuePositionsResult {
         val waitingTokens = queueTokenRepository.findWaitingTokensByConcertIdOrderByEnteredAt(command.concertId)
-
-        waitingTokens.forEach { token ->
-            log.info("Update tokens ${token.queueTokenId}")
-        }
-
 
         if (waitingTokens.isEmpty()) {
             return UpdateQueuePositionsResult(
@@ -178,6 +168,22 @@ class QueueCommandService(
                 oldPosition = oldPositions[tokenId] ?: 0,
                 newPosition = newPositions[tokenId] ?: 0
             )
+        }
+
+        positionChanges.forEach { change ->
+            try {
+                queueWebSocketEventPublisher.publishPositionUpdate(
+                    QueuePositionUpdateEvent(
+                        tokenId = change.token.queueTokenId,
+                        userId = change.token.userId,
+                        concertId = command.concertId,
+                        newPosition = change.newPosition,
+                        status = change.token.tokenStatus
+                    )
+                )
+            } catch (e: Exception) {
+                log.error("Failed to publish position update for token: ${change.token.queueTokenId}", e)
+            }
         }
 
         return UpdateQueuePositionsResult(

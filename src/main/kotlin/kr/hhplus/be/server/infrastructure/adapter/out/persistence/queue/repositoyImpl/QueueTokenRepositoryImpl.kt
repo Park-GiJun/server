@@ -66,4 +66,8 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
             .map { PersistenceMapper.toQueueTokenDomain(it) }
     }
+
+    override fun countActiveTokensByConcert(concertId: Long): Int {
+        return queueTokenJpaRepository.countByConcertIdAndTokenStatus(concertId, QueueTokenStatus.ACTIVE)
+    }
 }

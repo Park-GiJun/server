@@ -3,9 +3,11 @@ package kr.hhplus.be.server.application.service.queue
 import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
 import kr.hhplus.be.server.application.dto.queue.QueueStatusResult
 import kr.hhplus.be.server.application.mapper.QueueMapper
+import kr.hhplus.be.server.application.port.`in`.queue.GetActivateTokensCountByConcert
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.`in`.queue.GetQueueStatusUseCase
 import kr.hhplus.be.server.domain.queue.QueueDomainService
+import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import org.springframework.stereotype.Service
@@ -15,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class QueueQueryService(
     private val queueTokenRepository: QueueTokenRepository
-) : GetQueueStatusUseCase {
+) : GetQueueStatusUseCase, GetActivateTokensCountByConcert {
 
     private val queueDomainService = QueueDomainService()
 
@@ -39,5 +41,9 @@ class QueueQueryService(
         } else 0
 
         return QueueMapper.toStatusResult(token, position)
+    }
+
+    override fun getActivateTokensCountByQueue(concertId : Long): Int {
+        return queueTokenRepository.countActiveTokensByConcert(concertId)
     }
 }
