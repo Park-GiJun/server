@@ -97,7 +97,7 @@ class UnifiedQueueScheduler(
 
             waitingTokens.forEachIndexed { index, token ->
                 try {
-                    val currentPosition = index + 1 // 1부터 시작하는 순서
+                    val currentPosition = index + 1
 
                     val session = webSocketSessionPort.getSession(token.queueTokenId)
                     if (session != null) {
