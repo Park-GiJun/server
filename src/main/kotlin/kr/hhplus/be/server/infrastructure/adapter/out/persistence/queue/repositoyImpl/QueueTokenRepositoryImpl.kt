@@ -8,6 +8,7 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.Persist
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa.QueueTokenJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -44,9 +45,14 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 
-    override fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken> {
-        return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
-            .map { PersistenceMapper.toQueueTokenDomain(it) }
+    override fun findWaitingTokensByConcert(concertId: Long): List<QueueToken> {
+        val sort = Sort.by(Sort.Direction.ASC, "enteredAt")
+
+        return queueTokenJpaRepository.findByConcertIdAndTokenStatus(
+            concertId = concertId,
+            tokenStatus = QueueTokenStatus.WAITING,
+            sort = sort
+        ).map { PersistenceMapper.toQueueTokenDomain(it) }
     }
 
     override fun countActiveTokensByConcert(concertId: Long): Int {

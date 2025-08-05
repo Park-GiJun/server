@@ -3,6 +3,7 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -61,4 +62,10 @@ interface QueueTokenJpaRepository : JpaRepository<QueueTokenJpaEntity, String> {
 
     @Query("SELECT COUNT(qt) FROM QueueTokenJpaEntity qt WHERE qt.concertId = :concertId AND qt.tokenStatus = 'ACTIVE'")
     fun countActiveByConcertId(@Param("concertId") concertId: Long): Int
+
+    fun findByConcertIdAndTokenStatus(
+        concertId: Long,
+        tokenStatus: QueueTokenStatus,
+        sort: Sort
+    ): List<QueueTokenJpaEntity>
 }

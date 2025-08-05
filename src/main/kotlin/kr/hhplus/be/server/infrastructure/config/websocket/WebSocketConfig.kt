@@ -18,6 +18,6 @@ class WebSocketConfig(
         registry.addHandler(queueWebSocketHandler, "/ws/queue")
             .addInterceptors(handshakeInterceptor)
             .setAllowedOriginPatterns("*")
-            .withSockJS()
+            .setAllowedOrigins("*")
     }
 }

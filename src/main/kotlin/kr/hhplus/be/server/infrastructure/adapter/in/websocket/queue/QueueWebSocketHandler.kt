@@ -1,3 +1,4 @@
+// QueueWebSocketHandler.kt - 수정된 버전
 package kr.hhplus.be.server.infrastructure.adapter.`in`.websocket.queue
 
 import kr.hhplus.be.server.application.dto.queue.ExpireTokenCommand
@@ -42,59 +43,70 @@ class QueueWebSocketHandler(
             tokenId = connectionInfo.tokenId
             log.info("연결 정보 파싱 성공: tokenId=$tokenId, userId=${connectionInfo.userId}, concertId=${connectionInfo.concertId}")
 
+            // ✅ 토큰 상태 확인을 선택적으로 처리 (연결 실패하지 않도록)
+            var initialStatus = QueueTokenStatus.WAITING
+            var initialPosition = -1
+            var initialMessage = "대기열에 연결되었습니다."
+
             try {
                 val queueStatus = getQueueStatusUseCase.getQueueStatus(GetQueueStatusQuery(tokenId))
+                initialStatus = queueStatus.status
+                initialPosition = queueStatus.position
+                initialMessage = when(queueStatus.status) {
+                    QueueTokenStatus.WAITING -> "대기 중입니다. 순서: ${queueStatus.position}"
+                    QueueTokenStatus.ACTIVE -> "예약 가능합니다!"
+                    QueueTokenStatus.EXPIRED -> "대기열이 만료되었습니다."
+                    else -> "대기열 상태를 확인해주세요."
+                }
                 log.info("토큰 상태 확인 성공: tokenId=$tokenId, status=${queueStatus.status}, position=${queueStatus.position}")
             } catch (e: Exception) {
-                log.warn("토큰 상태 확인 실패 (무시하고 진행): tokenId=$tokenId", e)
+                log.warn("토큰 상태 확인 실패, 기본값으로 진행: tokenId=$tokenId, error=${e.message}")
+                // 상태 확인 실패해도 연결은 유지
             }
 
+            // 도메인 세션 등록
             webSocketSessionPort.addSession(connectionInfo)
             log.info("도메인 세션 등록 완료: tokenId=$tokenId")
 
+            // Spring WebSocket 세션 등록
             springWebSocketMessageAdapter.addWebSocketSession(connectionInfo.tokenId, session)
             log.info("Spring WebSocket 세션 등록 완료: tokenId=$tokenId")
 
-            sendInitialStatusMessage(connectionInfo)
+            // 초기 상태 메시지 전송
+            sendInitialStatusMessage(connectionInfo, initialStatus, initialPosition, initialMessage)
 
             log.info("WebSocket 연결 성공: tokenId=$tokenId, concertId=${connectionInfo.concertId}")
 
         } catch (e: Exception) {
             log.error("WebSocket 연결 처리 중 오류: sessionId=${session.id}, tokenId=$tokenId", e)
             try {
-                session.close(CloseStatus.SERVER_ERROR.withReason("Connection processing error"))
+                session.close(CloseStatus.SERVER_ERROR.withReason("Connection processing error: ${e.message}"))
             } catch (closeError: Exception) {
                 log.error("세션 종료 중 오류", closeError)
             }
         }
     }
 
-    private fun sendInitialStatusMessage(connectionInfo: QueueWebSocketSession) {
+    private fun sendInitialStatusMessage(
+        connectionInfo: QueueWebSocketSession,
+        status: QueueTokenStatus,
+        position: Int,
+        messageText: String
+    ) {
         try {
-            val message = mapOf(
-                "tokenId" to connectionInfo.tokenId,
-                "userId" to connectionInfo.userId,
-                "concertId" to connectionInfo.concertId,
-                "status" to "WAITING",
-                "position" to -1,
-                "message" to "대기열에 연결되었습니다.",
-                "timestamp" to System.currentTimeMillis()
+            val message = QueueWebSocketMessage(
+                tokenId = connectionInfo.tokenId,
+                userId = connectionInfo.userId,
+                concertId = connectionInfo.concertId,
+                status = status,
+                position = position,
+                message = messageText
             )
 
-            val success = springWebSocketMessageAdapter.sendMessage(
-                connectionInfo.tokenId,
-                QueueWebSocketMessage(
-                    tokenId = connectionInfo.tokenId,
-                    userId = connectionInfo.userId,
-                    concertId = connectionInfo.concertId,
-                    status = QueueTokenStatus.WAITING,
-                    position = -1,
-                    message = "대기열에 연결되었습니다."
-                )
-            )
+            val success = springWebSocketMessageAdapter.sendMessage(connectionInfo.tokenId, message)
 
             if (success) {
-                log.info("초기 상태 메시지 전송 성공: tokenId=${connectionInfo.tokenId}")
+                log.info("초기 상태 메시지 전송 성공: tokenId=${connectionInfo.tokenId}, status=$status, position=$position")
             } else {
                 log.warn("초기 상태 메시지 전송 실패: tokenId=${connectionInfo.tokenId}")
             }
@@ -105,8 +117,26 @@ class QueueWebSocketHandler(
     }
 
     override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        // 클라이언트로부터 메시지를 받을 필요가 있다면 여기서 처리
         log.debug("WebSocket 메시지 수신: sessionId=${session.id}, message=${message.payload}")
+
+        // ✅ 클라이언트에서 상태 조회 요청을 보낼 수 있도록 처리
+        val tokenId = session.attributes["tokenId"] as? String
+        if (tokenId != null && message.payload == "GET_STATUS") {
+            try {
+                val status = getQueueStatusUseCase.getQueueStatus(GetQueueStatusQuery(tokenId))
+                val responseMessage = QueueWebSocketMessage(
+                    tokenId = tokenId,
+                    userId = status.userId,
+                    concertId = status.concertId,
+                    status = status.status,
+                    position = status.position,
+                    message = "상태 업데이트"
+                )
+                springWebSocketMessageAdapter.sendMessage(tokenId, responseMessage)
+            } catch (e: Exception) {
+                log.error("상태 조회 처리 중 오류: tokenId=$tokenId", e)
+            }
+        }
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
@@ -120,8 +150,9 @@ class QueueWebSocketHandler(
                 springWebSocketMessageAdapter.removeWebSocketSession(tokenId)
                 log.info("세션 정리 완료: tokenId=$tokenId")
 
-                // 토큰 만료 처리 (연결이 정상적으로 종료된 경우에만)
-                if (status.code != CloseStatus.NORMAL.code && status.code != CloseStatus.GOING_AWAY.code) {
+                // ✅ 정상 종료가 아닌 경우에만 토큰 만료 처리
+                if (status.code != CloseStatus.NORMAL.code &&
+                    status.code != CloseStatus.GOING_AWAY.code) {
                     try {
                         expireTokenUseCase.expireToken(ExpireTokenCommand(tokenId))
                         log.info("토큰 만료 처리 완료: tokenId=$tokenId")
