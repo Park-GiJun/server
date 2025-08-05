@@ -46,34 +46,31 @@ class QueueTokenRepositoryImpl(
     }
 
     override fun findWaitingTokensByConcert(concertId: Long): List<QueueToken> {
-        val sort = Sort.by(Sort.Direction.ASC, "enteredAt")
-
-        return queueTokenJpaRepository.findByConcertIdAndTokenStatus(
-            concertId = concertId,
-            tokenStatus = QueueTokenStatus.WAITING,
-            sort = sort
-        ).map { PersistenceMapper.toQueueTokenDomain(it) }
-    }
-
-    override fun countActiveTokensByConcert(concertId: Long): Int {
-        return queueTokenJpaRepository.countByConcertIdAndTokenStatus(concertId, QueueTokenStatus.ACTIVE)
+        return queueTokenJpaRepository
+            .findByConcertIdAndTokenStatus(
+                concertId = concertId,
+                tokenStatus = QueueTokenStatus.WAITING,
+                sort = Sort.by(Sort.Direction.ASC, "enteredAt")
+            )
+            .map { PersistenceMapper.toQueueTokenDomain(it) }
     }
 
     @Transactional
     override fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
-        val waitingTokens = queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAt(
-            concertId,
-            PageRequest.of(0, count)
-        )
+        return queueTokenJpaRepository
+            .findWaitingTokensByConcertIdOrderByEnteredAt(
+                concertId,
+                PageRequest.of(0, count)
+            )
+            .takeIf { it.isNotEmpty() }
+            ?.let { waitingTokens ->
+                val tokenIds = waitingTokens.map { it.queueTokenId }
+                queueTokenJpaRepository.updateTokensToActive(tokenIds)
 
-        if (waitingTokens.isEmpty()) {
-            return emptyList()
-        }
-
-        val tokenIds = waitingTokens.map { it.queueTokenId }
-        queueTokenJpaRepository.updateTokensToActive(tokenIds)
-
-        return waitingTokens.onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
-            .map { PersistenceMapper.toQueueTokenDomain(it) }
+                waitingTokens
+                    .onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
+                    .map { PersistenceMapper.toQueueTokenDomain(it) }
+            }
+            ?: emptyList()
     }
 }
