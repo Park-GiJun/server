@@ -9,7 +9,7 @@ import kr.hhplus.be.server.application.dto.user.UseUserPointCommand
 import kr.hhplus.be.server.application.port.`in`.user.ChargeUserPointUseCase
 import kr.hhplus.be.server.application.port.`in`.user.GetUserUseCase
 import kr.hhplus.be.server.application.port.`in`.user.UseUserPointUseCase
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.application.service.user.UserCommandService
 import kr.hhplus.be.server.application.service.user.UserQueryService
 import kr.hhplus.be.server.domain.users.User

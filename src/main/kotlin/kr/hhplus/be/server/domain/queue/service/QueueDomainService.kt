@@ -1,10 +1,12 @@
-package kr.hhplus.be.server.domain.queue
+package kr.hhplus.be.server.domain.queue.service
 
+import kr.hhplus.be.server.domain.queue.QueueToken
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
+import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class QueueDomainService {
 

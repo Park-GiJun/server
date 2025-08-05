@@ -58,4 +58,7 @@ interface QueueTokenJpaRepository : JpaRepository<QueueTokenJpaEntity, String> {
     fun updateTokensToActive(@Param("tokenIds") tokenIds: List<String>): Int
 
     fun countByConcertIdAndTokenStatus(concertId: Long, status: QueueTokenStatus): Int
+
+    @Query("SELECT COUNT(qt) FROM QueueTokenJpaEntity qt WHERE qt.concertId = :concertId AND qt.tokenStatus = 'ACTIVE'")
+    fun countActiveByConcertId(@Param("concertId") concertId: Long): Int
 }

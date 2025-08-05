@@ -15,7 +15,7 @@ import kr.hhplus.be.server.application.port.`in`.queue.ExpireTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.application.port.out.reservation.ReservationRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.application.service.reservation.ReservationCommandService

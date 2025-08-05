@@ -13,19 +13,23 @@ import kr.hhplus.be.server.application.port.out.payment.PaymentRepository
 import kr.hhplus.be.server.domain.payment.PaymentDomainService
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-class  PaymentQueryService(
+class PaymentQueryService(
     private val paymentRepository: PaymentRepository,
     private val validateTokenUseCase: ValidateTokenUseCase
 ) : GetPaymentUseCase, GetUserPaymentsUseCase {
 
+    private val log = LoggerFactory.getLogger(PaymentQueryService::class.java)
     private val paymentDomainService = PaymentDomainService()
 
     override fun getPayment(command: GetPaymentCommand): PaymentResult {
+        log.info("결제 내역 조회: paymentId=${command.paymentId}")
+
         val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
@@ -36,10 +40,13 @@ class  PaymentQueryService(
 
         paymentDomainService.validatePaymentAccess(payment!!, token)
 
+        log.info("결제 내역 조회 완료: userId=${token.userId}")
         return PaymentMapper.toResult(payment, "Payment details retrieved")
     }
 
     override fun getUserPayments(command: GetUserPaymentsCommand): List<PaymentResult> {
+        log.info("사용자 결제 목록 조회: userId=${command.userId}")
+
         val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
@@ -48,6 +55,8 @@ class  PaymentQueryService(
         paymentDomainService.validateUserPaymentAccess(token, command.userId)
 
         val payments = paymentRepository.findByUserId(command.userId)
+
+        log.info("사용자 결제 목록 조회 완료: ${payments.size}건")
         return PaymentMapper.toResults(payments)
     }
 

@@ -44,6 +44,15 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 
+    override fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken> {
+        return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
+            .map { PersistenceMapper.toQueueTokenDomain(it) }
+    }
+
+    override fun countActiveTokensByConcert(concertId: Long): Int {
+        return queueTokenJpaRepository.countByConcertIdAndTokenStatus(concertId, QueueTokenStatus.ACTIVE)
+    }
+
     @Transactional
     override fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
         val waitingTokens = queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAt(
@@ -60,14 +69,5 @@ class QueueTokenRepositoryImpl(
 
         return waitingTokens.onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
             .map { PersistenceMapper.toQueueTokenDomain(it) }
-    }
-
-    override fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken> {
-        return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
-            .map { PersistenceMapper.toQueueTokenDomain(it) }
-    }
-
-    override fun countActiveTokensByConcert(concertId: Long): Int {
-        return queueTokenJpaRepository.countByConcertIdAndTokenStatus(concertId, QueueTokenStatus.ACTIVE)
     }
 }

@@ -18,7 +18,7 @@ import kr.hhplus.be.server.application.port.`in`.reservation.ConfirmTempReservat
 import kr.hhplus.be.server.application.port.`in`.queue.ExpireTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.reservation.ReservationRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
@@ -27,6 +27,7 @@ import kr.hhplus.be.server.domain.reservation.ReservationDomainService
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.application.mapper.ReservationMapper
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,9 +43,12 @@ class ReservationCommandService(
     private val completeTokenUseCase: CompleteTokenUseCase
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
+    private val log = LoggerFactory.getLogger(ReservationCommandService::class.java)
     private val reservationDomainService = ReservationDomainService()
 
     override fun tempReservation(command: TempReservationCommand): TempReservationResult {
+        log.info("임시 예약 생성: userId=${command.userId}, seatId=${command.concertSeatId}")
+
         val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
@@ -74,10 +78,13 @@ class ReservationCommandService(
 
         val savedTempReservation = tempReservationRepository.save(tempReservation)
 
+        log.info("임시 예약 생성 완료: tempReservationId=${savedTempReservation.tempReservationId}")
         return ReservationMapper.toTempReservationResult(savedTempReservation)
     }
 
     override fun confirmTempReservation(command: ConfirmTempReservationCommand): ConfirmTempReservationResult {
+        log.info("임시 예약 확정: tempReservationId=${command.tempReservationId}, amount=${command.paymentAmount}")
+
         val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
@@ -106,10 +113,13 @@ class ReservationCommandService(
 
         completeTokenUseCase.completeToken(CompleteTokenCommand(command.tokenId))
 
+        log.info("임시 예약 확정 완료: reservationId=${savedReservation.reservationId}")
         return ReservationMapper.toConfirmTempReservationResult(savedReservation)
     }
 
     override fun cancelReservation(command: CancelReservationCommand): CancelReservationResult {
+        log.info("임시 예약 취소: tempReservationId=${command.tempReservationId}")
+
         val tokenResult = validateTokenUseCase.validateActiveToken(
             ValidateTokenCommand(command.tokenId)
         )
@@ -132,6 +142,7 @@ class ReservationCommandService(
 
         expireTokenUseCase.expireToken(ExpireTokenCommand(command.tokenId))
 
+        log.info("임시 예약 취소 완료: seatId=${tempReservation.concertSeatId}")
         return ReservationMapper.toCancelReservationResult(savedTempReservation)
     }
 

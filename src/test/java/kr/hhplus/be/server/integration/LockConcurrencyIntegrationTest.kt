@@ -16,7 +16,7 @@ import kr.hhplus.be.server.application.dto.user.ChargeUserPointCommand
 import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
 import kr.hhplus.be.server.application.port.`in`.user.ChargeUserPointUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.domain.users.User

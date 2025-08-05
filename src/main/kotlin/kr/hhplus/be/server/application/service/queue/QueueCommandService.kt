@@ -10,8 +10,8 @@ import kr.hhplus.be.server.application.port.`in`.queue.GenerateTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.UpdateQueuePositionsUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
-import kr.hhplus.be.server.domain.queue.QueueDomainService
+import kr.hhplus.be.server.application.port.out.user.UserRepository
+import kr.hhplus.be.server.domain.queue.service.QueueDomainService
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
@@ -35,6 +35,8 @@ class QueueCommandService(
     private val log = LoggerFactory.getLogger(QueueCommandService::class.java)
 
     override fun generateToken(command: GenerateTokenCommand): String {
+        log.info("대기열 토큰 생성: userId=${command.userId}, concertId=${command.concertId}")
+
         val user = userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
@@ -43,12 +45,14 @@ class QueueCommandService(
         )
 
         if (existingToken != null) {
+            log.info("기존 토큰 반환: tokenId=${existingToken.queueTokenId}")
             return existingToken.queueTokenId
         }
 
         val newToken = queueDomainService.createNewToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
+        log.info("새 토큰 생성 완료: tokenId=${savedToken.queueTokenId}")
         return savedToken.queueTokenId
     }
 
@@ -61,6 +65,7 @@ class QueueCommandService(
         if (validatedOrExpiredToken.isExpired()) {
             queueTokenRepository.save(validatedOrExpiredToken)
             queueWebSocketEventPublisher.publishExpiration(command.tokenId)
+            log.warn("토큰 만료: tokenId=${command.tokenId}")
             throw InvalidTokenStatusException(
                 token.tokenStatus,
                 QueueTokenStatus.ACTIVE
@@ -83,6 +88,8 @@ class QueueCommandService(
     }
 
     override fun expireToken(command: ExpireTokenCommand): Boolean {
+        log.info("토큰 만료 처리: tokenId=${command.tokenId}")
+
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
@@ -95,6 +102,8 @@ class QueueCommandService(
     }
 
     override fun completeToken(command: CompleteTokenCommand): Boolean {
+        log.info("토큰 완료 처리: tokenId=${command.tokenId}")
+
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
@@ -104,11 +113,14 @@ class QueueCommandService(
     }
 
     override fun activateTokens(command: ActivateTokensCommand): ActivateTokensResult {
+        log.info("대기열 토큰 활성화: concertId=${command.concertId}, 요청수=${command.count}")
+
         val currentActiveCount = queueTokenRepository.countActiveTokensByConcert(command.concertId)
         val maxActiveUsers = 3
         val actualSlotsAvailable = maxActiveUsers - currentActiveCount
 
         if (actualSlotsAvailable <= 0) {
+            log.info("활성화 가능한 슬롯 없음: 현재활성=${currentActiveCount}")
             return ActivateTokensResult(0, emptyList())
         }
 
@@ -117,6 +129,7 @@ class QueueCommandService(
         val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, tokensToActivate)
 
         if (activatedTokens.isEmpty()) {
+            log.info("활성화할 대기 토큰 없음")
             return ActivateTokensResult(0, emptyList())
         }
 
@@ -130,10 +143,11 @@ class QueueCommandService(
                     )
                 )
             } catch (e: Exception) {
-                log.error("Failed to publish activation event for token: ${token.queueTokenId}", e)
+                log.error("토큰 활성화 이벤트 발송 실패: tokenId=${token.queueTokenId}", e)
             }
         }
 
+        log.info("토큰 활성화 완료: ${activatedTokens.size}개")
         return ActivateTokensResult(
             activatedCount = activatedTokens.size,
             tokenIds = activatedTokens.map { it.queueTokenId }
@@ -182,8 +196,12 @@ class QueueCommandService(
                     )
                 )
             } catch (e: Exception) {
-                log.error("Failed to publish position update for token: ${change.token.queueTokenId}", e)
+                log.error("대기순서 업데이트 이벤트 발송 실패: tokenId=${change.token.queueTokenId}", e)
             }
+        }
+
+        if (positionChanges.isNotEmpty()) {
+            log.info("대기순서 업데이트 완료: concertId=${command.concertId}, 변경건수=${positionChanges.size}")
         }
 
         return UpdateQueuePositionsResult(

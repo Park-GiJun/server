@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.port.out.queue
+package kr.hhplus.be.server.application.port.out.user
 
 import kr.hhplus.be.server.domain.users.User
 
