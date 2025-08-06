@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa
 
+import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import org.springframework.data.domain.Pageable
