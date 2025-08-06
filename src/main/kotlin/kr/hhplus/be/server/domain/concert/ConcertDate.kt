@@ -9,8 +9,8 @@ class ConcertDate(
     val date: LocalDateTime,
     val isSoldOut: Boolean = false,
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime? = LocalDateTime.now(),
+    var updatedAt: LocalDateTime? = LocalDateTime.now(),
     var isDeleted: Boolean = false,
     var deletedAt: LocalDateTime? = null
 )

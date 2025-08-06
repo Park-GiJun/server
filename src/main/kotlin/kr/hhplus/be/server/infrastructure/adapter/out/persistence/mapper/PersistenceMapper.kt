@@ -29,8 +29,16 @@ object PersistenceMapper {
             concertName = entity.concertName,
             location = entity.location,
             description = entity.description ?: "",
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = try {
+                entity.createdAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
+            updatedAt = try {
+                entity.updatedAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
             isDeleted = entity.isDeleted,
             deletedAt = entity.deletedAt
         )
@@ -44,6 +52,7 @@ object PersistenceMapper {
             description = domain.description
         )
     }
+
     fun toConcertDateDomain(entity: ConcertDateJpaEntity): ConcertDate {
         return ConcertDate(
             concertDateId = entity.concertDateId,
@@ -51,8 +60,16 @@ object PersistenceMapper {
             concertId = entity.concertId,
             date = entity.date,
             isSoldOut = entity.isSoldOut,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = try {
+                entity.createdAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
+            updatedAt = try {
+                entity.updatedAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
             isDeleted = entity.isDeleted,
             deletedAt = entity.deletedAt
         )
@@ -75,8 +92,16 @@ object PersistenceMapper {
             seatNumber = entity.seatNumber,
             seatGrade = entity.seatGrade,
             seatStatus = entity.seatStatus,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = try {
+                entity.createdAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
+            updatedAt = try {
+                entity.updatedAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
             isDeleted = entity.isDeleted,
             deletedAt = entity.deletedAt
         )
@@ -117,8 +142,16 @@ object PersistenceMapper {
             totalPoint = entity.totalPoint,
             availablePoint = entity.availablePoint,
             usedPoint = entity.usedPoint,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = try {
+                entity.createdAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
+            updatedAt = try {
+                entity.updatedAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
             isDeleted = entity.isDeleted,
             deletedAt = entity.deletedAt
         )
@@ -141,8 +174,16 @@ object PersistenceMapper {
             concertId = entity.concertId,
             tokenStatus = entity.tokenStatus,
             enteredAt = entity.enteredAt,
-            createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt,
+            createdAt = try {
+                entity.createdAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
+            updatedAt = try {
+                entity.updatedAt
+            } catch (e: UninitializedPropertyAccessException) {
+                null
+            },
             isDeleted = entity.isDeleted,
             deletedAt = entity.deletedAt
         )
@@ -158,7 +199,7 @@ object PersistenceMapper {
         )
     }
 
-    fun toPaymentEntity(domain: Payment) : PaymentJpaEntity {
+    fun toPaymentEntity(domain: Payment): PaymentJpaEntity {
         return PaymentJpaEntity(
             paymentId = domain.paymentId,
             reservationId = domain.reservationId,
@@ -188,7 +229,7 @@ object PersistenceMapper {
         )
     }
 
-    fun toReservationEntity(domain: Reservation) : ReservationJpaEntity {
+    fun toReservationEntity(domain: Reservation): ReservationJpaEntity {
         return ReservationJpaEntity(
             reservationId = domain.reservationId,
             userId = domain.userId,
@@ -214,7 +255,7 @@ object PersistenceMapper {
         )
     }
 
-    fun toTempReservationEntity(domain: TempReservation) : TempReservationJpaEntity{
+    fun toTempReservationEntity(domain: TempReservation): TempReservationJpaEntity {
         return TempReservationJpaEntity(
             tempReservationId = domain.tempReservationId,
             userId = domain.userId,

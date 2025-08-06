@@ -22,12 +22,15 @@ import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepos
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.SeatStatus
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
+import java.time.LocalDateTime
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest
 @Testcontainers
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @ActiveProfiles("test")
 @DisplayName("TestContainers를 활용한 Lock 동시성 테스트")
 class LockConcurrencyIntegrationTest {
@@ -81,14 +84,14 @@ class LockConcurrencyIntegrationTest {
     }
 
     private fun setupTestData() {
-        val testUser = User("test-user", "테스트유저", 10000, 10000, 0)
+        val testUser = User("test-user", "테스트유저", 10000, 10000, 0, LocalDateTime.now(),LocalDateTime.now())
         userRepository.save(testUser)
 
-        val testSeat = ConcertSeat(100L, 100L, "A1", "VIP", SeatStatus.AVAILABLE)
+        val testSeat = ConcertSeat(100L, 100L, "A1", "VIP", SeatStatus.AVAILABLE,LocalDateTime.now(),LocalDateTime.now())
         concertSeatRepository.save(testSeat)
 
         repeat(10) { i ->
-            val user = User("user-test-$i", "유저$i", 5000, 5000, 0)
+            val user = User("user-test-$i", "유저$i", 5000, 5000, 0,LocalDateTime.now(),LocalDateTime.now())
             userRepository.save(user)
         }
 

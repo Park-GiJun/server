@@ -11,8 +11,8 @@ class User(
     var availablePoint: Int = 0,
     var usedPoint: Int = 0,
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime? = LocalDateTime.now(),
+    var updatedAt: LocalDateTime? = LocalDateTime.now(),
     var isDeleted: Boolean = false,
     var deletedAt: LocalDateTime? = null
 ) {
