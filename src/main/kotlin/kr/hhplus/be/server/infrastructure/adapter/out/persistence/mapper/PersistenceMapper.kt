@@ -142,6 +142,7 @@ object PersistenceMapper {
             totalPoint = entity.totalPoint,
             availablePoint = entity.availablePoint,
             usedPoint = entity.usedPoint,
+            version = entity.version,
             createdAt = try {
                 entity.createdAt
             } catch (e: UninitializedPropertyAccessException) {
@@ -163,7 +164,8 @@ object PersistenceMapper {
             userName = domain.userName,
             totalPoint = domain.totalPoint,
             availablePoint = domain.availablePoint,
-            usedPoint = domain.usedPoint
+            usedPoint = domain.usedPoint,
+            version = domain.version,
         )
     }
 

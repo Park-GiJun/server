@@ -9,4 +9,5 @@ interface TempReservationJpaRepository : JpaRepository<TempReservationJpaEntity,
     @Query("SELECT te FROM TempReservationJpaEntity te WHERE te.concertSeatId = :concertSeatId AND te.status = 'RESERVED'")
     fun findByTempReservationId(tempReservationId: Long): TempReservationJpaEntity?
     fun findByUserIdAndConcertSeatId(userId: String, concertSeatId: Long): TempReservationJpaEntity?
+
 }
