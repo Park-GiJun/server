@@ -45,6 +45,10 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 
+    override fun countActiveTokensByConcert(concertId: Long): Int {
+        return queueTokenJpaRepository.countActiveByConcertId(concertId)
+    }
+
     override fun findWaitingTokensByConcert(concertId: Long): List<QueueToken> {
         return queueTokenJpaRepository
             .findByConcertIdAndTokenStatus(
