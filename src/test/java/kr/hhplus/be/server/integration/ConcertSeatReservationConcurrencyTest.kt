@@ -73,12 +73,10 @@ class ConcertSeatReservationConcurrencyTest {
 
     @BeforeEach
     fun setUp() {
-        // 기본 테스트 데이터 정리
         cleanupTestData()
     }
 
     private fun cleanupTestData() {
-        // 테스트 데이터 정리 (필요시)
     }
 
     private fun createTestUser(userId: String): User {

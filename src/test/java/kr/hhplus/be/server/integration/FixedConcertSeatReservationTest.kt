@@ -125,9 +125,8 @@ class FixedConcertSeatReservationTest {
             repeat(10) { index ->
                 val seatId = 1000L + index
                 val seatEntity = kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatJpaEntity(
-                    concertSeatId = seatId,
                     concertDateId = 100L,
-                    seatNumber = "TEST-SEAT-${index + 1}",
+                    seatNumber = "${index + 1}",
                     seatGrade = "VIP",
                     seatStatus = SeatStatus.AVAILABLE
                 )
@@ -292,13 +291,13 @@ class FixedConcertSeatReservationTest {
 
         // Then - 결과 검증
         await withPollInterval Duration.ofMillis(50) untilAsserted {
-            val finalSeat = concertSeatRepository.findByConcertSeatId(seatId)!!
+            val finalSeat = concertSeatRepository.findByConcertSeatIdWithLock(seatId)!!
             if (successCount.get() == 1) {
                 assertThat(finalSeat.seatStatus).isEqualTo(SeatStatus.RESERVED)
             }
         }
 
-        val finalSeat = concertSeatRepository.findByConcertSeatId(seatId)!!
+        val finalSeat = concertSeatRepository.findByConcertSeatIdWithLock(seatId)!!
 
         println("\n🎪 === 경합 결과 발표! ===")
         println("⚔️  경합 시간: ${battleDuration}ms")
@@ -378,7 +377,7 @@ class FixedConcertSeatReservationTest {
         // Then - 결과 검증
         await withPollInterval Duration.ofMillis(100) untilAsserted {
             val reservedSeats = testSeats.count { seat ->
-                val finalSeat = concertSeatRepository.findByConcertSeatId(seat.concertSeatId)!!
+                val finalSeat = concertSeatRepository.findByConcertSeatIdWithLock(seat.concertSeatId)!!
                 finalSeat.seatStatus == SeatStatus.RESERVED
             }
             assertThat(reservedSeats).isEqualTo(seatCount)
@@ -472,7 +471,7 @@ class FixedConcertSeatReservationTest {
 
         // Then - 쟁탈전 결과 집계
         await withPollInterval Duration.ofMillis(50) untilAsserted {
-            val finalSeat = concertSeatRepository.findByConcertSeatId(goldenSeatId)!!
+            val finalSeat = concertSeatRepository.findByConcertSeatIdWithLock(goldenSeatId)!!
             if (successCount.get() == 1) {
                 assertThat(finalSeat.seatStatus).isEqualTo(SeatStatus.RESERVED)
             }

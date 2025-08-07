@@ -14,8 +14,8 @@ interface ConcertSeatJpaRepository : JpaRepository<ConcertSeatJpaEntity, Long> {
     fun findByConcertDateId(concertId: Long): List<ConcertSeatJpaEntity>?
 
     @Query(
-        value = "SELECT * FROM concert_seat WHERE concert_seat_id = :seatId FOR UPDATE NOWAIT",
+        value = "SELECT * FROM concert_seat WHERE concert_seat_id = :concertSeatId FOR UPDATE NOWAIT",
         nativeQuery = true
     )
-    fun findByConcertSeatIdWithLock(@Param("seatId") seatId: Long): ConcertSeatJpaEntity?
+    fun findByConcertSeatIdWithLock(@Param("concertSeatId") seatId: Long): ConcertSeatJpaEntity?
 }
