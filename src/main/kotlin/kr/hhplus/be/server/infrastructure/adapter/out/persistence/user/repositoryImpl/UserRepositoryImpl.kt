@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.repositoryImpl
 
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.jpa.UserJpaRepository
@@ -20,6 +20,11 @@ class UserRepositoryImpl(
 
     override fun findByUserId(userId: String): User? {
         return userJpaRepository.findByUserId(userId)
+            ?.let { PersistenceMapper.toUserDomain(it) }
+    }
+
+    override fun findByUserIdWithLock(userId: String): User? {
+        return userJpaRepository.findByUserIdWithLock(userId)
             ?.let { PersistenceMapper.toUserDomain(it) }
     }
 }

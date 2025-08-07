@@ -6,14 +6,14 @@ import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
 import kr.hhplus.be.server.application.mapper.PaymentMapper
-import kr.hhplus.be.server.application.port.`in`.CompleteTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.ProcessPaymentUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.CompleteTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.log.PointHistoryRepository
 import kr.hhplus.be.server.application.port.out.payment.PaymentRepository
-import kr.hhplus.be.server.application.port.out.queue.UserRepository
+import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.application.port.out.reservation.ReservationRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
@@ -26,7 +26,7 @@ import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
 import kr.hhplus.be.server.domain.users.UserDomainService
-import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -44,10 +44,13 @@ class PaymentCommandService(
     private val completeTokenUseCase: CompleteTokenUseCase
 ) : ProcessPaymentUseCase {
 
+    private val log = LoggerFactory.getLogger(PaymentCommandService::class.java)
     private val paymentDomainService = PaymentDomainService()
     private val userDomainService = UserDomainService()
 
     override fun processPayment(command: ProcessPaymentCommand): PaymentResult {
+        log.info("결제 처리 시작: reservationId=${command.reservationId}, pointsToUse=${command.pointsToUse}")
+
         paymentDomainService.validatePaymentAmount(command.pointsToUse)
 
         val tokenResult = validateTokenUseCase.validateActiveToken(
@@ -77,6 +80,8 @@ class PaymentCommandService(
         val paymentCalculation = paymentDomainService.calculatePaymentAmounts(
             seatGrade, command.pointsToUse, user!!.availablePoint
         )
+
+        log.info("결제 금액 계산: 총액=${paymentCalculation.totalAmount}, 포인트=${paymentCalculation.pointsToUse}, 실결제=${paymentCalculation.actualAmount}")
 
         userDomainService.validateSufficientBalance(
             user,
@@ -121,10 +126,12 @@ class PaymentCommandService(
                 description = "Concert ticket payment"
             )
             pointHistoryRepository.save(pointHistory)
+            log.info("포인트 사용 내역 저장: ${paymentCalculation.pointsToUse}원")
         }
 
         completeTokenUseCase.completeToken(CompleteTokenCommand(command.tokenId))
 
+        log.info("결제 처리 완료: paymentId=${savedPayment.paymentId}, userId=${token.userId}")
         return PaymentMapper.toResult(savedPayment, "Payment completed successfully")
     }
 

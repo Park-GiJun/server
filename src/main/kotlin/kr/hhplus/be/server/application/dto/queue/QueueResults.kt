@@ -27,3 +27,12 @@ data class UpdateQueuePositionsResult(
     val updatedCount: Int,
     val positionChanges: List<QueuePositionChange>
 )
+
+
+data class ProcessQueueActivationResult(
+    val concertId: Long,
+    val activeTokenCount: Int,
+    val tokensToActivate: Int,
+    val activatedTokens: List<String>,
+    val message: String
+)

@@ -64,6 +64,10 @@ dependencies {
     testImplementation("org.springframework:spring-websocket")
     testImplementation("org.java-websocket:Java-WebSocket:1.5.3")
 
+	testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
+	testImplementation("com.lmax:disruptor:3.4.4")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 

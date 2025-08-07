@@ -5,9 +5,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import kr.hhplus.be.server.application.dto.concert.GetConcertDatesQuery
 import kr.hhplus.be.server.application.dto.concert.GetConcertSeatsQuery
-import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
