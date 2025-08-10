@@ -5,6 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 
@@ -30,20 +31,9 @@ class UserJpaEntity(
     var availablePoint: Int = 0,
 
     @Column(name = "used_point", nullable = false)
-    var usedPoint: Int = 0
-) : BaseEntity() {
+    var usedPoint: Int = 0,
 
-    fun toDomain(): User {
-        return User(
-            userId = this.userId,
-            userName = this.userName,
-            totalPoint = this.totalPoint,
-            availablePoint = this.availablePoint,
-            usedPoint = this.usedPoint,
-            createdAt = this.createdAt,
-            updatedAt = this.updatedAt,
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
-    }
+    @Version
+    var version: Long = 0
+) : BaseEntity() {
 }

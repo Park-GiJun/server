@@ -29,4 +29,9 @@ class ConcertSeatRepositoryImpl(
             .map { PersistenceMapper.toConcertSeatDomain(it) }
             .orElse(null)
     }
+
+    override fun findByConcertSeatIdWithLock(concertSeatId: Long): ConcertSeat? {
+        return concertSeatJpaRepository.findByConcertSeatIdWithLock(concertSeatId)
+            ?.let { PersistenceMapper.toConcertSeatDomain(it) }
+    }
 }

@@ -35,3 +35,8 @@ data class UpdateQueuePositionsCommand(
     val concertId: Long
 )
 
+data class ProcessQueueActivationCommand(
+    val concertId: Long
+)
+
+

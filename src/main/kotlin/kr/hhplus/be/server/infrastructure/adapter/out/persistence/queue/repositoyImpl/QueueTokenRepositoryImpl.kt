@@ -8,6 +8,7 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.Persist
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa.QueueTokenJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -44,26 +45,36 @@ class QueueTokenRepositoryImpl(
         return queueTokenJpaRepository.countWaitingTokensBeforeUser(userId, concertId, enteredAt)
     }
 
-    @Transactional
-    override fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
-        val waitingTokens = queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAt(
-            concertId,
-            PageRequest.of(0, count)
-        )
+    override fun countActiveTokensByConcert(concertId: Long): Int {
+        return queueTokenJpaRepository.countActiveByConcertId(concertId)
+    }
 
-        if (waitingTokens.isEmpty()) {
-            return emptyList()
-        }
-
-        val tokenIds = waitingTokens.map { it.queueTokenId }
-        queueTokenJpaRepository.updateTokensToActive(tokenIds)
-
-        return waitingTokens.onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
+    override fun findWaitingTokensByConcert(concertId: Long): List<QueueToken> {
+        return queueTokenJpaRepository
+            .findByConcertIdAndTokenStatus(
+                concertId = concertId,
+                tokenStatus = QueueTokenStatus.WAITING,
+                sort = Sort.by(Sort.Direction.ASC, "enteredAt")
+            )
             .map { PersistenceMapper.toQueueTokenDomain(it) }
     }
 
-    override fun findWaitingTokensByConcertIdOrderByEnteredAt(concertId: Long): List<QueueToken> {
-        return queueTokenJpaRepository.findWaitingTokensByConcertIdOrderByEnteredAtAll(concertId)
-            .map { PersistenceMapper.toQueueTokenDomain(it) }
+    @Transactional
+    override fun activateWaitingTokens(concertId: Long, count: Int): List<QueueToken> {
+        return queueTokenJpaRepository
+            .findWaitingTokensByConcertIdOrderByEnteredAt(
+                concertId,
+                PageRequest.of(0, count)
+            )
+            .takeIf { it.isNotEmpty() }
+            ?.let { waitingTokens ->
+                val tokenIds = waitingTokens.map { it.queueTokenId }
+                queueTokenJpaRepository.updateTokensToActive(tokenIds)
+
+                waitingTokens
+                    .onEach { it.tokenStatus = QueueTokenStatus.ACTIVE }
+                    .map { PersistenceMapper.toQueueTokenDomain(it) }
+            }
+            ?: emptyList()
     }
 }

@@ -8,4 +8,5 @@ interface TempReservationRepository {
     fun findByTempReservationId(tempReservationId: Long): TempReservation?
     fun findByUserIdAndConcertSeatId(userId: String, concertSeatId: Long): TempReservation?
     fun findByConcertSeatID(concertSeatId: Long): TempReservation?
+    fun findAll(): List<TempReservation>
 }

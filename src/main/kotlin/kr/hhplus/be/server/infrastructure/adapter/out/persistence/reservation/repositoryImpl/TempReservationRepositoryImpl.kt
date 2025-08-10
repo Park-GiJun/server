@@ -32,4 +32,9 @@ class TempReservationRepositoryImpl(
         return tempReservationJpaRepository.findByTempReservationId(concertSeatId)
         ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
+
+    override fun findAll(): List<TempReservation> {
+        return tempReservationJpaRepository.findAll()
+            .map { PersistenceMapper.toTempReservationDomain(it) }
+    }
 }
