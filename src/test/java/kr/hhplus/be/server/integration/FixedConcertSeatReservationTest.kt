@@ -167,7 +167,6 @@ class FixedConcertSeatReservationTest {
     }
 
     private fun createTestUser(userId: String): User {
-        // 이미 존재하는지 확인
         userRepository.findByUserId(userId)?.let { return it }
 
         val user = User(

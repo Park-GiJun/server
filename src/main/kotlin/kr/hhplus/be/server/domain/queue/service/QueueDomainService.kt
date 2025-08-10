@@ -5,72 +5,48 @@ import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
+
+/**
+ * Redis용 도메인 서비스
+ * - 비즈니스 로직만 포함 및 기존 코드 리펙토링
+ */
 class QueueDomainService {
 
-    fun createNewToken(userId: String, concertId: Long): QueueToken {
-        return QueueToken(
-            queueTokenId = UUID.randomUUID().toString(),
-            userId = userId,
-            concertId = concertId,
-            tokenStatus = QueueTokenStatus.WAITING,
-            enteredAt = LocalDateTime.now(),
-        )
+    private val log = LoggerFactory.getLogger(QueueDomainService::class.java)
+
+    companion object {
+        private const val MAX_ACTIVE_TOKENS_PER_CONCERT = 100
+        private const val MAX_QUEUE_WAITING_TIME_HOURS = 24L
     }
 
-    fun validateActiveToken(token: QueueToken): QueueToken {
-        if (token.isExpired()) {
-            throw TokenExpiredException(token.queueTokenId)
+    /**
+     * 대기열 계산
+     * - 입장순서 기준
+     * - 동일한 콘서트에서만 순서 적용
+     *
+     * @param allWaitingTokens 해당 콘서트의 모든 대기중인 토큰
+     * @param targetToken 위치 계산할 대상 토큰
+     * @return 대기열 위치 (0부터 시작)
+     */
+    fun calculateQueuePosition(
+        allWaitingTokens: List<QueueToken>,
+        targetToken: QueueToken
+    ): Long {
+        require(targetToken.tokenStatus == QueueTokenStatus.WAITING) {
+            log.info("대기중인 토큰만 위치 계산이 가능합니다.")
         }
 
-        if (!token.isActive()) {
-            throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
-        }
+        val sameContentTokens = allWaitingTokens
+            .filter { it.concertId == targetToken.concertId }
+            .filter { it.tokenStatus == QueueTokenStatus.WAITING }
+            .sortedBy { it.enteredAt }
 
-        return token
-    }
+        val position = sameContentTokens.indexOfFirst { it.queueTokenId == targetToken.queueTokenId }
 
-    fun validateTokenAndExpireIfNeeded(token: QueueToken): QueueToken {
-        if (token.isExpired()) {
-            return token.expire()
-        }
-        return token
-    }
-
-    fun validateTokenForConcert(token: QueueToken, expectedConcertId: Long?) {
-        expectedConcertId?.let { concertId ->
-            if (token.concertId != concertId) {
-                throw InvalidTokenException("Token concert ID mismatch. Expected: $concertId, Actual: ${token.concertId}")
-            }
-        }
-    }
-
-    fun calculateWaitingPosition(waitingTokensBeforeUser: Int): Int {
-        return (waitingTokensBeforeUser + 1)
-    }
-
-    fun expireToken(token: QueueToken): QueueToken {
-        return token.expire()
-    }
-
-    fun completeToken(token: QueueToken): QueueToken {
-        return token.complete()
-    }
-
-    fun calculatePositionByIndex(tokens: List<QueueToken>): Map<String, Int> {
-        return tokens.mapIndexed { index, token ->
-            token.queueTokenId to (index + 1)
-        }.toMap()
-    }
-
-    fun findChangedTokenIds(
-        oldPositions: Map<String, Int>,
-        newPositions: Map<String, Int>
-    ): Set<String> {
-        return newPositions.keys.filter { tokenId ->
-            oldPositions[tokenId] != newPositions[tokenId]
-        }.toSet()
+        return if (position >= 0) position.toLong() else Long.MAX_VALUE
     }
 }

@@ -19,7 +19,7 @@ class TempReservationRepositoryImpl(
     }
 
     override fun findByTempReservationId(tempReservationId: Long): TempReservation? {
-        return tempReservationJpaRepository.findByTempReservationId(tempReservationId)
+        return tempReservationJpaRepository.findByTempReservationIdAndStatus_Reserved(tempReservationId)
             ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
 
@@ -29,7 +29,7 @@ class TempReservationRepositoryImpl(
     }
 
     override fun findByConcertSeatID(concertSeatId: Long): TempReservation? {
-        return tempReservationJpaRepository.findByTempReservationId(concertSeatId)
+        return tempReservationJpaRepository.findByTempReservationIdAndStatus_Reserved(concertSeatId)
         ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
 
