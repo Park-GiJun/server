@@ -49,4 +49,10 @@ class QueueDomainService {
 
         return if (position >= 0) position.toLong() else Long.MAX_VALUE
     }
+
+    /**
+     * 활성화 토큰 검증
+     * 1. 대기중 상태
+     * 2. 0
+     */
 }
