@@ -125,10 +125,10 @@ class ConcertSeatReservationConcurrencyTest {
         val token2Id = "token-2-$timestamp"
 
         // 테스트 데이터 생성
-        val user1 = createTestUser(user1Id)
-        val user2 = createTestUser(user2Id)
-        val token1 = createTestQueueToken(token1Id, user1Id)
-        val token2 = createTestQueueToken(token2Id, user2Id)
+        createTestUser(user1Id)
+        createTestUser(user2Id)
+        createTestQueueToken(token1Id, user1Id)
+        createTestQueueToken(token2Id, user2Id)
         val testSeat = createTestSeat(seatId, "VIP-1")
 
         val successCount = AtomicInteger(0)
@@ -151,7 +151,7 @@ class ConcertSeatReservationConcurrencyTest {
                 // 약간의 랜덤 지연으로 더 현실적인 시나리오 구현
                 delay(Random.nextLong(1, 10))
 
-                val result = tempReservationUseCase.tempReservation(
+                tempReservationUseCase.tempReservation(
                     TempReservationCommand(token1Id, user1Id, seatId)
                 )
 
@@ -180,7 +180,7 @@ class ConcertSeatReservationConcurrencyTest {
             try {
                 delay(Random.nextLong(1, 10))
 
-                val result = tempReservationUseCase.tempReservation(
+                tempReservationUseCase.tempReservation(
                     TempReservationCommand(token2Id, user2Id, seatId)
                 )
 
@@ -281,7 +281,7 @@ class ConcertSeatReservationConcurrencyTest {
 
                         delay(Random.nextLong(1, 20))
 
-                        val result = tempReservationUseCase.tempReservation(
+                        tempReservationUseCase.tempReservation(
                             TempReservationCommand(tokenId, userId, seat.concertSeatId)
                         )
 
@@ -345,7 +345,7 @@ class ConcertSeatReservationConcurrencyTest {
         println("⚔️  참가자: $fighters 명")
 
         // 황금 좌석 생성
-        val goldenSeat = createTestSeat(seatId, "GOLD-SEAT")
+        createTestSeat(seatId, "GOLD-SEAT")
 
         val battleStart = System.currentTimeMillis()
 
@@ -365,7 +365,7 @@ class ConcertSeatReservationConcurrencyTest {
 
                     println("⚔️ [$fighterId] 황금 좌석 돌진!")
 
-                    val result = tempReservationUseCase.tempReservation(
+                    tempReservationUseCase.tempReservation(
                         TempReservationCommand(tokenId, fighterId, seatId)
                     )
 

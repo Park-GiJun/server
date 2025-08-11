@@ -192,7 +192,7 @@ class CleanUserPointConcurrencyTest {
     fun `concurrent_mixed_operations`() = runTest {
         // Given
         val userId = "mixed-test-${System.currentTimeMillis()}"
-        val testUser = createTestUser(userId, 50000)
+        createTestUser(userId, 50000)
 
         val operationCount = 50
         val successCount = AtomicInteger(0)

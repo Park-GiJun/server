@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.service.queue
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.domain.queue.QueueToken
@@ -9,7 +9,6 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
-
 
 // src/main/kotlin/kr/hhplus/be/server/infrastructure/adapter/out/persistence/queue/redis/RedisQueueManagementService.kt
 @Service

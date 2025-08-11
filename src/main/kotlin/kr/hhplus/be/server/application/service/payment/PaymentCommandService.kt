@@ -2,13 +2,13 @@ package kr.hhplus.be.server.application.service.payment
 
 import kr.hhplus.be.server.application.dto.payment.PaymentResult
 import kr.hhplus.be.server.application.dto.payment.ProcessPaymentCommand
-import kr.hhplus.be.server.application.dto.queue.CompleteTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenResult
+import kr.hhplus.be.server.application.dto.queue.CompleteQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenResult
 import kr.hhplus.be.server.application.mapper.PaymentMapper
-import kr.hhplus.be.server.application.port.`in`.queue.CompleteTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.CompleteQueueTokenUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
 import kr.hhplus.be.server.application.port.out.log.PointHistoryRepository
@@ -29,6 +29,8 @@ import kr.hhplus.be.server.domain.users.UserDomainService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
+import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -40,8 +42,8 @@ class PaymentCommandService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository,
     private val pointHistoryRepository: PointHistoryRepository,
-    private val validateTokenUseCase: ValidateTokenUseCase,
-    private val completeTokenUseCase: CompleteTokenUseCase
+    private val validateTokenUseCase: ValidateQueueTokenUseCase,
+    private val completeTokenUseCase: CompleteQueueTokenUseCase
 ) : ProcessPaymentUseCase {
 
     private val log = LoggerFactory.getLogger(PaymentCommandService::class.java)
@@ -54,7 +56,7 @@ class PaymentCommandService(
         paymentDomainService.validatePaymentAmount(command.pointsToUse)
 
         val tokenResult = validateTokenUseCase.validateActiveToken(
-            ValidateTokenCommand(command.tokenId)
+            ValidateQueueTokenCommand(command.tokenId)
         )
         val token = createQueueTokenFromResult(tokenResult)
 
@@ -129,18 +131,20 @@ class PaymentCommandService(
             log.info("포인트 사용 내역 저장: ${paymentCalculation.pointsToUse}원")
         }
 
-        completeTokenUseCase.completeToken(CompleteTokenCommand(command.tokenId))
+        completeTokenUseCase.completeToken(CompleteQueueTokenCommand(command.tokenId))
 
         log.info("결제 처리 완료: paymentId=${savedPayment.paymentId}, userId=${token.userId}")
         return PaymentMapper.toResult(savedPayment, "Payment completed successfully")
     }
 
-    private fun createQueueTokenFromResult(tokenResult: ValidateTokenResult): QueueToken {
+    private fun createQueueTokenFromResult(tokenResult: ValidateQueueTokenResult): QueueToken {
         return QueueToken(
             queueTokenId = tokenResult.tokenId,
             userId = tokenResult.userId,
             concertId = tokenResult.concertId,
-            tokenStatus = QueueTokenStatus.ACTIVE
+            tokenStatus = QueueTokenStatus.COMPLETED,
+            enteredAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
         )
     }
 }

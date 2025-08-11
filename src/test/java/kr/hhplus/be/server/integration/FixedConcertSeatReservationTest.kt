@@ -91,12 +91,6 @@ class FixedConcertSeatReservationTest {
             println("   - 임시예약 데이터 정리 실패: ${e.message}")
         }
 
-        try {
-            queueTokenJpaRepository.deleteAll()
-            println("   - 대기열 토큰 데이터 정리 완료")
-        } catch (e: Exception) {
-            println("   - 대기열 토큰 데이터 정리 실패: ${e.message}")
-        }
 
         try {
             concertSeatJpaRepository.deleteAll()
@@ -122,7 +116,7 @@ class FixedConcertSeatReservationTest {
         // 기본 좌석들을 JPA Repository로 직접 생성
         try {
             repeat(10) { index ->
-                val seatId = 1000L + index
+                1000L + index
                 val seatEntity = kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatJpaEntity(
                     concertDateId = 100L,
                     seatNumber = "${index + 1}",
@@ -144,9 +138,6 @@ class FixedConcertSeatReservationTest {
 
     @Autowired
     private lateinit var userJpaRepository: kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.jpa.UserJpaRepository
-
-    @Autowired
-    private lateinit var queueTokenJpaRepository: kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.jpa.QueueTokenJpaRepository
 
     @Autowired
     private lateinit var tempReservationJpaRepository: kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.jpa.TempReservationJpaRepository
@@ -180,14 +171,6 @@ class FixedConcertSeatReservationTest {
         return userRepository.save(user)
     }
 
-    private fun createTestQueueToken(tokenId: String, userId: String, concertId: Long = 1L): QueueToken {
-        val token = QueueToken(
-            userId = userId,
-            concertId = concertId,
-        )
-        return queueTokenRepository.save(token)
-    }
-
     @Test
     @DisplayName("1대1 좌석 예약 경합 테스트 - 기존 좌석만 사용")
     fun `fixed_one_vs_one_seat_reservation_battle`() = runTest {
@@ -201,10 +184,8 @@ class FixedConcertSeatReservationTest {
         val token2Id = "token-2-$timestamp-$nanoSuffix"
 
         // 테스트 데이터 생성 - 각각 고유한 ID로
-        val user1 = createTestUser(user1Id)
-        val user2 = createTestUser(user2Id)
-        val token1 = createTestQueueToken(token1Id, user1Id)
-        val token2 = createTestQueueToken(token2Id, user2Id)
+        createTestUser(user1Id)
+        createTestUser(user2Id)
 
         // 기존 가용 좌석을 찾기만 하고 새로 생성하지 않음
         val testSeat = try {
@@ -344,7 +325,6 @@ class FixedConcertSeatReservationTest {
                     try {
                         // 사용자와 토큰 생성
                         createTestUser(userId)
-                        createTestQueueToken(tokenId, userId)
 
                         delay(Random.nextLong(1, 30))
 
@@ -428,7 +408,6 @@ class FixedConcertSeatReservationTest {
                 try {
                     // 전사 등록
                     createTestUser(fighterId)
-                    createTestQueueToken(tokenId, fighterId)
 
                     delay(Random.nextLong(1, 30))
                     println("⚔️ [$fighterId] 황금 좌석 돌진!")

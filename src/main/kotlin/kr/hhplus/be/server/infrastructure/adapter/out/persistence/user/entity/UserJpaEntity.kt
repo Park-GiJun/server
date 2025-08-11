@@ -35,5 +35,4 @@ class UserJpaEntity(
 
     @Version
     var version: Long = 0
-) : BaseEntity() {
-}
+) : BaseEntity()

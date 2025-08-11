@@ -38,6 +38,4 @@ class ConcertSeatJpaEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "seat_status", nullable = false)
     val seatStatus: SeatStatus = SeatStatus.AVAILABLE
-) : BaseEntity() {
-
-}
+) : BaseEntity()

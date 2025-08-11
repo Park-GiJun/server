@@ -3,11 +3,11 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ValidateTokenUseCase
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
@@ -24,7 +24,7 @@ class ConcertWebAdapter(
     private val getConcertListUseCase: GetConcertListUseCase,
     private val getConcertDatesUseCase: GetConcertDatesUseCase,
     private val getConcertSeatsUseCase: GetConcertSeatsUseCase,
-    private val validateTokenUseCase: ValidateTokenUseCase
+    private val validateTokenUseCase: ValidateQueueTokenUseCase
 ) {
 
     @GetMapping
@@ -59,7 +59,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
-            ValidateTokenCommand(tokenId, concertId)
+            ValidateQueueTokenCommand(tokenId, concertId)
         )
 
         val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
@@ -91,7 +91,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
-            ValidateTokenCommand(tokenId, concertId)
+            ValidateQueueTokenCommand(tokenId, concertId)
         )
 
         val command = ConcertWebMapper.toGetConcertSeatsCommand(tokenId, dateId)

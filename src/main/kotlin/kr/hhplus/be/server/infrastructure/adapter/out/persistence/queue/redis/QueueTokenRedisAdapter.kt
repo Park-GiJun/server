@@ -3,7 +3,7 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
-import kr.hhplus.be.server.application.service.queue.RedisQueueManagementService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService

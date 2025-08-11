@@ -4,5 +4,4 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.en
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
-interface ReservationJpaRepository : JpaRepository<ReservationJpaEntity, Long> {
-}
+interface ReservationJpaRepository : JpaRepository<ReservationJpaEntity, Long>

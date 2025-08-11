@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUse
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -38,10 +39,8 @@ class RedisQueueActivationService(
             )
         }
 
-        // Redis 원자적 활성화
         val activatedTokens = queueTokenRepository.activateWaitingTokens(command.concertId, tokensToActivate)
 
-        // 이벤트 발행
         activatedTokens.forEach { token ->
             queueEventPort.publishTokenActivated(
                 tokenId = token.queueTokenId,

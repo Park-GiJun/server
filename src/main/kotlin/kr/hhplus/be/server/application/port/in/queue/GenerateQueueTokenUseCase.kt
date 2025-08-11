@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.application.port.`in`.queue
 
+import kr.hhplus.be.server.application.dto.queue.GenerateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.GenerateQueueTokenResult
 
 interface GenerateQueueTokenUseCase {
-    suspend fun generateToken(command: GenerateQueueTokenCommand): GenerateQueueTokenResult
+    fun generateToken(command: GenerateQueueTokenCommand): GenerateQueueTokenResult
 }

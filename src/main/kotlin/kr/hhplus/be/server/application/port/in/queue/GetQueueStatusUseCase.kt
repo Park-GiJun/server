@@ -1,9 +1,8 @@
 package kr.hhplus.be.server.application.port.`in`.queue
 
 import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
-import kr.hhplus.be.server.application.dto.queue.result.GetQueueStatusResult
+import kr.hhplus.be.server.application.dto.queue.GetQueueStatusResult
 
 interface GetQueueStatusUseCase {
-    suspend fun getQueueStatus(query: GetQueueStatusQuery): GetQueueStatusResult
+    fun getQueueStatus(query: GetQueueStatusQuery): GetQueueStatusResult
 }
-

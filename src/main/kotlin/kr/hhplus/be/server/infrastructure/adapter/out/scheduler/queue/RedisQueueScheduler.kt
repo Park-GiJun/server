@@ -4,7 +4,7 @@ import kr.hhplus.be.server.application.dto.queue.ProcessQueueActivationCommand
 import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.websocket.queue.QueueWebSocketMessagePort
-import kr.hhplus.be.server.application.service.queue.RedisQueueManagementService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
