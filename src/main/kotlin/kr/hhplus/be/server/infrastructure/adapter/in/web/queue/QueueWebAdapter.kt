@@ -3,7 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
 import kr.hhplus.be.server.application.port.`in`.queue.*
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

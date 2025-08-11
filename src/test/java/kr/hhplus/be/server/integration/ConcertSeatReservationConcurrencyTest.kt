@@ -10,7 +10,6 @@ import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.SeatStatus
 import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.users.User
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -94,13 +93,8 @@ class ConcertSeatReservationConcurrencyTest {
 
     private fun createTestQueueToken(tokenId: String, userId: String): QueueToken {
         val token = QueueToken(
-            queueTokenId = tokenId,
             userId = userId,
             concertId = 1L,
-            tokenStatus = QueueTokenStatus.ACTIVE,
-            enteredAt = LocalDateTime.now(),
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
         )
         return queueTokenRepository.save(token)
     }
