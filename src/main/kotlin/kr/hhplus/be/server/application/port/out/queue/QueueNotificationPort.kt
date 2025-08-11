@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.application.port.out.queue
 
+import kr.hhplus.be.server.application.port.out.event.queue.QueuePositionUpdate
+
 /**
  * 대기열 알림 포트
  * - WebSocket, SSE, Push 등 다양한 구현체 가능
