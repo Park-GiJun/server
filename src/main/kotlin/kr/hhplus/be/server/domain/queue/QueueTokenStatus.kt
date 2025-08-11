@@ -1,13 +1,11 @@
 package kr.hhplus.be.server.domain.queue
 
+/**
+ * 대기열 토큰 상태
+ */
 enum class QueueTokenStatus {
-    WAITING, ACTIVE, CANCELLED, EXPIRED, COMPLETED, DISCONNECT;
-
-    fun isWaiting(): Boolean = this === WAITING
-    fun isActivated(): Boolean = this === ACTIVE
-    fun isCanceled(): Boolean = this === CANCELLED
-    fun isExpired(): Boolean = this === EXPIRED
-    fun isCompleted(): Boolean = this === COMPLETED
-    fun isDisConnect(): Boolean = this === DISCONNECT
-    fun isFinished(): Boolean = this === CANCELLED || this === EXPIRED || this === COMPLETED
+    WAITING,    // 대기 중
+    ACTIVE,     // 활성 (예약 가능)
+    COMPLETED,  // 완료 (예약 완료)
+    EXPIRED     // 만료
 }

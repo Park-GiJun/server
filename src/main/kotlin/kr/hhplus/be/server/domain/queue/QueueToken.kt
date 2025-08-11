@@ -1,94 +1,87 @@
 package kr.hhplus.be.server.domain.queue
 
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
-import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
 import java.time.LocalDateTime
 import java.util.*
 
-class QueueToken(
-    val queueTokenId: String = UUID.randomUUID().toString(),
+/**
+ * 대기열 토큰 도메인 엔티티
+ * - 순수한 도메인 로직만 포함
+ */
+data class QueueToken(
+    val tokenId: String = UUID.randomUUID().toString(),
     val userId: String,
     val concertId: Long,
-    var tokenStatus: QueueTokenStatus,
+    val status: QueueTokenStatus = QueueTokenStatus.WAITING,
     val enteredAt: LocalDateTime = LocalDateTime.now(),
-
-    val createdAt: LocalDateTime? = LocalDateTime.now(),
-    var updatedAt: LocalDateTime? = LocalDateTime.now(),
-    var isDeleted: Boolean = false,
-    var deletedAt: LocalDateTime? = null
+    val activatedAt: LocalDateTime? = null,
+    val expiredAt: LocalDateTime? = null
 ) {
 
-    fun isExpired(): Boolean = tokenStatus == QueueTokenStatus.EXPIRED
+    companion object {
+        /**
+         * 새로운 대기열 토큰 생성
+         */
+        fun create(userId: String, concertId: Long): QueueToken {
+            return QueueToken(
+                userId = userId,
+                concertId = concertId,
+                status = QueueTokenStatus.WAITING,
+                enteredAt = LocalDateTime.now()
+            )
+        }
+    }
 
-    fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE && !isExpired()
-
-    fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING && !isExpired()
-
+    /**
+     * 토큰 활성화 (예약 가능 상태로 전환)
+     */
     fun activate(): QueueToken {
-        return QueueToken(
-            queueTokenId = this.queueTokenId,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.ACTIVE,
-            enteredAt = this.enteredAt,
-            createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(),
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
+        return this.copy(
+            status = QueueTokenStatus.ACTIVE,
+            activatedAt = LocalDateTime.now()
         )
     }
 
-    fun expire(): QueueToken {
-        return QueueToken(
-            queueTokenId = this.queueTokenId,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.EXPIRED,
-            enteredAt = this.enteredAt,
-            createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(),
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
-        )
-    }
-
+    /**
+     * 토큰 완료 (예약 완료)
+     */
     fun complete(): QueueToken {
-        return QueueToken(
-            queueTokenId = this.queueTokenId,
-            userId = this.userId,
-            concertId = this.concertId,
-            tokenStatus = QueueTokenStatus.COMPLETED,
-            enteredAt = this.enteredAt,
-            createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(),
-            isDeleted = this.isDeleted,
-            deletedAt = this.deletedAt
+        return this.copy(
+            status = QueueTokenStatus.COMPLETED
         )
     }
 
-    fun validateActiveToken(token: QueueToken): QueueToken {
-        if (token.isExpired()) {
-            throw TokenExpiredException(token.queueTokenId)
-        }
-
-        if (!token.isActive()) {
-            throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
-        }
-
-        return token
-    }
-
-    fun createNewToken(userId: String, concertId: Long): QueueToken {
-        return QueueToken(
-            queueTokenId = UUID.randomUUID().toString(),
-            userId = userId,
-            concertId = concertId,
-            tokenStatus = QueueTokenStatus.WAITING,
-            enteredAt = LocalDateTime.now(),
+    /**
+     * 토큰 만료
+     */
+    fun expire(): QueueToken {
+        return this.copy(
+            status = QueueTokenStatus.EXPIRED,
+            expiredAt = LocalDateTime.now()
         )
     }
 
-    fun calculateWaitingPosition(waitingTokensBeforeUser: Int): Int {
-        return (waitingTokensBeforeUser + 1)
+    /**
+     * 대기 중인지 확인
+     */
+    fun isWaiting(): Boolean = status == QueueTokenStatus.WAITING
+
+    /**
+     * 활성 상태인지 확인
+     */
+    fun isActive(): Boolean = status == QueueTokenStatus.ACTIVE
+
+    /**
+     * 토큰이 유효한지 확인
+     */
+    fun isValid(): Boolean = status in listOf(QueueTokenStatus.WAITING, QueueTokenStatus.ACTIVE)
+
+    /**
+     * 도메인 규칙 검증
+     */
+    fun validate() {
+        require(userId.isNotBlank()) { "사용자 ID는 필수입니다" }
+        require(concertId > 0) { "유효한 콘서트 ID가 필요합니다" }
+        require(tokenId.isNotBlank()) { "토큰 ID는 필수입니다" }
     }
 }
+

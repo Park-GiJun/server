@@ -1,58 +1,106 @@
-package kr.hhplus.be.server.domain.queue.service
+package kr.hhplus.be.server.domain.queue
 
-import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.QueueTokenStatus
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
-import kr.hhplus.be.server.domain.queue.exception.TokenExpiredException
-import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.util.UUID
-
+import org.springframework.stereotype.Component
 
 /**
- * Redis용 도메인 서비스
- * - 비즈니스 로직만 포함 및 기존 코드 리펙토링
+ * 대기열 도메인 서비스
+ * - 순수한 비즈니스 로직만 포함
  */
+@Component
 class QueueDomainService {
-
-    private val log = LoggerFactory.getLogger(QueueDomainService::class.java)
 
     companion object {
         private const val MAX_ACTIVE_TOKENS_PER_CONCERT = 100
-        private const val MAX_QUEUE_WAITING_TIME_HOURS = 24L
+        private const val ESTIMATED_PROCESSING_TIME_MINUTES = 5
     }
 
     /**
-     * 대기열 계산
-     * - 입장순서 기준
-     * - 동일한 콘서트에서만 순서 적용
-     *
-     * @param allWaitingTokens 해당 콘서트의 모든 대기중인 토큰
-     * @param targetToken 위치 계산할 대상 토큰
-     * @return 대기열 위치 (0부터 시작)
+     * 활성화 가능한 토큰 수 계산
+     * @param currentActiveCount 현재 활성 토큰 수
+     * @param maxActiveTokens 최대 허용 활성 토큰 수
+     * @return 추가로 활성화 가능한 수
      */
-    fun calculateQueuePosition(
-        allWaitingTokens: List<QueueToken>,
-        targetToken: QueueToken
-    ): Long {
-        require(targetToken.tokenStatus == QueueTokenStatus.WAITING) {
-            log.info("대기중인 토큰만 위치 계산이 가능합니다.")
+    fun calculateActivationCapacity(
+        currentActiveCount: Int,
+        maxActiveTokens: Int = MAX_ACTIVE_TOKENS_PER_CONCERT
+    ): Int {
+        require(currentActiveCount >= 0) { "현재 활성 토큰 수는 0 이상이어야 합니다" }
+        require(maxActiveTokens > 0) { "최대 활성 토큰 수는 1 이상이어야 합니다" }
+
+        return maxOf(0, maxActiveTokens - currentActiveCount)
+    }
+
+    /**
+     * 예상 대기 시간 계산
+     * @param position 현재 대기열 위치 (0부터 시작)
+     * @return 예상 대기 시간 (분)
+     */
+    fun calculateEstimatedWaitTime(position: Long): Int {
+        require(position >= 0) { "대기열 위치는 0 이상이어야 합니다" }
+
+        return (position * ESTIMATED_PROCESSING_TIME_MINUTES).toInt()
+    }
+
+    /**
+     * 토큰 활성화 가능 여부 확인
+     * @param token 확인할 토큰
+     * @param currentPosition 현재 대기열 위치
+     * @return 활성화 가능 여부
+     */
+    fun canActivateToken(token: QueueToken, currentPosition: Long): Boolean {
+        return token.isWaiting() && currentPosition == 0L
+    }
+
+    /**
+     * 대기열 진입 검증
+     * @param userId 사용자 ID
+     * @param concertId 콘서트 ID
+     * @param existingToken 기존 토큰 (있는 경우)
+     * @return 진입 가능 여부
+     */
+    fun validateQueueEntry(
+        userId: String,
+        concertId: Long,
+        existingToken: QueueToken?
+    ): QueueEntryValidation {
+        // 기존 활성 토큰이 있으면 재사용
+        if (existingToken?.isActive() == true) {
+            return QueueEntryValidation.ExistingActive(existingToken)
         }
 
-        val sameContentTokens = allWaitingTokens
-            .filter { it.concertId == targetToken.concertId }
-            .filter { it.tokenStatus == QueueTokenStatus.WAITING }
-            .sortedBy { it.enteredAt }
+        // 기존 대기 토큰이 있으면 재사용
+        if (existingToken?.isWaiting() == true) {
+            return QueueEntryValidation.ExistingWaiting(existingToken)
+        }
 
-        val position = sameContentTokens.indexOfFirst { it.queueTokenId == targetToken.queueTokenId }
-
-        return if (position >= 0) position.toLong() else Long.MAX_VALUE
+        // 새 토큰 생성 필요
+        return QueueEntryValidation.CreateNew
     }
 
     /**
-     * 활성화 토큰 검증
-     * 1. 대기중 상태
-     * 2. 0
+     * 대기열 정리 대상 식별
+     * @param tokens 토큰 목록
+     * @return 정리 대상 토큰들
      */
+    fun identifyExpiredTokens(tokens: List<QueueToken>): List<QueueToken> {
+        return tokens.filter { token ->
+            when (token.status) {
+                QueueTokenStatus.EXPIRED -> true
+                QueueTokenStatus.COMPLETED -> {
+                    // 완료 후 1시간이 지난 토큰들
+                    token.activatedAt?.plusHours(1)?.isBefore(java.time.LocalDateTime.now()) == true
+                }
+                else -> false
+            }
+        }
+    }
+}
+
+/**
+ * 대기열 진입 검증 결과
+ */
+sealed class QueueEntryValidation {
+    object CreateNew : QueueEntryValidation()
+    data class ExistingActive(val token: QueueToken) : QueueEntryValidation()
+    data class ExistingWaiting(val token: QueueToken) : QueueEntryValidation()
 }
