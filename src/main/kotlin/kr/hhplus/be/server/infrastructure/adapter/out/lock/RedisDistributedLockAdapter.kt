@@ -159,7 +159,7 @@ class RedisDistributedLockAdapter(
                 publishAction()
             }
         } catch (e: Exception) {
-            log.warn("락 이벤트 발행 실패 (비즈니스 로직에 영향 없음)", e)
+            log.warn("락 이벤트 발행 실패", e)
         }
     }
 }
