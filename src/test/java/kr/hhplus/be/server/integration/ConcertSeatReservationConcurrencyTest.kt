@@ -91,13 +91,6 @@ class ConcertSeatReservationConcurrencyTest {
         return userRepository.save(user)
     }
 
-    private fun createTestQueueToken(tokenId: String, userId: String): QueueToken {
-        val token = QueueToken(
-            userId = userId,
-            concertId = 1L,
-        )
-        return queueTokenRepository.save(token)
-    }
 
     private fun createTestSeat(seatId: Long, seatNumber: String = "A1"): ConcertSeat {
         val seat = ConcertSeat(
@@ -109,7 +102,6 @@ class ConcertSeatReservationConcurrencyTest {
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now()
         )
-        return concertSeatRepository.save(seat)
     }
 
     @Test
@@ -277,7 +269,6 @@ class ConcertSeatReservationConcurrencyTest {
                     try {
                         // 사용자와 토큰 생성
                         createTestUser(userId)
-                        createTestQueueToken(tokenId, userId)
 
                         delay(Random.nextLong(1, 20))
 
@@ -358,7 +349,6 @@ class ConcertSeatReservationConcurrencyTest {
                 try {
                     // 전사 등록
                     createTestUser(fighterId)
-                    createTestQueueToken(tokenId, fighterId)
 
                     // 전투 시작! (약간의 랜덤 딜레이로 현실적 시뮬레이션)
                     delay(Random.nextLong(1, 50))

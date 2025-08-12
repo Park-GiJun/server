@@ -11,6 +11,6 @@ data class QueueEventMessage(
     val position: Int,
     val estimatedWaitTime: Int,    // 분 단위
     val message: String,
-    @JsonProperty("timestamp")
+    @param:JsonProperty("timestamp")
     val timestamp: LocalDateTime = LocalDateTime.now()
 )
