@@ -1,55 +1,42 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.data.redis.core.script.RedisScript
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
-// src/main/kotlin/kr/hhplus/be/server/infrastructure/adapter/out/persistence/queue/redis/RedisQueueManagementService.kt
+/**
+ * 간단한 Redis 대기열 관리 서비스
+ * - LUA 스크립트 없이 단순 Redis 명령어만 사용
+ * - 필수 기능만 구현
+ */
 @Service
 class RedisQueueManagementService(
     private val redisTemplate: RedisTemplate<String, Any>,
-    private val stringRedisTemplate: StringRedisTemplate,
-    private val objectMapper: ObjectMapper
+    private val stringRedisTemplate: StringRedisTemplate
 ) {
 
     private val log = LoggerFactory.getLogger(RedisQueueManagementService::class.java)
 
     /**
-     * 대기열에 사용자 추가 (원자적 처리)
+     * 대기열에 사용자 추가
      */
     fun addToWaitingQueue(token: QueueToken): Long {
-        val queueKey = token.getWaitingQueueKey()
+        val queueKey = "queue:waiting:${token.concertId}"
         val timestamp = token.enteredAt.toInstant(ZoneOffset.UTC).toEpochMilli().toDouble()
 
-        // Lua 스크립트로 원자적 처리
-        val script = """
-            local queueKey = KEYS[1]
-            local userId = ARGV[1]
-            local timestamp = tonumber(ARGV[2])
-            
-            -- 이미 존재하는지 확인
-            local existingScore = redis.call('ZSCORE', queueKey, userId)
-            if existingScore then
-                return redis.call('ZRANK', queueKey, userId)
-            end
-            
-            -- 새로 추가
-            redis.call('ZADD', queueKey, timestamp, userId)
-            return redis.call('ZRANK', queueKey, userId)
-        """.trimIndent()
+        // 이미 존재하는지 확인
+        val existingRank = redisTemplate.opsForZSet().rank(queueKey, token.userId)
+        if (existingRank != null) {
+            log.info("이미 대기열에 존재: userId=${token.userId}, rank=$existingRank")
+            return existingRank
+        }
 
-        val rank = redisTemplate.execute(
-            RedisScript.of(script, Long::class.java),
-            listOf(queueKey),
-            token.userId,
-            timestamp
-        ) as Long? ?: -1L
+        // 새로 추가
+        redisTemplate.opsForZSet().add(queueKey, token.userId, timestamp)
+        val rank = redisTemplate.opsForZSet().rank(queueKey, token.userId) ?: -1L
 
         log.info("대기열 추가: userId=${token.userId}, concertId=${token.concertId}, rank=$rank")
         return rank
@@ -64,80 +51,126 @@ class RedisQueueManagementService(
     }
 
     /**
-     * 대기열에서 활성화 (배치 처리)
+     * 대기열의 다음 N명 조회
+     */
+    fun getNextWaitingUsers(concertId: Long, count: Int): List<String> {
+        val waitingKey = "queue:waiting:$concertId"
+
+        return redisTemplate.opsForZSet()
+            .range(waitingKey, 0, (count - 1).toLong())
+            ?.map { it.toString() } ?: emptyList()
+    }
+
+    /**
+     * 대기열의 다음 N명을 활성 큐로 이동
      */
     fun activateWaitingUsers(concertId: Long, count: Int): List<String> {
-        val queueKey = "queue:waiting:$concertId"
+        val waitingKey = "queue:waiting:$concertId"
         val activeKey = "queue:active:$concertId"
 
-        val script = """
-            local queueKey = KEYS[1]
-            local activeKey = KEYS[2]
-            local maxActivate = tonumber(ARGV[1])
-            local maxActiveTotal = tonumber(ARGV[2])
-            
-            local currentActive = redis.call('SCARD', activeKey)
-            if currentActive >= maxActiveTotal then
-                return {}
-            end
-            
-            local toActivate = math.min(maxActivate, maxActiveTotal - currentActive)
-            if toActivate <= 0 then
-                return {}
-            end
-            
-            local users = redis.call('ZRANGE', queueKey, 0, toActivate - 1)
-            
-            if #users > 0 then
-                redis.call('ZREM', queueKey, unpack(users))
-                for i = 1, #users do
-                    redis.call('SADD', activeKey, users[i])
-                    redis.call('EXPIRE', activeKey, 1800)
-                end
-            end
-            
-            return users
-        """.trimIndent()
+        // 1. 대기열에서 상위 N명 조회
+        val usersToActivate = redisTemplate.opsForZSet()
+            .range(waitingKey, 0, (count - 1).toLong())
+            ?.map { it.toString() } ?: emptyList()
 
-        val result = redisTemplate.execute(
-            RedisScript.of(script, List::class.java),
-            listOf(queueKey, activeKey),
-            count,
-            RedisQueueDomainService.MAX_ACTIVE_USERS_PER_CONCERT
-        ) as? List<String> ?: emptyList()
+        if (usersToActivate.isEmpty()) {
+            return emptyList()
+        }
 
-        log.info("사용자 활성화: concertId=$concertId, 활성화된 수=${result.size}")
-        return result
+        val currentTime = System.currentTimeMillis() / 1000
+        val expiryTime = currentTime + 1800 // 30분 후 만료
+
+        // 2. 각 사용자를 대기열에서 제거하고 활성 큐에 추가
+        usersToActivate.forEach { userId ->
+            // 대기열에서 제거
+            redisTemplate.opsForZSet().remove(waitingKey, userId)
+            // 활성 큐에 추가 (만료 시간을 score로 사용)
+            redisTemplate.opsForZSet().add(activeKey, userId, expiryTime.toDouble())
+        }
+
+        log.info("사용자 활성화: concertId=$concertId, 활성화수=${usersToActivate.size}")
+        return usersToActivate
     }
 
     /**
-     * 활성 사용자 제거
-     */
-    fun deactivateUser(concertId: Long, userId: String): Boolean {
-        val activeKey = "queue:active:$concertId"
-        val removed = redisTemplate.opsForSet().remove(activeKey, userId) ?: 0
-
-        log.info("사용자 비활성화: concertId=$concertId, userId=$userId, removed=${removed > 0}")
-        return removed > 0
-    }
-
-    /**
-     * 통계 조회
+     * 큐 통계 조회
      */
     fun getQueueStats(concertId: Long): QueueStats {
-        val queueKey = "queue:waiting:$concertId"
+        val waitingKey = "queue:waiting:$concertId"
         val activeKey = "queue:active:$concertId"
+
+        val waitingCount = redisTemplate.opsForZSet().zCard(waitingKey) ?: 0L
+        val activeCount = redisTemplate.opsForZSet().zCard(activeKey) ?: 0L
 
         return QueueStats(
             concertId = concertId,
-            waitingCount = redisTemplate.opsForZSet().zCard(queueKey) ?: 0,
-            activeCount = redisTemplate.opsForSet().size(activeKey) ?: 0
+            waitingCount = waitingCount,
+            activeCount = activeCount
         )
     }
 
-    data class QueueStats(
-        val concertId: Long,
-        val waitingCount: Long,
-        val activeCount: Long
-    )
+    /**
+     * 모든 큐에서 사용자 제거
+     */
+    fun removeFromAllQueues(concertId: Long, userId: String) {
+        val waitingKey = "queue:waiting:$concertId"
+        val activeKey = "queue:active:$concertId"
+
+        val waitingRemoved = redisTemplate.opsForZSet().remove(waitingKey, userId) ?: 0L
+        val activeRemoved = redisTemplate.opsForZSet().remove(activeKey, userId) ?: 0L
+
+        val totalRemoved = waitingRemoved + activeRemoved
+        if (totalRemoved > 0) {
+            log.info("큐에서 사용자 제거: concertId=$concertId, userId=$userId, 제거수=$totalRemoved")
+        }
+    }
+
+    /**
+     * 만료된 활성 토큰들 정리
+     */
+    fun cleanupExpiredActiveTokens(concertId: Long): List<String> {
+        val activeKey = "queue:active:$concertId"
+        val currentTime = System.currentTimeMillis() / 1000
+
+        // 만료된 토큰들 조회
+        val expiredUsers = redisTemplate.opsForZSet()
+            .rangeByScore(activeKey, Double.NEGATIVE_INFINITY, currentTime.toDouble())
+            ?.map { it.toString() } ?: emptyList()
+
+        if (expiredUsers.isNotEmpty()) {
+            // 만료된 토큰들 제거
+            redisTemplate.opsForZSet().removeRangeByScore(
+                activeKey,
+                Double.NEGATIVE_INFINITY,
+                currentTime.toDouble()
+            )
+
+            log.info("만료된 활성 토큰 정리: concertId=$concertId, 정리수=${expiredUsers.size}")
+        }
+
+        return expiredUsers
+    }
+
+    /**
+     * 활성 토큰 존재 여부 확인
+     */
+    fun isActiveToken(concertId: Long, userId: String): Boolean {
+        val activeKey = "queue:active:$concertId"
+        val score = redisTemplate.opsForZSet().score(activeKey, userId)
+
+        if (score == null) return false
+
+        // TTL 확인 (현재 시간과 비교)
+        val currentTime = System.currentTimeMillis() / 1000
+        return score > currentTime
+    }
 }
+
+/**
+ * 큐 통계 데이터 클래스
+ */
+data class QueueStats(
+    val concertId: Long,
+    val waitingCount: Long,
+    val activeCount: Long
+)

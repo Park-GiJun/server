@@ -3,6 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.out.scheduler.queue
 import kr.hhplus.be.server.application.dto.queue.ProcessQueueActivationCommand
 import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
+import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
+import kr.hhplus.be.server.application.port.out.event.queue.QueuePositionUpdate
+import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -10,107 +13,214 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 /**
- * Redis 대기열 스케줄러
- * - SSE 이벤트 기반으로 변경됨
- * - WebSocket 의존성 제거
+ * Redis 대기열 스케줄러 - 위치 업데이트 포함
  */
 @Component
 @EnableScheduling
 class RedisQueueScheduler(
     private val processQueueActivationUseCase: ProcessQueueActivationUseCase,
     private val concertRepository: ConcertRepository,
-    private val queueManagementService: RedisQueueManagementService
+    private val queueManagementService: RedisQueueManagementService,
+    private val queueEventPort: QueueEventPort,
+    private val queueTokenRepository: QueueTokenRepository
 ) {
     private val log = LoggerFactory.getLogger(RedisQueueScheduler::class.java)
 
-    @Scheduled(fixedDelay = 3000) // 3초마다 실행
-    fun processRedisQueueManagement() {
-        val startTime = System.currentTimeMillis()
-
+    /**
+     * 대기열 활성화 처리 (3초마다)
+     */
+    @Scheduled(fixedDelay = 3000)
+    fun processQueueActivation() {
         try {
             val concerts = concertRepository.findConcertList()
-            var totalProcessed = 0
+            var totalActivated = 0
 
             concerts.forEach { concert ->
                 try {
-                    val processed = processRedisQueue(concert.concertId)
-                    totalProcessed += processed
+                    val result = processQueueActivationUseCase.processActivation(
+                        ProcessQueueActivationCommand(concert.concertId)
+                    )
+
+                    if (result.activatedTokens.isNotEmpty()) {
+                        totalActivated += result.activatedTokens.size
+                        log.info("토큰 활성화: concertId=${concert.concertId}, 활성화=${result.activatedTokens.size}개")
+                    }
+
                 } catch (e: Exception) {
-                    log.error("콘서트 ${concert.concertId} Redis 큐 처리 중 오류", e)
+                    log.error("콘서트 ${concert.concertId} 활성화 처리 중 오류", e)
                 }
             }
 
-            val duration = System.currentTimeMillis() - startTime
-            if (totalProcessed > 0) {
-                log.info("Redis 큐 처리 완료 (${duration}ms): $totalProcessed 개 처리")
+            if (totalActivated > 0) {
+                log.info("전체 활성화 완료: $totalActivated 개")
             }
 
         } catch (e: Exception) {
-            log.error("Redis 큐 스케줄러 처리 중 오류", e)
+            log.error("대기열 스케줄러 오류", e)
         }
     }
 
     /**
-     * 개별 콘서트 대기열 처리
+     * 대기열 위치 업데이트 (5초마다) - 새로 추가
      */
-    private fun processRedisQueue(concertId: Long): Int {
+    @Scheduled(fixedDelay = 5000)
+    fun processPositionUpdates() {
+        try {
+            val concerts = concertRepository.findConcertList()
+            var totalUpdated = 0
+
+            concerts.forEach { concert ->
+                try {
+                    val updated = processPositionUpdatesForConcert(concert.concertId)
+                    totalUpdated += updated
+                } catch (e: Exception) {
+                    log.error("콘서트 ${concert.concertId} 위치 업데이트 중 오류", e)
+                }
+            }
+
+            if (totalUpdated > 0) {
+                log.info("위치 업데이트 완료: $totalUpdated 명")
+            }
+
+        } catch (e: Exception) {
+            log.error("위치 업데이트 스케줄러 오류", e)
+        }
+    }
+
+    /**
+     * 콘서트별 위치 업데이트 처리
+     */
+    private fun processPositionUpdatesForConcert(concertId: Long): Int {
         val stats = queueManagementService.getQueueStats(concertId)
 
         if (stats.waitingCount == 0L) {
             return 0
         }
 
-        log.debug("Redis 큐 처리: concertId=$concertId, 대기중=${stats.waitingCount}, 활성=${stats.activeCount}")
+        // 대기 중인 상위 50명만 처리 (성능 고려)
+        val waitingTokens = queueTokenRepository.findWaitingTokensByConcert(concertId, 50)
 
-        val result = processQueueActivationUseCase.processActivation(
-            ProcessQueueActivationCommand(concertId)
-        )
-
-        if (result.activatedTokens.isNotEmpty()) {
-            log.info("큐 활성화 완료: concertId=$concertId, 활성화=${result.activatedTokens.size}개")
+        if (waitingTokens.isEmpty()) {
+            return 0
         }
 
-        return result.activatedTokens.size
+        val positionUpdates = mutableListOf<QueuePositionUpdate>()
+
+        waitingTokens.forEach { token ->
+            try {
+                // Redis에서 현재 위치 조회
+                val currentPosition = queueManagementService.getWaitingPosition(concertId, token.userId)
+
+                if (currentPosition >= 0) {
+                    val displayPosition = currentPosition + 1 // 1부터 시작
+                    val estimatedWaitTime = calculateEstimatedWaitTime(displayPosition)
+
+                    positionUpdates.add(
+                        QueuePositionUpdate(
+                            tokenId = token.queueTokenId,
+                            userId = token.userId,
+                            newPosition = displayPosition,
+                            estimatedWaitTime = estimatedWaitTime
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                log.error("토큰 위치 조회 중 오류: tokenId=${token.queueTokenId}", e)
+            }
+        }
+
+        // 위치 업데이트 이벤트 발행
+        if (positionUpdates.isNotEmpty()) {
+            try {
+                positionUpdates.forEach { update ->
+                    queueEventPort.publishQueueEntered(
+                        tokenId = update.tokenId,
+                        userId = update.userId,
+                        concertId = concertId,
+                        position = update.newPosition,
+                        estimatedWaitTime = update.estimatedWaitTime
+                    )
+                }
+
+                log.debug("위치 업데이트 발행: concertId=$concertId, 업데이트=${positionUpdates.size}개")
+            } catch (e: Exception) {
+                log.error("위치 업데이트 이벤트 발행 중 오류: concertId=$concertId", e)
+            }
+        }
+
+        return positionUpdates.size
     }
 
-    @Scheduled(fixedDelay = 60000) // 1분마다 정리 작업
+    /**
+     * 만료된 토큰 정리 (1분마다)
+     */
+    @Scheduled(fixedDelay = 60000)
     fun cleanupExpiredTokens() {
-        log.debug("Redis 만료 토큰 정리 작업 시작")
-
         try {
+            val concerts = concertRepository.findConcertList()
+            var totalCleaned = 0
+
+            concerts.forEach { concert ->
+                try {
+                    val expired = queueManagementService.cleanupExpiredActiveTokens(concert.concertId)
+                    totalCleaned += expired.size
+
+                    if (expired.isNotEmpty()) {
+                        log.info("만료 토큰 정리: concertId=${concert.concertId}, 정리=${expired.size}개")
+                    }
+                } catch (e: Exception) {
+                    log.error("콘서트 ${concert.concertId} 만료 토큰 정리 중 오류", e)
+                }
+            }
+
+            if (totalCleaned > 0) {
+                log.info("만료 토큰 정리 완료: $totalCleaned 개")
+            }
 
         } catch (e: Exception) {
             log.error("만료 토큰 정리 중 오류", e)
         }
     }
 
-    @Scheduled(fixedDelay = 30000) // 30초마다 통계 로깅
+    /**
+     * 대기열 통계 로깅 (30초마다)
+     */
+    @Scheduled(fixedDelay = 30000)
     fun logQueueStatistics() {
         try {
             val concerts = concertRepository.findConcertList()
             var totalWaiting = 0L
             var totalActive = 0L
-            var activeQueues = 0
 
             concerts.forEach { concert ->
                 val stats = queueManagementService.getQueueStats(concert.concertId)
                 if (stats.waitingCount > 0 || stats.activeCount > 0) {
                     totalWaiting += stats.waitingCount
                     totalActive += stats.activeCount
-                    activeQueues++
-
-                    if (stats.waitingCount > 0) {
-                        log.debug("큐 상태: concertId=${concert.concertId}, 대기=${stats.waitingCount}, 활성=${stats.activeCount}")
-                    }
+                    log.info("콘서트 ${concert.concertId}: 대기=${stats.waitingCount}, 활성=${stats.activeCount}")
                 }
             }
 
-            if (activeQueues > 0) {
-                log.info("전체 큐 통계: 활성큐=$activeQueues 개, 총대기=$totalWaiting 명, 총활성=$totalActive 명")
+            if (totalWaiting > 0 || totalActive > 0) {
+                log.info("전체 통계: 대기=$totalWaiting, 활성=$totalActive")
             }
 
         } catch (e: Exception) {
-            log.error("큐 통계 로깅 중 오류", e)
+            log.error("통계 로깅 중 오류", e)
+        }
+    }
+
+    /**
+     * 예상 대기 시간 계산
+     */
+    private fun calculateEstimatedWaitTime(position: Long): Int {
+        val processingRate = 10
+        val estimatedMinutes = (position / processingRate).toInt()
+
+        return when {
+            estimatedMinutes < 1 -> 1
+            estimatedMinutes > 60 -> 60
+            else -> estimatedMinutes
         }
     }
 }

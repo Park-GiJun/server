@@ -73,6 +73,10 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 	implementation("org.springframework.data:spring-data-redis")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.7.3")
+
 }
 
 tasks.withType<Test> {

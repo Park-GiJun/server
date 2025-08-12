@@ -15,6 +15,7 @@ import kr.hhplus.be.server.application.port.`in`.queue.GenerateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.user.UserRepository
+import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
@@ -43,12 +44,12 @@ class RedisQueueCommandService(
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        // 기존 활성 토큰 확인
-        val existingToken = queueTokenRepository.findActiveTokenByUserAndConcert(
+        // 기존 토큰 확인 (활성 또는 대기 중인 토큰)
+        val existingToken = queueTokenRepository.findByUserIdAndConcertId(
             command.userId, command.concertId
         )
 
-        if (existingToken != null) {
+        if (existingToken != null && !existingToken.isExpired()) {
             log.info("기존 토큰 반환: tokenId=${existingToken.queueTokenId}")
             val position = calculatePosition(existingToken)
             return GenerateQueueTokenResult(
@@ -63,7 +64,7 @@ class RedisQueueCommandService(
         val newToken = redisQueueDomainService.createNewQueueToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
-        // Redis 대기열에 추가
+        // Redis 대기열에 추가 (대기 상태인 경우)
         val rank = if (savedToken.isWaiting()) {
             queueManagementService.addToWaitingQueue(savedToken)
         } else 0L
@@ -85,7 +86,8 @@ class RedisQueueCommandService(
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
         if (token.isExpired()) {
-            val expiredToken = token.expire()
+            // 만료된 토큰 처리
+            val expiredToken = token.copy(tokenStatus = QueueTokenStatus.EXPIRED)
             queueTokenRepository.save(expiredToken)
             log.warn("토큰 만료: tokenId=${command.tokenId}")
             throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
@@ -123,12 +125,16 @@ class RedisQueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        // 활성 상태면 활성 세트에서 제거
+        // 활성 상태면 활성 큐에서 제거
         if (token.isActive()) {
-            queueManagementService.deactivateUser(token.concertId, token.userId)
+            queueManagementService.removeFromAllQueues(token.concertId, token.userId)
         }
 
-        val expiredToken = token.expire()
+        // 토큰 만료 처리
+        val expiredToken = token.copy(
+            tokenStatus = QueueTokenStatus.EXPIRED,
+            expiresAt = java.time.LocalDateTime.now()
+        )
         queueTokenRepository.save(expiredToken)
 
         log.info("토큰 만료 완료: tokenId=${command.tokenId}")
@@ -141,12 +147,16 @@ class RedisQueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        // 활성 상태면 활성 세트에서 제거
+        // 활성 상태면 활성 큐에서 제거
         if (token.isActive()) {
-            queueManagementService.deactivateUser(token.concertId, token.userId)
+            queueManagementService.removeFromAllQueues(token.concertId, token.userId)
         }
 
-        val completedToken = token.complete()
+        // 토큰 완료 처리
+        val completedToken = token.copy(
+            tokenStatus = QueueTokenStatus.COMPLETED,
+            expiresAt = java.time.LocalDateTime.now().plusMinutes(5) // 5분 후 정리
+        )
         queueTokenRepository.save(completedToken)
 
         log.info("토큰 완료 처리 완료: tokenId=${command.tokenId}")
@@ -156,7 +166,7 @@ class RedisQueueCommandService(
     /**
      * 토큰의 현재 위치 계산
      */
-    private fun calculatePosition(token: kr.hhplus.be.server.domain.queue.QueueToken): Int {
+    private fun calculatePosition(token: QueueToken): Int {
         return if (token.isWaiting()) {
             val rank = queueManagementService.getWaitingPosition(token.concertId, token.userId)
             redisQueueDomainService.calculateWaitingPosition(rank)
@@ -169,7 +179,15 @@ class RedisQueueCommandService(
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
             // 10명당 1분 대기로 가정
-            (position / 10) * 60
+            (position / 10).coerceAtLeast(1) // 최소 1분
         } else 0
     }
 }
+
+// ========== QueueToken 확장 함수들 ==========
+
+private fun QueueToken.isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING
+private fun QueueToken.isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE
+private fun QueueToken.isExpired(): Boolean =
+    tokenStatus == QueueTokenStatus.EXPIRED ||
+            (expiresAt != null && expiresAt.isBefore(java.time.LocalDateTime.now()))
