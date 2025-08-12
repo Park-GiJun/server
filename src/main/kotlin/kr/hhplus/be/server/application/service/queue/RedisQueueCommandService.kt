@@ -40,11 +40,9 @@ class RedisQueueCommandService(
     override fun generateToken(command: GenerateQueueTokenCommand): GenerateQueueTokenResult {
         log.info("Redis 대기열 토큰 생성: userId=${command.userId}, concertId=${command.concertId}")
 
-        // 사용자 존재 확인
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        // 기존 토큰 확인 (활성 또는 대기 중인 토큰)
         val existingToken = queueTokenRepository.findByUserIdAndConcertId(
             command.userId, command.concertId
         )
@@ -60,11 +58,9 @@ class RedisQueueCommandService(
             )
         }
 
-        // 새 토큰 생성
         val newToken = redisQueueDomainService.createNewQueueToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
-        // Redis 대기열에 추가 (대기 상태인 경우)
         val rank = if (savedToken.isWaiting()) {
             queueManagementService.addToWaitingQueue(savedToken)
         } else 0L
@@ -86,7 +82,6 @@ class RedisQueueCommandService(
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
         if (token.isExpired()) {
-            // 만료된 토큰 처리
             val expiredToken = token.copy(tokenStatus = QueueTokenStatus.EXPIRED)
             queueTokenRepository.save(expiredToken)
             log.warn("토큰 만료: tokenId=${command.tokenId}")
@@ -125,12 +120,10 @@ class RedisQueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        // 활성 상태면 활성 큐에서 제거
         if (token.isActive()) {
             queueManagementService.removeFromAllQueues(token.concertId, token.userId)
         }
 
-        // 토큰 만료 처리
         val expiredToken = token.copy(
             tokenStatus = QueueTokenStatus.EXPIRED,
             expiresAt = java.time.LocalDateTime.now()
@@ -147,7 +140,6 @@ class RedisQueueCommandService(
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
-        // 활성 상태면 활성 큐에서 제거
         if (token.isActive()) {
             queueManagementService.removeFromAllQueues(token.concertId, token.userId)
         }
@@ -179,15 +171,7 @@ class RedisQueueCommandService(
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
             // 10명당 1분 대기로 가정
-            (position / 10).coerceAtLeast(1) // 최소 1분
+            (position / 10).coerceAtLeast(1)
         } else 0
     }
 }
-
-// ========== QueueToken 확장 함수들 ==========
-
-private fun QueueToken.isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING
-private fun QueueToken.isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE
-private fun QueueToken.isExpired(): Boolean =
-    tokenStatus == QueueTokenStatus.EXPIRED ||
-            (expiresAt != null && expiresAt.isBefore(java.time.LocalDateTime.now()))

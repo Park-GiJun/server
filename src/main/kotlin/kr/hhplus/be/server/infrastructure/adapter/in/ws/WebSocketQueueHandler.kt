@@ -27,7 +27,6 @@ class WebSocketQueueHandler(
         log.info("WebSocket 연결 시도: sessionId=${session.id}")
 
         try {
-            // URL 파라미터 파싱
             val params = parseQueryParams(session.uri)
             val tokenId = params["tokenId"] ?: throw IllegalArgumentException("tokenId 파라미터가 필요합니다")
             val userId = params["userId"] ?: throw IllegalArgumentException("userId 파라미터가 필요합니다")
@@ -35,7 +34,6 @@ class WebSocketQueueHandler(
 
             log.info("WebSocket 연결 요청: userId=$userId, tokenId=$tokenId, concertId=$concertId")
 
-            // 토큰 유효성 검증
             val command = ValidateQueueTokenCommand(tokenId, concertId)
             try {
                 validateTokenUseCase.validateActiveTokenForConcert(command)
@@ -44,10 +42,8 @@ class WebSocketQueueHandler(
                 log.info("WAITING 토큰으로 WebSocket 연결: tokenId=$tokenId")
             }
 
-            // WebSocket 연결 등록
             webSocketEventAdapter.registerConnection(userId, tokenId, session)
 
-            // 초기 연결 확인 메시지 전송
             val connectionMessage = mapOf(
                 "type" to "connected",
                 "message" to "WebSocket 연결이 성공했습니다",
@@ -56,12 +52,11 @@ class WebSocketQueueHandler(
             )
             session.sendMessage(TextMessage(objectMapper.writeValueAsString(connectionMessage)))
 
-            // 대기열 진입 이벤트 발송 (테스트용)
             webSocketEventAdapter.publishQueueEntered(
                 tokenId = tokenId,
                 userId = userId,
                 concertId = concertId,
-                position = 2L,
+                position = 0L,
                 estimatedWaitTime = 30
             )
 
@@ -86,7 +81,6 @@ class WebSocketQueueHandler(
         log.info("WebSocket 메시지 수신: sessionId=${session.id}, message=${message.payload}")
 
         try {
-            // 클라이언트에서 보낸 메시지 처리 (예: ping/pong, 상태 요청 등)
             val messageMap = objectMapper.readValue(message.payload, Map::class.java)
 
             when (messageMap["type"]) {

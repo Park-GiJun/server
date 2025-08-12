@@ -41,7 +41,7 @@ class ReservationCommandService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
     private val expireTokenUseCase: ExpireQueueTokenUseCase,
-    private val completeTokenUseCase: CompleteQueueTokenUseCase
+    private val completeTokenUseCase: CompleteQueueTokenUseCase,
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
     private val log = LoggerFactory.getLogger(ReservationCommandService::class.java)

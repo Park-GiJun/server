@@ -76,6 +76,7 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.7.3")
+	implementation("org.redisson:redisson-spring-boot-starter:3.24.3")
 
 }
 
