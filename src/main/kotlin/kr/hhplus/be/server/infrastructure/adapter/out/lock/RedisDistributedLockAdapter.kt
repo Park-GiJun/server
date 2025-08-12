@@ -57,17 +57,11 @@ class RedisDistributedLockAdapter(
         }
     }
 
-    /**
-     * 기본 withLock (락 타입 자동 결정)
-     */
     override fun <T> withLock(key: String, waitTime: Duration, leaseTime: Duration, action: () -> T): T {
         val lockType = determineLockType(key)
         return withLock(key, lockType, waitTime, leaseTime, action)
     }
 
-    /**
-     * 락 타입 명시 withLock (메인 구현)
-     */
     override fun <T> withLock(
         key: String,
         lockType: LockType,
@@ -86,7 +80,6 @@ class RedisDistributedLockAdapter(
             if (!acquired) {
                 log.warn("분산락 획득 실패: key=$key, 대기시간=${lockAcquireTime}ms")
 
-                // 락 획득 실패 이벤트 발행
                 publishEventSafely {
                     lockEventPort.publishLockEvent(
                         LockEvent.failed(key, lockType, holderId)
@@ -96,9 +89,8 @@ class RedisDistributedLockAdapter(
                 throw DistributedLockAcquisitionException("분산락 획득 실패: key=$key")
             }
 
-            log.debug("분산락으로 보호된 작업 시작: key=$key, 획득시간=${lockAcquireTime}ms")
+            log.debug("분산락 작업 시작: key=$key, 획득시간=${lockAcquireTime}ms")
 
-            // 락 획득 이벤트 발행
             publishEventSafely {
                 lockEventPort.publishLockEvent(
                     LockEvent.acquired(key, lockType, holderId)
@@ -127,7 +119,6 @@ class RedisDistributedLockAdapter(
                     lock.unlock()
                     log.debug("분산락 해제: key=$key")
 
-                    // 락 해제 이벤트 발행
                     publishEventSafely {
                         lockEventPort.publishLockEvent(
                             LockEvent.released(key, lockType)
@@ -143,15 +134,12 @@ class RedisDistributedLockAdapter(
         }
     }
 
-    /**
-     * 락 키를 분석해서 락 타입 결정
-     */
     private fun determineLockType(key: String): LockType {
         return when {
             key.contains(":temp_reservation:seat:") -> LockType.TEMP_RESERVATION_SEAT
             key.contains(":temp_reservation:process:") -> LockType.TEMP_RESERVATION_PROCESS
             key.contains(":payment:user:") -> LockType.PAYMENT_USER
-            key.contains(":point:charge:") -> LockType.POINT_CHARGE
+            key.contains(":point:balance:") -> LockType.POINT_BALANCE
             key.contains(":seat:status:") -> LockType.SEAT_STATUS
             key.contains(":queue:activation:") -> LockType.QUEUE_ACTIVATION
             else -> {
@@ -161,16 +149,10 @@ class RedisDistributedLockAdapter(
         }
     }
 
-    /**
-     * 고유한 홀더 ID 생성
-     */
     private fun generateHolderId(): String {
         return "${Thread.currentThread().name}-${System.currentTimeMillis()}"
     }
 
-    /**
-     * 이벤트 발행 시 예외 처리
-     */
     private fun publishEventSafely(publishAction: suspend () -> Unit) {
         try {
             runBlocking {

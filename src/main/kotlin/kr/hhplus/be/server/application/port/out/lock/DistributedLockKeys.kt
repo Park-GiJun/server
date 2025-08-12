@@ -17,8 +17,8 @@ object DistributedLockKeys {
     fun paymentUser(userId: String): Pair<String, LockType> =
         "lock:payment:user:$userId" to LockType.PAYMENT_USER
 
-    fun pointCharge(userId: String): Pair<String, LockType> =
-        "lock:point:charge:$userId" to LockType.POINT_CHARGE
+    fun pointBalance(userId: String): Pair<String, LockType> =
+        "lock:point:balance:$userId" to LockType.POINT_BALANCE
 
     fun seatStatus(concertSeatId: Long): Pair<String, LockType> =
         "lock:seat:status:$concertSeatId" to LockType.SEAT_STATUS
