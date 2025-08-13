@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.dto.queue
 
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
+import java.time.LocalDateTime
 
 data class GenerateQueueTokenResult(
     val tokenId: String,
@@ -13,7 +14,9 @@ data class ValidateQueueTokenResult(
     val tokenId: String,
     val userId: String,
     val concertId: Long,
-    val isValid: Boolean
+    val isValid: Boolean,
+    val createdAt: LocalDateTime,
+    val enteredAt: LocalDateTime
 )
 
 data class ExpireQueueTokenResult(

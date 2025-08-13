@@ -11,9 +11,6 @@ object DistributedLockKeys {
     fun tempReservationSeat(concertSeatId: Long): Pair<String, LockType> =
         "lock:temp_reservation:seat:$concertSeatId" to LockType.TEMP_RESERVATION_SEAT
 
-    fun tempReservationProcess(tempReservationId: Long): Pair<String, LockType> =
-        "lock:temp_reservation:process:$tempReservationId" to LockType.TEMP_RESERVATION_PROCESS
-
     fun paymentUser(userId: String): Pair<String, LockType> =
         "lock:payment:user:$userId" to LockType.PAYMENT_USER
 

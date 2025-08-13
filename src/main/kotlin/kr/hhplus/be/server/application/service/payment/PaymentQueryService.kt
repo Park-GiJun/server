@@ -22,11 +22,12 @@ import java.time.LocalDateTime
 @Transactional(readOnly = true)
 class PaymentQueryService(
     private val paymentRepository: PaymentRepository,
-    private val validateTokenUseCase: ValidateQueueTokenUseCase
+    private val validateTokenUseCase: ValidateQueueTokenUseCase,
+    private val paymentDomainService: PaymentDomainService
 ) : GetPaymentUseCase, GetUserPaymentsUseCase {
 
     private val log = LoggerFactory.getLogger(PaymentQueryService::class.java)
-    private val paymentDomainService = PaymentDomainService()
+
 
     override fun getPayment(command: GetPaymentCommand): PaymentResult {
         log.info("결제 내역 조회: paymentId=${command.paymentId}")

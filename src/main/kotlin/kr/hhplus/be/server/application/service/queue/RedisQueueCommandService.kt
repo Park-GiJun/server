@@ -96,7 +96,9 @@ class RedisQueueCommandService(
             tokenId = token.queueTokenId,
             userId = token.userId,
             concertId = token.concertId,
-            isValid = true
+            isValid = true,
+            createdAt = token.createdAt,
+            enteredAt= token.enteredAt,
         )
     }
 

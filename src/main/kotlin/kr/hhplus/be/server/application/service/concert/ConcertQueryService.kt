@@ -25,11 +25,12 @@ class ConcertQueryService(
     private val concertRepository: ConcertRepository,
     private val concertDateRepository: ConcertDateRepository,
     private val concertSeatRepository: ConcertSeatRepository,
-    private val concertSeatGradeRepository: ConcertSeatGradeRepository
+    private val concertSeatGradeRepository: ConcertSeatGradeRepository,
+    private val concertDomainService: ConcertDomainService
 ) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase {
 
     private val log = LoggerFactory.getLogger(ConcertQueryService::class.java)
-    private val concertDomainService = ConcertDomainService()
+
 
     override fun getConcertList(): List<ConcertResult> {
         log.info("콘서트 목록 조회")

@@ -15,11 +15,12 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class UserCommandService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userDomainService: UserDomainService
 ) : ChargeUserPointUseCase, UseUserPointUseCase {
 
     private val log = LoggerFactory.getLogger(UserCommandService::class.java)
-    private val userDomainService = UserDomainService()
+
 
     override fun chargeUserPoint(command: ChargeUserPointCommand): UserResult {
         log.info("포인트 충전: userId=${command.userId}, amount=${command.amount}")

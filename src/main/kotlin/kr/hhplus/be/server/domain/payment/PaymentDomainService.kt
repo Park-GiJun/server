@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.payment
 
-import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.payment.exception.InvalidPaymentAmountException
 import kr.hhplus.be.server.domain.payment.exception.PaymentAlreadyProcessedException
@@ -11,7 +10,6 @@ import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.InvalidReservationStatusException
 import kr.hhplus.be.server.domain.reservation.exception.ReservationExpiredException
-import kr.hhplus.be.server.domain.users.User
 import java.time.LocalDateTime
 
 class PaymentDomainService {

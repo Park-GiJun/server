@@ -13,11 +13,12 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(readOnly = true)
 class UserQueryService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userDomainService: UserDomainService
 ) : GetUserUseCase {
 
     private val log = LoggerFactory.getLogger(UserQueryService::class.java)
-    private val userDomainService = UserDomainService()
+
 
     override fun getUser(command: GetUserCommand): UserResult {
         log.info("사용자 정보 조회: userId=${command.userId}")

@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.service.reservation
 
+import kr.hhplus.be.server.application.annotation.DistributedLock
 import kr.hhplus.be.server.application.dto.queue.CompleteQueueTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ExpireQueueTokenCommand
 import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
@@ -21,16 +22,17 @@ import kr.hhplus.be.server.application.port.out.reservation.ReservationRepositor
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.domain.concert.exception.ConcertSeatNotFoundException
 import kr.hhplus.be.server.domain.reservation.ReservationDomainService
+import kr.hhplus.be.server.domain.queue.QueueTokenDomainService
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.application.mapper.ReservationMapper
 import kr.hhplus.be.server.application.port.`in`.queue.CompleteQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ExpireQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
+import kr.hhplus.be.server.domain.lock.DistributedLockType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -42,11 +44,18 @@ class ReservationCommandService(
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
     private val expireTokenUseCase: ExpireQueueTokenUseCase,
     private val completeTokenUseCase: CompleteQueueTokenUseCase,
+    private val reservationDomainService: ReservationDomainService,
+    private val queueTokenDomainService: QueueTokenDomainService
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
     private val log = LoggerFactory.getLogger(ReservationCommandService::class.java)
-    private val reservationDomainService = ReservationDomainService()
 
+    @DistributedLock(
+        type = DistributedLockType.TEMP_RESERVATION_SEAT,
+        key = "lock:temp_reservation:seat:#{#command.concertSeatId}",
+        waitTime = 5L,
+        leaseTime = 10L
+    )
     override fun tempReservation(command: TempReservationCommand): TempReservationResult {
         log.info("임시 예약 생성: userId=${command.userId}, seatId=${command.concertSeatId}")
 
@@ -57,14 +66,14 @@ class ReservationCommandService(
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
-        val seat = concertSeatRepository.findByConcertSeatIdWithLock(command.concertSeatId)
+        val seat = concertSeatRepository.findByConcertSeatId(command.concertSeatId)
             ?: throw ConcertSeatNotFoundException(command.concertSeatId)
 
         val existingTempReservation = tempReservationRepository.findByTempReservationId(
             command.concertSeatId
         )
 
-        val token = createQueueTokenFromResult(tokenResult)
+        val token = queueTokenDomainService.createFromValidationResult(tokenResult, QueueTokenStatus.WAITING)
 
         reservationDomainService.validateTempReservationCreation(
             token, command.userId, seat, existingTempReservation
@@ -83,6 +92,12 @@ class ReservationCommandService(
         return ReservationMapper.toTempReservationResult(savedTempReservation)
     }
 
+    @DistributedLock(
+        type = DistributedLockType.TEMP_RESERVATION_PROCESS,
+        key = "lock:temp_reservation:process:#{#command.tempReservationId}",
+        waitTime = 5L,
+        leaseTime = 10L
+    )
     override fun confirmTempReservation(command: ConfirmTempReservationCommand): ConfirmTempReservationResult {
         log.info("임시 예약 확정: tempReservationId=${command.tempReservationId}, amount=${command.paymentAmount}")
 
@@ -93,7 +108,7 @@ class ReservationCommandService(
         val tempReservation = tempReservationRepository.findByTempReservationId(command.tempReservationId)
             ?: throw TempReservationNotFoundException(command.tempReservationId)
 
-        val token = createQueueTokenFromResult(tokenResult)
+        val token = queueTokenDomainService.createFromValidationResult(tokenResult, QueueTokenStatus.COMPLETED)
 
         reservationDomainService.validateTempReservationConfirmation(token, tempReservation)
 
@@ -118,19 +133,18 @@ class ReservationCommandService(
         return ReservationMapper.toConfirmTempReservationResult(savedReservation)
     }
 
+    @DistributedLock(
+        type = DistributedLockType.TEMP_RESERVATION_PROCESS,
+        key = "lock:temp_reservation:process:#{#command.tempReservationId}",
+        waitTime = 5L,
+        leaseTime = 10L
+    )
     override fun cancelReservation(command: CancelReservationCommand): CancelReservationResult {
         log.info("임시 예약 취소: tempReservationId=${command.tempReservationId}")
 
-        val tokenResult = validateTokenUseCase.validateActiveToken(
-            ValidateQueueTokenCommand(command.tokenId)
-        )
 
         val tempReservation = tempReservationRepository.findByTempReservationId(command.tempReservationId)
             ?: throw TempReservationNotFoundException(command.tempReservationId)
-
-        val token = createQueueTokenFromResult(tokenResult)
-
-        reservationDomainService.validateTempReservationCancellation(token, tempReservation)
 
         val seat = concertSeatRepository.findByConcertSeatIdWithLock(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
@@ -141,20 +155,7 @@ class ReservationCommandService(
         val expiredTempReservation = tempReservation.expire()
         val savedTempReservation = tempReservationRepository.save(expiredTempReservation)
 
-        expireTokenUseCase.expireToken(ExpireQueueTokenCommand(command.tokenId))
-
         log.info("임시 예약 취소 완료: seatId=${tempReservation.concertSeatId}")
         return ReservationMapper.toCancelReservationResult(savedTempReservation)
-    }
-
-    private fun createQueueTokenFromResult(tokenResult: ValidateQueueTokenResult): QueueToken {
-        return QueueToken(
-            queueTokenId = tokenResult.tokenId,
-            userId = tokenResult.userId,
-            concertId = tokenResult.concertId,
-            tokenStatus = QueueTokenStatus.COMPLETED,
-            createdAt = LocalDateTime.now(),
-            enteredAt = LocalDateTime.now(),
-        )
     }
 }

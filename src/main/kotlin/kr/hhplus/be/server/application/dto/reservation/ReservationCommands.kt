@@ -13,6 +13,5 @@ data class ConfirmTempReservationCommand(
 )
 
 data class CancelReservationCommand(
-    val tokenId: String,
     val tempReservationId: Long
 )
