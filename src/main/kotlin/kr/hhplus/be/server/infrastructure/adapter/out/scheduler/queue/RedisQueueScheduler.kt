@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 /**
- * Redis 대기열 스케줄러 - 위치 업데이트 포함
+ * Redis 대기열 스케줄러
  */
 @Component
 @EnableScheduling
@@ -97,8 +97,7 @@ class RedisQueueScheduler(
             return 0
         }
 
-        // 대기 중인 상위 50명만 처리 (성능 고려)
-        val waitingTokens = queueTokenRepository.findWaitingTokensByConcert(concertId, 50)
+        val waitingTokens = queueTokenRepository.findWaitingTokensByConcert(concertId, 100)
 
         if (waitingTokens.isEmpty()) {
             return 0
@@ -108,11 +107,10 @@ class RedisQueueScheduler(
 
         waitingTokens.forEach { token ->
             try {
-                // Redis에서 현재 위치 조회
                 val currentPosition = queueManagementService.getWaitingPosition(concertId, token.userId)
 
                 if (currentPosition >= 0) {
-                    val displayPosition = currentPosition + 1 // 1부터 시작
+                    val displayPosition = currentPosition + 1
                     val estimatedWaitTime = calculateEstimatedWaitTime(displayPosition)
 
                     positionUpdates.add(
@@ -129,7 +127,6 @@ class RedisQueueScheduler(
             }
         }
 
-        // 위치 업데이트 이벤트 발행
         if (positionUpdates.isNotEmpty()) {
             try {
                 positionUpdates.forEach { update ->
@@ -181,35 +178,6 @@ class RedisQueueScheduler(
             log.error("만료 토큰 정리 중 오류", e)
         }
     }
-
-    /**
-     * 대기열 통계 로깅 (30초마다)
-     */
-    @Scheduled(fixedDelay = 30000)
-    fun logQueueStatistics() {
-        try {
-            val concerts = concertRepository.findConcertList()
-            var totalWaiting = 0L
-            var totalActive = 0L
-
-            concerts.forEach { concert ->
-                val stats = queueManagementService.getQueueStats(concert.concertId)
-                if (stats.waitingCount > 0 || stats.activeCount > 0) {
-                    totalWaiting += stats.waitingCount
-                    totalActive += stats.activeCount
-                    log.info("콘서트 ${concert.concertId}: 대기=${stats.waitingCount}, 활성=${stats.activeCount}")
-                }
-            }
-
-            if (totalWaiting > 0 || totalActive > 0) {
-                log.info("전체 통계: 대기=$totalWaiting, 활성=$totalActive")
-            }
-
-        } catch (e: Exception) {
-            log.error("통계 로깅 중 오류", e)
-        }
-    }
-
     /**
      * 예상 대기 시간 계산
      */
