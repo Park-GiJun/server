@@ -23,9 +23,6 @@ class UserCommandService(
     private val userDomainService: UserDomainService,
     private val pointHistoryRepository: PointHistoryRepository
 ) : ChargeUserPointUseCase, UseUserPointUseCase {
-
-    private val log = LoggerFactory.getLogger(UserCommandService::class.java)
-
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
         key = "lock:payment:user:#{#command.userId}",
