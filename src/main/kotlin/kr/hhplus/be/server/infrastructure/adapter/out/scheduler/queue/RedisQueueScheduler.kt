@@ -61,7 +61,7 @@ class RedisQueueScheduler(
     }
 
     /**
-     * 대기열 위치 업데이트 (5초마다) - 새로 추가
+     * 대기열 위치 업데이트
      */
     @Scheduled(fixedDelay = 5000)
     fun processPositionUpdates() {
