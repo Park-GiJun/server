@@ -15,25 +15,10 @@ data class QueueToken(
     fun isExpired(): Boolean = expiresAt?.isBefore(LocalDateTime.now()) ?: false
     fun isActive(): Boolean = tokenStatus == QueueTokenStatus.ACTIVE && !isExpired()
     fun isWaiting(): Boolean = tokenStatus == QueueTokenStatus.WAITING && !isExpired()
-    fun isCompleted(): Boolean = tokenStatus == QueueTokenStatus.COMPLETED
 
     fun activate(): QueueToken = copy(
         tokenStatus = QueueTokenStatus.ACTIVE,
         updatedAt = LocalDateTime.now()
     )
 
-    fun complete(): QueueToken = copy(
-        tokenStatus = QueueTokenStatus.COMPLETED,
-        updatedAt = LocalDateTime.now()
-    )
-
-    fun expire(): QueueToken = copy(
-        tokenStatus = QueueTokenStatus.EXPIRED,
-        updatedAt = LocalDateTime.now()
-    )
-
-    fun getRedisKey(): String = "queue:token:$queueTokenId"
-    fun getUserKey(): String = "queue:user:$userId:$concertId"
-    fun getWaitingQueueKey(): String = "queue:waiting:$concertId"
-    fun getActiveSetKey(): String = "queue:active:$concertId"
 }

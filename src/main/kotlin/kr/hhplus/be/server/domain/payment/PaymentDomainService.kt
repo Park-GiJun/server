@@ -4,8 +4,6 @@ import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.payment.exception.InvalidPaymentAmountException
 import kr.hhplus.be.server.domain.payment.exception.PaymentAlreadyProcessedException
 import kr.hhplus.be.server.domain.payment.exception.PaymentNotFoundException
-import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.domain.queue.exception.InvalidTokenException
 import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.InvalidReservationStatusException
@@ -33,11 +31,6 @@ class PaymentDomainService {
         }
     }
 
-    fun validateReservationOwnership(tempReservation: TempReservation, token: QueueToken) {
-        if (tempReservation.userId != token.userId) {
-            throw InvalidTokenException("Reservation does not belong to this user")
-        }
-    }
 
     fun validatePaymentNotProcessed(existingPayment: Payment?, reservationId: Long) {
         if (existingPayment != null) {
@@ -83,18 +76,6 @@ class PaymentDomainService {
     fun validatePaymentExists(payment: Payment?, paymentId: Long) {
         if (payment == null) {
             throw PaymentNotFoundException(paymentId)
-        }
-    }
-
-    fun validatePaymentAccess(payment: Payment, token: QueueToken) {
-        if (payment.userId != token.userId) {
-            throw InvalidTokenException("Access denied")
-        }
-    }
-
-    fun validateUserPaymentAccess(token: QueueToken, requestedUserId: String) {
-        if (token.userId != requestedUserId) {
-            throw InvalidTokenException("Access denied")
         }
     }
 

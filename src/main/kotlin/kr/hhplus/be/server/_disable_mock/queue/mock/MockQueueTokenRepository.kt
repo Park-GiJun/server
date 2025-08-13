@@ -3,7 +3,6 @@ package kr.hhplus.be.server._disable_mock.queue.mock
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 

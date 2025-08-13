@@ -6,6 +6,4 @@ enum class SeatStatus {
     RESERVED,
     SOLD;
 
-    fun isReservable(): Boolean = this == AVAILABLE
-    fun isOccupied(): Boolean = this == RESERVED || this == SOLD
 }

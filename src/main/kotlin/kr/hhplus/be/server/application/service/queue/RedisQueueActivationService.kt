@@ -7,7 +7,6 @@ import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,17 +18,11 @@ class RedisQueueActivationService(
     private val queueManagementService: RedisQueueManagementService,
     private val redisQueueDomainService: RedisQueueDomainService
 ) : ProcessQueueActivationUseCase {
-
-    private val log = LoggerFactory.getLogger(RedisQueueActivationService::class.java)
-
     override fun processActivation(command: ProcessQueueActivationCommand): ProcessQueueActivationResult {
-        log.debug("Redis 대기열 활성화 처리: concertId=${command.concertId}")
-
         val stats = queueManagementService.getQueueStats(command.concertId)
         val tokensToActivate = redisQueueDomainService.calculateTokensToActivate(stats.activeCount.toInt())
 
         if (tokensToActivate <= 0) {
-            log.debug("활성화할 토큰 없음: concertId=${command.concertId}")
             return ProcessQueueActivationResult(
                 concertId = command.concertId,
                 activeTokenCount = stats.activeCount.toInt(),
@@ -48,9 +41,6 @@ class RedisQueueActivationService(
                 concertId = token.concertId
             )
         }
-
-        log.info("Redis 토큰 활성화 완료: concertId=${command.concertId}, 활성화된 수=${activatedTokens.size}")
-
         return ProcessQueueActivationResult(
             concertId = command.concertId,
             activeTokenCount = stats.activeCount.toInt() + activatedTokens.size,

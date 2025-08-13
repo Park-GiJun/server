@@ -37,7 +37,4 @@ class UserDomainService {
         }
     }
 
-    fun calculatePointUsage(user: User, requestedAmount: Int, maxUsableAmount: Int): Int {
-        return minOf(requestedAmount, user.availablePoint, maxUsableAmount)
-    }
 }

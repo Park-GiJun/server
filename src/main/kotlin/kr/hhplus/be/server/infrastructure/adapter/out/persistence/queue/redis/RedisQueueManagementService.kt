@@ -3,7 +3,6 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
 import kr.hhplus.be.server.domain.queue.QueueToken
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
-import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
@@ -14,8 +13,7 @@ import java.time.ZoneOffset
  */
 @Service
 class RedisQueueManagementService(
-    private val redisTemplate: RedisTemplate<String, Any>,
-    private val stringRedisTemplate: StringRedisTemplate
+    private val redisTemplate: RedisTemplate<String, Any>
 ) {
 
     private val log = LoggerFactory.getLogger(RedisQueueManagementService::class.java)
@@ -151,19 +149,6 @@ class RedisQueueManagementService(
         return expiredUsers
     }
 
-    /**
-     * 활성 토큰 존재 여부 확인
-     */
-    fun isActiveToken(concertId: Long, userId: String): Boolean {
-        val activeKey = "queue:active:$concertId"
-        val score = redisTemplate.opsForZSet().score(activeKey, userId)
-
-        if (score == null) return false
-
-        // TTL 확인 (현재 시간과 비교)
-        val currentTime = System.currentTimeMillis() / 1000
-        return score > currentTime
-    }
 }
 
 /**

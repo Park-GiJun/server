@@ -38,8 +38,6 @@ class RedisQueueCommandService(
     private val log = LoggerFactory.getLogger(RedisQueueCommandService::class.java)
 
     override fun generateToken(command: GenerateQueueTokenCommand): GenerateQueueTokenResult {
-        log.info("Redis 대기열 토큰 생성: userId=${command.userId}, concertId=${command.concertId}")
-
         userRepository.findByUserId(command.userId)
             ?: throw UserNotFoundException(command.userId)
 
@@ -48,7 +46,6 @@ class RedisQueueCommandService(
         )
 
         if (existingToken != null && !existingToken.isExpired()) {
-            log.info("기존 토큰 반환: tokenId=${existingToken.queueTokenId}")
             val position = calculatePosition(existingToken)
             return GenerateQueueTokenResult(
                 tokenId = existingToken.queueTokenId,
@@ -57,7 +54,6 @@ class RedisQueueCommandService(
                 status = existingToken.tokenStatus
             )
         }
-
         val newToken = redisQueueDomainService.createNewQueueToken(command.userId, command.concertId)
         val savedToken = queueTokenRepository.save(newToken)
 
@@ -66,9 +62,6 @@ class RedisQueueCommandService(
         } else 0L
 
         val position = redisQueueDomainService.calculateWaitingPosition(rank)
-
-        log.info("Redis 토큰 생성 완료: tokenId=${savedToken.queueTokenId}, position=$position")
-
         return GenerateQueueTokenResult(
             tokenId = savedToken.queueTokenId,
             position = position,
@@ -84,7 +77,6 @@ class RedisQueueCommandService(
         if (token.isExpired()) {
             val expiredToken = token.copy(tokenStatus = QueueTokenStatus.EXPIRED)
             queueTokenRepository.save(expiredToken)
-            log.warn("토큰 만료: tokenId=${command.tokenId}")
             throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
         }
 

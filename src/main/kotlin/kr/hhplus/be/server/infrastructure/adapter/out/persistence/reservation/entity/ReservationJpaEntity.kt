@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
-import jakarta.persistence.UniqueConstraint
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 

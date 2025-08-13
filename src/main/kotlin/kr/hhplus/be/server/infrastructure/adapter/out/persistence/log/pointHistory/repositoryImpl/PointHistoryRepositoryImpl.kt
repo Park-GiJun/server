@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.log.pointHistory.PointHistory
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.jpa.PointHistoryJpaRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 
 @Component
 class PointHistoryRepositoryImpl(

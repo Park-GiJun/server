@@ -2,7 +2,6 @@ package kr.hhplus.be.server._disable_mock.concert.mock
 
 import kr.hhplus.be.server.domain.concert.ConcertSeat
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 

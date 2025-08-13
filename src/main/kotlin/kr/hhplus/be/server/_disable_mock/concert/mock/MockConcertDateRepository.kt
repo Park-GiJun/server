@@ -1,7 +1,6 @@
 package kr.hhplus.be.server._disable_mock.concert.mock
 
 import kr.hhplus.be.server.domain.concert.ConcertDate
-import org.springframework.stereotype.Repository
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 

@@ -27,13 +27,10 @@ class RedisQueueQueryService(
     private val log = LoggerFactory.getLogger(RedisQueueQueryService::class.java)
 
     override fun getQueueStatus(query: GetQueueStatusQuery): GetQueueStatusResult {
-        log.info("Redis 대기열 상태 조회: tokenId=${query.tokenId}")
-
         val token = queueTokenRepository.findByTokenId(query.tokenId)
             ?: throw QueueTokenNotFoundException(query.tokenId)
 
         if (token.isExpired()) {
-            log.warn("만료된 토큰 상태 조회: tokenId=${query.tokenId}")
             throw InvalidTokenStatusException(token.tokenStatus, QueueTokenStatus.ACTIVE)
         }
 
@@ -43,9 +40,6 @@ class RedisQueueQueryService(
         } else 0
 
         val estimatedWaitTime = calculateEstimatedWaitTime(position)
-
-        log.info("Redis 대기열 상태 조회 완료: tokenId=${query.tokenId}, 상태=${token.tokenStatus}, 순서=$position")
-
         return GetQueueStatusResult(
             tokenId = token.queueTokenId,
             userId = token.userId,
@@ -57,12 +51,7 @@ class RedisQueueQueryService(
     }
 
     override fun getActivateTokensCountByQueue(query: GetActivateTokensCountQuery): GetActivateTokensCountResult {
-        log.info("Redis 콘서트 활성 토큰 수 조회: concertId=${query.concertId}")
-
         val stats = queueManagementService.getQueueStats(query.concertId)
-
-        log.info("Redis 콘서트 활성 토큰 수 조회 완료: concertId=${query.concertId}, 활성토큰=${stats.activeCount}개")
-
         return GetActivateTokensCountResult(
             concertId = query.concertId,
             activeCount = stats.activeCount.toInt()
@@ -74,7 +63,6 @@ class RedisQueueQueryService(
      */
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
-            // 10명당 1분 대기로 가정
             (position / 10) * 60
         } else 0
     }

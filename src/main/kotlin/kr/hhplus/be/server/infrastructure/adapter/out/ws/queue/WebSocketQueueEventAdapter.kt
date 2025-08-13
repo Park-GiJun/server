@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.event.websocket.queue
+package kr.hhplus.be.server.infrastructure.adapter.out.ws.queue
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
@@ -210,18 +210,6 @@ class WebSocketQueueEventAdapter(
     }
 
     /**
-     * 토큰으로 사용자에게 메시지 전송
-     */
-    private fun sendToToken(tokenId: String, event: QueueEventMessage) {
-        val userId = tokenToUserMap[tokenId]
-        if (userId != null) {
-            sendToUser(userId, event)
-        } else {
-            log.warn("토큰에 해당하는 사용자를 찾을 수 없음: tokenId=$tokenId")
-        }
-    }
-
-    /**
      * 모든 연결에 브로드캐스트 (관리용)
      */
     fun broadcast(message: QueueEventMessage) {
@@ -239,10 +227,4 @@ class WebSocketQueueEventAdapter(
         }
     }
 
-    /**
-     * 특정 콘서트의 연결된 사용자들에게 메시지 전송
-     */
-    fun broadcastToConcert(concertId: Long, message: QueueEventMessage) {
-        broadcast(message)
-    }
 }

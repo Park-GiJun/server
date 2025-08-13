@@ -2,7 +2,7 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.infrastructure.adapter.out.event.websocket.queue.WebSocketQueueEventAdapter
+import kr.hhplus.be.server.infrastructure.adapter.out.ws.queue.WebSocketQueueEventAdapter
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

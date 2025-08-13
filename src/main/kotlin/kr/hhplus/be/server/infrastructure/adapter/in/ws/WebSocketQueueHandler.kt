@@ -3,7 +3,7 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.ws
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
-import kr.hhplus.be.server.infrastructure.adapter.out.event.websocket.queue.WebSocketQueueEventAdapter
+import kr.hhplus.be.server.infrastructure.adapter.out.ws.queue.WebSocketQueueEventAdapter
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.CloseStatus

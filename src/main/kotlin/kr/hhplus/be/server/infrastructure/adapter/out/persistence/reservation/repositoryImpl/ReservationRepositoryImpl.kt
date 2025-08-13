@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.jpa.ReservationJpaRepository
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 
 @Component
 class ReservationRepositoryImpl(

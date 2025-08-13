@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.config.domain
 
 import kr.hhplus.be.server.domain.reservation.ReservationDomainService
-import kr.hhplus.be.server.domain.queue.QueueTokenDomainService
+import kr.hhplus.be.server.domain.queue.service.QueueTokenDomainService
 import kr.hhplus.be.server.domain.payment.PaymentDomainService
 import kr.hhplus.be.server.domain.concert.ConcertDomainService
 import kr.hhplus.be.server.domain.users.UserDomainService

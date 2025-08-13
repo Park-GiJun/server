@@ -6,7 +6,6 @@ import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.log.pointHistory.PointHistory
 import kr.hhplus.be.server.domain.payment.Payment
-import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.ReservationJpaEntity
 import kr.hhplus.be.server.domain.reservation.TempReservation
