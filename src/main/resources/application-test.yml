@@ -1,72 +1,29 @@
 spring:
-  application:
-    name: hhplus-test
-
   datasource:
-    name: HangHaePlusTestDataSource
-    type: com.zaxxer.hikari.HikariDataSource
-    hikari:
-      maximum-pool-size: 1
-      connection-timeout: 5000
-      max-lifetime: 30000
-      minimum-idle: 1
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-    username: test
-    password: test
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 5000
 
   jpa:
-    open-in-view: false
-    generate-ddl: true
-    show-sql: true
     hibernate:
       ddl-auto: create-drop
-      format_sql: true
+    show-sql: false
     properties:
-      hibernate.timezone.default_storage: NORMALIZE_UTC
-      hibernate.jdbc.time_zone: UTC
-      hibernate.use_sql_comments: true
-      hibernate.jdbc.batch_size: 50
-      hibernate.order_inserts: true
-      hibernate.order_updates: true
+      hibernate:
+        format_sql: true
 
-  transaction:
-    default-timeout: 30s
-    rollback-on:
-      - java.lang.Exception
-
-  output:
-    ansi:
-      enabled: always
+  data:
+    redis:
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
 
 logging:
   level:
     kr.hhplus.be.server: DEBUG
-    org.springframework.transaction: DEBUG
-    org.springframework.orm.jpa: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.redisson: INFO
     org.testcontainers: INFO
-    com.zaxxer.hikari: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
-
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
-
-test:
-  database:
-    init-mode: always
-    cleanup-mode: after-each-test
-
-  async:
-    enabled: false
-
-  websocket:
-    enabled: false
-
-scheduling:
-  enabled: false
