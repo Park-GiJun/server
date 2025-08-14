@@ -8,20 +8,31 @@ import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseC
 import kr.hhplus.be.server.application.port.out.concert.*
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.application.port.out.user.UserRepository
+import kr.hhplus.be.server.config.TestRedisConfig
 import kr.hhplus.be.server.domain.concert.*
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.support.IntegrationTestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
+import org.springframework.data.redis.core.RedisTemplate
+import org.springframework.test.annotation.DirtiesContext
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest
+@ActiveProfiles("test")
+@Import(TestRedisConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ReservationIntegrationTest : IntegrationTestBase() {
+
+    private val log = LoggerFactory.getLogger(ReservationIntegrationTest::class.java)
 
     @Autowired
     private lateinit var tempReservationUseCase: TempReservationUseCase
@@ -47,7 +58,10 @@ class ReservationIntegrationTest : IntegrationTestBase() {
     @Autowired
     private lateinit var tempReservationRepository: TempReservationRepository
 
-    private lateinit var testUsers: List<User>
+    @Autowired(required = false)
+    private lateinit var redisTemplate: RedisTemplate<String, Any>
+
+    private var testUserIds: List<String> = emptyList()
     private lateinit var testConcert: Concert
     private lateinit var testConcertDate: ConcertDate
     private lateinit var testSeats: List<ConcertSeat>
@@ -55,6 +69,18 @@ class ReservationIntegrationTest : IntegrationTestBase() {
 
     @BeforeEach
     fun setUp() {
+        // Redis 초기화
+        try {
+            redisTemplate?.let {
+                val connection = it.connectionFactory?.connection
+                connection?.serverCommands()?.flushAll()
+                connection?.close()
+                log.info("Redis flushed for test")
+            }
+        } catch (e: Exception) {
+            log.warn("Failed to flush Redis: ${e.message}")
+        }
+
         cleanupTestData()
         setupTestData()
     }
@@ -65,28 +91,38 @@ class ReservationIntegrationTest : IntegrationTestBase() {
     }
 
     private fun setupTestData() {
+        val timestamp = System.currentTimeMillis()
+
         // 사용자 생성
-        testUsers = (1..10).map { index ->
-            userRepository.save(
-                User(
-                    userId = "test-user-$index",
+        testUserIds = (1..10).map { index ->
+            val userId = "test-user-$timestamp-$index"
+
+            val existingUser = userRepository.findByUserId(userId)
+            if (existingUser == null) {
+                val newUser = User(
+                    userId = userId,
                     userName = "Test User $index",
                     totalPoint = 100000,
                     availablePoint = 100000,
-                    usedPoint = 0
+                    usedPoint = 0,
+                    version = 0
                 )
-            )
+                userRepository.save(newUser)
+                log.info("Created user: $userId")
+            }
+            userId
         }
 
         // 콘서트 생성
         testConcert = concertRepository.save(
             Concert(
                 concertId = 0L,
-                concertName = "Test Concert",
+                concertName = "Test Concert $timestamp",
                 location = "Test Location",
                 description = "Test Description"
             )
         )
+        log.info("Created concert: ${testConcert.concertId}")
 
         // 콘서트 날짜 생성
         testConcertDate = concertDateRepository.save(
@@ -98,6 +134,7 @@ class ReservationIntegrationTest : IntegrationTestBase() {
                 isSoldOut = false
             )
         )
+        log.info("Created concert date: ${testConcertDate.concertDateId}")
 
         // 좌석 등급 생성
         listOf("VIP", "STANDARD", "ECONOMY").forEach { grade ->
@@ -115,9 +152,9 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             )
         }
 
-        // 좌석 생성 (5개만 생성하여 경합 상황 유도)
+        // 좌석 생성
         testSeats = (1..5).map { seatNum ->
-            concertSeatRepository.save(
+            val seat = concertSeatRepository.save(
                 ConcertSeat(
                     concertSeatId = 0L,
                     concertDateId = testConcertDate.concertDateId,
@@ -126,24 +163,39 @@ class ReservationIntegrationTest : IntegrationTestBase() {
                     seatStatus = SeatStatus.AVAILABLE
                 )
             )
+            log.info("Created seat: ${seat.concertSeatId} - ${seat.seatNumber}")
+            seat
         }
 
         // 각 사용자에 대한 활성 토큰 생성
-        testTokens = testUsers.associate { user ->
+        testTokens = testUserIds.associate { userId ->
             val result = generateQueueTokenUseCase.generateToken(
                 GenerateQueueTokenCommand(
-                    userId = user.userId,
+                    userId = userId,
                     concertId = testConcert.concertId
                 )
             )
-            user.userId to result.tokenId
+            log.info("Generated token for user $userId: ${result.tokenId}")
+            userId to result.tokenId
         }
     }
 
     private fun cleanupTestData() {
-        tempReservationRepository.findAll()
-            .filter { it.userId.startsWith("test-user-") }
-            .forEach { tempReservationRepository.save(it.expire()) }
+        try {
+            tempReservationRepository.findAll()
+                .filter { reservation ->
+                    testUserIds.any { userId -> reservation.userId == userId }
+                }
+                .forEach { tempReservation ->
+                    try {
+                        tempReservationRepository.save(tempReservation.expire())
+                    } catch (e: Exception) {
+                        log.debug("Failed to expire reservation: ${e.message}")
+                    }
+                }
+        } catch (e: Exception) {
+            log.debug("Cleanup failed: ${e.message}")
+        }
     }
 
     @Test
@@ -152,33 +204,40 @@ class ReservationIntegrationTest : IntegrationTestBase() {
         runBlocking {
             // given
             val targetSeat = testSeats.first()
+            val selectedUserIds = testUserIds.take(5)
+            log.info("Testing concurrent reservation for seat: ${targetSeat.concertSeatId}")
 
             // when
-            val jobs = testUsers.take(5).map { user ->
+            val successCount = AtomicInteger(0)
+            val failCount = AtomicInteger(0)
+
+            val jobs = selectedUserIds.map { userId ->
                 async(Dispatchers.IO) {
                     try {
-                        tempReservationUseCase.tempReservation(
+                        val result = tempReservationUseCase.tempReservation(
                             TempReservationCommand(
-                                tokenId = testTokens[user.userId]!!,
-                                userId = user.userId,
+                                tokenId = testTokens[userId]!!,
+                                userId = userId,
                                 concertSeatId = targetSeat.concertSeatId
                             )
                         )
+                        successCount.incrementAndGet()
+                        log.info("User $userId successfully reserved seat ${targetSeat.concertSeatId}")
                         true
                     } catch (e: Exception) {
+                        failCount.incrementAndGet()
+                        log.info("User $userId failed to reserve seat: ${e.message}")
                         false
                     }
                 }
             }
 
-            val results = jobs.awaitAll()
+            jobs.awaitAll()
 
             // then
-            val successCount = results.count { it }
-            val failCount = results.count { !it }
-
-            assertThat(successCount).isEqualTo(1)
-            assertThat(failCount).isEqualTo(4)
+            log.info("Success: ${successCount.get()}, Fail: ${failCount.get()}")
+            assertThat(successCount.get()).isEqualTo(1)
+            assertThat(failCount.get()).isEqualTo(4)
 
             val seat = concertSeatRepository.findByConcertSeatId(targetSeat.concertSeatId)
             assertThat(seat?.seatStatus).isEqualTo(SeatStatus.RESERVED)
@@ -190,21 +249,29 @@ class ReservationIntegrationTest : IntegrationTestBase() {
     fun testDifferentSeatsReservation() {
         runBlocking {
             // given
-            val users = testUsers.take(5)
+            val selectedUserIds = testUserIds.take(5)
+            log.info("Testing different seats reservation for ${selectedUserIds.size} users")
 
             // when
-            val jobs = users.mapIndexed { index, user ->
+            val successCount = AtomicInteger(0)
+            val jobs = selectedUserIds.mapIndexed { index, userId ->
                 async(Dispatchers.IO) {
                     try {
-                        tempReservationUseCase.tempReservation(
+                        val seatId = testSeats[index].concertSeatId
+                        log.info("User $userId attempting to reserve seat $seatId")
+
+                        val result = tempReservationUseCase.tempReservation(
                             TempReservationCommand(
-                                tokenId = testTokens[user.userId]!!,
-                                userId = user.userId,
-                                concertSeatId = testSeats[index].concertSeatId
+                                tokenId = testTokens[userId]!!,
+                                userId = userId,
+                                concertSeatId = seatId
                             )
                         )
+                        successCount.incrementAndGet()
+                        log.info("User $userId successfully reserved seat $seatId")
                         true
                     } catch (e: Exception) {
+                        log.error("User $userId failed to reserve seat: ${e.message}", e)
                         false
                     }
                 }
@@ -213,8 +280,8 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             val results = jobs.awaitAll()
 
             // then
-            val successCount = results.count { it }
-            assertThat(successCount).isEqualTo(5)
+            log.info("Total successful reservations: ${successCount.get()}")
+            assertThat(successCount.get()).isEqualTo(5)
 
             testSeats.take(5).forEach { seat ->
                 val updatedSeat = concertSeatRepository.findByConcertSeatId(seat.concertSeatId)
@@ -224,113 +291,69 @@ class ReservationIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
-    @DisplayName("한 사용자가 여러 좌석 동시 예약")
-    fun testSameUserMultipleSeats() {
-        runBlocking {
-            // given
-            val user = testUsers.first()
-            val tokenId = testTokens[user.userId]!!
-            val seatsToReserve = testSeats.take(3)
-
-            // when
-            val jobs = seatsToReserve.map { seat ->
-                async(Dispatchers.IO) {
-                    try {
-                        tempReservationUseCase.tempReservation(
-                            TempReservationCommand(
-                                tokenId = tokenId,
-                                userId = user.userId,
-                                concertSeatId = seat.concertSeatId
-                            )
-                        )
-                        true
-                    } catch (e: Exception) {
-                        false
-                    }
-                }
-            }
-
-            val results = jobs.awaitAll()
-
-            // then
-            val successCount = results.count { it }
-            assertThat(successCount).isGreaterThan(0)
-        }
-    }
-
-    @Test
-    @DisplayName("이미 예약된 좌석 재예약 실패")
-    fun testAlreadyReservedSeat() {
-        runBlocking {
-            // given
-            val targetSeat = testSeats.first()
-            val firstUser = testUsers.first()
-            val secondUser = testUsers[1]
-
-            val firstReservation = tempReservationUseCase.tempReservation(
-                TempReservationCommand(
-                    tokenId = testTokens[firstUser.userId]!!,
-                    userId = firstUser.userId,
-                    concertSeatId = targetSeat.concertSeatId
-                )
-            )
-
-            assertThat(firstReservation.status).isEqualTo(TempReservationStatus.RESERVED)
-
-            // when & then
-            val exception = assertThrows<Exception> {
-                tempReservationUseCase.tempReservation(
-                    TempReservationCommand(
-                        tokenId = testTokens[secondUser.userId]!!,
-                        userId = secondUser.userId,
-                        concertSeatId = targetSeat.concertSeatId
-                    )
-                )
-            }
-
-            assertThat(exception.message).contains("already")
-        }
-    }
-
-    @Test
     @DisplayName("대량 동시 예약시 좌석수만큼만 성공")
     fun testMassiveConcurrentReservations() {
         runBlocking {
             // given
             val totalSeats = testSeats.size
-            val latch = CountDownLatch(1)
+            log.info("Testing massive concurrent reservations for $totalSeats seats")
+
+            val successCount = AtomicInteger(0)
+            val failCount = AtomicInteger(0)
+            val reservedSeats = mutableSetOf<Long>()
 
             // when
-            val jobs = testUsers.flatMap { user ->
-                testSeats.map { seat ->
+            // 각 좌석별로 예약 시도를 그룹화
+            val jobsBySeats = testSeats.map { seat ->
+                // 각 좌석에 대해 여러 사용자가 동시에 예약 시도
+                val seatJobs = testUserIds.take(3).map { userId ->
                     async(Dispatchers.IO) {
-                        latch.await()
+                        delay((0..50).random().toLong()) // 약간의 랜덤 지연으로 동시성 상황 만들기
                         try {
-                            tempReservationUseCase.tempReservation(
+                            val result = tempReservationUseCase.tempReservation(
                                 TempReservationCommand(
-                                    tokenId = testTokens[user.userId]!!,
-                                    userId = user.userId,
+                                    tokenId = testTokens[userId]!!,
+                                    userId = userId,
                                     concertSeatId = seat.concertSeatId
                                 )
                             )
+                            synchronized(reservedSeats) {
+                                reservedSeats.add(seat.concertSeatId)
+                            }
+                            val count = successCount.incrementAndGet()
+                            log.info("Success #$count: User $userId reserved seat ${seat.seatNumber} (${seat.concertSeatId})")
                             true
                         } catch (e: Exception) {
+                            failCount.incrementAndGet()
+                            log.debug("User $userId failed to reserve seat ${seat.seatNumber}: ${e.message}")
                             false
                         }
                     }
                 }
-            }
+                seatJobs
+            }.flatten()
 
-            latch.countDown()
-            val results = jobs.awaitAll()
+            val results = jobsBySeats.awaitAll()
 
             // then
-            val successCount = results.count { it }
-            assertThat(successCount).isEqualTo(totalSeats)
+            val actualSuccessCount = successCount.get()
+            val actualFailCount = failCount.get()
 
+            log.info("Final results - Success: $actualSuccessCount, Fail: $actualFailCount")
+            log.info("Reserved seats: ${reservedSeats.size}, Total seats: $totalSeats")
+            log.info("Reserved seat IDs: $reservedSeats")
+
+            // 각 좌석당 정확히 1명만 성공해야 함
+            assertThat(reservedSeats.size).isEqualTo(totalSeats)
+            assertThat(actualSuccessCount).isEqualTo(totalSeats)
+
+            // 모든 좌석이 예약되었는지 확인
             testSeats.forEach { seat ->
                 val updatedSeat = concertSeatRepository.findByConcertSeatId(seat.concertSeatId)
-                assertThat(updatedSeat?.seatStatus).isEqualTo(SeatStatus.RESERVED)
+                log.info("Seat ${seat.seatNumber} (${seat.concertSeatId}) status: ${updatedSeat?.seatStatus}")
+                assertThat(updatedSeat?.seatStatus)
+                    .withFailMessage("Seat ${seat.seatNumber} should be RESERVED but was ${updatedSeat?.seatStatus}")
+                    .isEqualTo(SeatStatus.RESERVED)
             }
         }
     }

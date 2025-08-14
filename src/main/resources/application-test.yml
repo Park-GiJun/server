@@ -2,8 +2,10 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 10
       connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
@@ -12,18 +14,24 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   data:
     redis:
-      timeout: 2000ms
+      timeout: 5000ms
       lettuce:
         pool:
-          max-active: 10
-          max-idle: 10
-          min-idle: 1
+          max-active: 20
+          max-idle: 20
+          min-idle: 5
+          max-wait: -1ms
+        shutdown-timeout: 100ms
 
 logging:
   level:
     kr.hhplus.be.server: DEBUG
-    org.redisson: INFO
+    kr.hhplus.be.server.infrastructure.adapter.out.persistence.lock: DEBUG
+    org.redisson: WARN
+    io.lettuce: WARN
+    org.springframework.data.redis: WARN
     org.testcontainers: INFO

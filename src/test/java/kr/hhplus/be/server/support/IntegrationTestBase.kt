@@ -24,26 +24,33 @@ abstract class IntegrationTestBase {
             withDatabaseName("testdb")
             withUsername("test")
             withPassword("test")
-            start() // 컨테이너를 미리 시작
+            withReuse(true) // 컨테이너 재사용
         }
 
         @Container
         @JvmStatic
         val redisContainer = GenericContainer<Nothing>(DockerImageName.parse("redis:7.2-alpine")).apply {
             withExposedPorts(6379)
-            start() // 컨테이너를 미리 시작
+            withCommand("redis-server", "--appendonly", "no") // AOF 비활성화로 성능 향상
+            withReuse(true) // 컨테이너 재사용
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            // 컨테이너가 이미 시작된 후에 프로퍼티 등록
+            // MySQL 설정
             registry.add("spring.datasource.url") { mysqlContainer.jdbcUrl }
             registry.add("spring.datasource.username") { mysqlContainer.username }
             registry.add("spring.datasource.password") { mysqlContainer.password }
+
+            // Redis 설정
             registry.add("spring.data.redis.host") { redisContainer.host }
             registry.add("spring.data.redis.port") { redisContainer.getMappedPort(6379) }
             registry.add("spring.data.redis.password") { "" }
+
+            // 시스템 프로퍼티로도 설정 (Redisson에서 사용)
+            System.setProperty("spring.data.redis.host", redisContainer.host)
+            System.setProperty("spring.data.redis.port", redisContainer.getMappedPort(6379).toString())
         }
     }
 }
