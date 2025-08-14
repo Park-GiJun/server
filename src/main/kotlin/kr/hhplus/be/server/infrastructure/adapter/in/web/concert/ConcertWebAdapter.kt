@@ -111,19 +111,31 @@ class ConcertWebAdapter(
         return ResponseEntity.ok(apiResponse)
     }
 
-    @GetMapping("/getPopularConcert")
+    @GetMapping("/popular")
     @Operation(
-        summary = "5분 동안 가장 예매율이 높은 콘서트 10개"
+        summary = "인기 콘서트 조회",
+        description = "최근 5분간 가장 많이 예약된 콘서트 목록을 조회합니다."
     )
-    fun getPopularConcert() : ResponseEntity<ApiResponse<List<PopularConcert>>> {
+    fun getPopularConcert(
+        @Parameter(description = "조회할 콘서트 수", example = "10")
+        @RequestParam(defaultValue = "10") limit: Int
+    ): ResponseEntity<ApiResponse<List<PopularConcert>>> {
 
-        val response = getPopularConcertUseCase.getPopularConcert(5)
+        val popularConcerts = getPopularConcertUseCase.getPopularConcert(limit)
+
+        val response = popularConcerts.map { dto ->
+            PopularConcert(
+                concertId = dto.concertId,
+                concertName = dto.concertName,
+                reservedCount = dto.reservedCount.toInt()
+            )
+        }
 
         val apiResponse = ApiResponse(
             success = true,
             status = HttpStatus.OK.value(),
             data = response,
-            message = "Popular concat retrieved successfully"
+            message = "Popular concerts retrieved successfully"
         )
 
         return ResponseEntity.ok(apiResponse)
