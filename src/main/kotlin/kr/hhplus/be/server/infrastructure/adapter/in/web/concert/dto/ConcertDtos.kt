@@ -60,3 +60,14 @@ data class ConcertSeatResponse(
     @field:Schema(description = "좌석 가격", example = "170000")
     val price: Int
 )
+
+data class PopularConcert(
+    @field:Schema(description = "콘서트 ID", example = "1")
+    val concertId: Long,
+
+    @field:Schema(description = "콘서트명", example = "1")
+    val concertName: String,
+
+    @field:Schema(description = "예약 횟수", example = "1")
+    val reservedCount: Int
+)
