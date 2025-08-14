@@ -7,12 +7,14 @@ import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper.ConcertWebMapper
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.PopularConcert
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -24,7 +26,8 @@ class ConcertWebAdapter(
     private val getConcertListUseCase: GetConcertListUseCase,
     private val getConcertDatesUseCase: GetConcertDatesUseCase,
     private val getConcertSeatsUseCase: GetConcertSeatsUseCase,
-    private val validateTokenUseCase: ValidateQueueTokenUseCase
+    private val validateTokenUseCase: ValidateQueueTokenUseCase,
+    private val getPopularConcertUseCase: GetPopularConcertUseCase
 ) {
 
     @GetMapping
@@ -103,6 +106,24 @@ class ConcertWebAdapter(
             status = HttpStatus.OK.value(),
             data = response,
             message = "Concert seats retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/getPopularConcert")
+    @Operation(
+        summary = "5분 동안 가장 예매율이 높은 콘서트 10개"
+    )
+    fun getPopularConcert() : ResponseEntity<ApiResponse<List<PopularConcert>>> {
+
+        val response = getPopularConcertUseCase.getPopularConcert(5)
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Popular concat retrieved successfully"
         )
 
         return ResponseEntity.ok(apiResponse)

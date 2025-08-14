@@ -5,6 +5,7 @@ import kr.hhplus.be.server.application.dto.concert.ConcertResult
 import kr.hhplus.be.server.application.dto.concert.ConcertSeatWithPriceResult
 import kr.hhplus.be.server.application.dto.concert.GetConcertDatesQuery
 import kr.hhplus.be.server.application.dto.concert.GetConcertSeatsQuery
+import kr.hhplus.be.server.application.dto.concert.PopularConcertDto
 import kr.hhplus.be.server.application.mapper.ConcertMapper
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
@@ -15,6 +16,7 @@ import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -25,7 +27,7 @@ class ConcertQueryService(
     private val concertDateRepository: ConcertDateRepository,
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository
-) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase {
+) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase, GetPopularConcertUseCase {
     private val concertDomainService= ConcertDomainService()
 
     override fun getConcertList(): List<ConcertResult> {
@@ -62,5 +64,9 @@ class ConcertQueryService(
         val seatGradePriceMap = concertDomainService.buildSeatPriceMap(seatGrades)
         val results = ConcertMapper.toSeatWithPriceResults(seats, seatGradePriceMap)
         return results
+    }
+
+    override fun getPopularConcert(limit: Int): List<PopularConcertDto> {
+        return concertRepository.findByPopularConcert(5)
     }
 }
