@@ -20,21 +20,24 @@ abstract class IntegrationTestBase {
     companion object {
         @Container
         @JvmStatic
-        private val mysqlContainer = MySQLContainer<Nothing>("mysql:8.0").apply {
+        val mysqlContainer = MySQLContainer<Nothing>("mysql:8.0").apply {
             withDatabaseName("testdb")
             withUsername("test")
             withPassword("test")
+            start() // 컨테이너를 미리 시작
         }
 
         @Container
         @JvmStatic
-        private val redisContainer = GenericContainer<Nothing>(DockerImageName.parse("redis:7.2-alpine")).apply {
+        val redisContainer = GenericContainer<Nothing>(DockerImageName.parse("redis:7.2-alpine")).apply {
             withExposedPorts(6379)
+            start() // 컨테이너를 미리 시작
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun registerProperties(registry: DynamicPropertyRegistry) {
+            // 컨테이너가 이미 시작된 후에 프로퍼티 등록
             registry.add("spring.datasource.url") { mysqlContainer.jdbcUrl }
             registry.add("spring.datasource.username") { mysqlContainer.username }
             registry.add("spring.datasource.password") { mysqlContainer.password }

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.lock
+package kr.hhplus.be.server
 
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
