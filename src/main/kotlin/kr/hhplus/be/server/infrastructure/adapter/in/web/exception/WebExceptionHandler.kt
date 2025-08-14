@@ -3,6 +3,8 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.exception
 import kr.hhplus.be.server.domain.common.exception.*
 import kr.hhplus.be.server.domain.queue.exception.*
 import kr.hhplus.be.server.domain.concert.exception.*
+import kr.hhplus.be.server.domain.lock.exception.ConcurrencyProcessingException
+import kr.hhplus.be.server.domain.lock.exception.ResourceBusyException
 import kr.hhplus.be.server.domain.reservation.exception.*
 import kr.hhplus.be.server.domain.payment.exception.*
 import kr.hhplus.be.server.domain.users.exception.InsufficientPointException
@@ -176,6 +178,21 @@ class WebExceptionHandler {
     fun handleGenericException(ex: Exception): ResponseEntity<ApiResponse<Any>> {
         log.error("Unexpected error occurred: ${ex.message}", ex)
         return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred")
+    }
+
+
+    // ======== Distribute Lock Exception =======
+
+    @ExceptionHandler(ResourceBusyException::class)
+    fun handleResourceBusyException(ex: ResourceBusyException): ResponseEntity<ApiResponse<Any>> {
+        log.warn("리소스 경합 발생: ${ex.message}")
+        return createErrorResponse(HttpStatus.CONFLICT, ex.message ?: "리소스가 사용 중입니다")
+    }
+
+    @ExceptionHandler(ConcurrencyProcessingException::class)
+    fun handleConcurrencyProcessingException(ex: ConcurrencyProcessingException): ResponseEntity<ApiResponse<Any>> {
+        log.warn("동시성 처리 오류: ${ex.message}")
+        return createErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex.message ?: "동시 요청이 너무 많습니다")
     }
 
     // ======== Helper Methods ========

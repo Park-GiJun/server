@@ -1,38 +1,34 @@
 package kr.hhplus.be.server.application.service.queue
 
-import jakarta.transaction.Transactional
 import kr.hhplus.be.server.application.dto.queue.ProcessQueueActivationCommand
 import kr.hhplus.be.server.application.dto.queue.ProcessQueueActivationResult
 import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUseCase
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
-import kr.hhplus.be.server.domain.queue.service.QueueActivationDomainService
-import org.slf4j.LoggerFactory
+import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class QueueActivationService(
+class RedisQueueActivationService(
     private val queueTokenRepository: QueueTokenRepository,
-    private val queueEventPort: QueueEventPort
+    private val queueEventPort: QueueEventPort,
+    private val queueManagementService: RedisQueueManagementService
 ) : ProcessQueueActivationUseCase {
 
-    private val log = LoggerFactory.getLogger(QueueActivationService::class.java)
-    private val queueDomainService = QueueActivationDomainService()
+    private val redisQueueDomainService = RedisQueueDomainService()
+
 
     override fun processActivation(command: ProcessQueueActivationCommand): ProcessQueueActivationResult {
-        log.debug("대기열 활성화 처리: concertId=${command.concertId}")
-
-        val activeTokenCount = queueTokenRepository.countActiveTokensByConcert(command.concertId)
-        log.info("콘서트 ${command.concertId} - 현재 활성 토큰: $activeTokenCount")
-
-        val tokensToActivate = queueDomainService.calculateTokensToActivate(activeTokenCount)
+        val stats = queueManagementService.getQueueStats(command.concertId)
+        val tokensToActivate = redisQueueDomainService.calculateTokensToActivate(stats.activeCount.toInt())
 
         if (tokensToActivate <= 0) {
-            log.debug("활성화할 토큰 없음: concertId=${command.concertId}")
             return ProcessQueueActivationResult(
                 concertId = command.concertId,
-                activeTokenCount = activeTokenCount,
+                activeTokenCount = stats.activeCount.toInt(),
                 tokensToActivate = 0,
                 activatedTokens = emptyList(),
                 message = "최대 활성 토큰 수 도달"
@@ -48,12 +44,9 @@ class QueueActivationService(
                 concertId = token.concertId
             )
         }
-
-        log.info("토큰 활성화 완료: concertId=${command.concertId}, 활성화된 수=${activatedTokens.size}")
-
         return ProcessQueueActivationResult(
             concertId = command.concertId,
-            activeTokenCount = activeTokenCount,
+            activeTokenCount = stats.activeCount.toInt() + activatedTokens.size,
             tokensToActivate = tokensToActivate,
             activatedTokens = activatedTokens.map { it.queueTokenId },
             message = "성공적으로 ${activatedTokens.size}개 토큰 활성화"

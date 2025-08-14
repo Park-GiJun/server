@@ -32,7 +32,6 @@ object ReservationWebMapper {
 
     fun toCancelReservationCommand(request: ReservationCancelRequest, tokenId: String): CancelReservationCommand {
         return CancelReservationCommand(
-            tokenId = tokenId,
             tempReservationId = request.tempReservationId
         )
     }

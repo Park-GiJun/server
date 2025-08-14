@@ -57,21 +57,6 @@ class User(
         )
     }
 
-    fun delete(): User {
-        return User(
-            userId = this.userId,
-            userName = this.userName,
-            totalPoint = this.totalPoint,
-            availablePoint = this.availablePoint,
-            usedPoint = this.usedPoint,
-            version = this.version,
-            createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(),
-            isDeleted = true,
-            deletedAt = LocalDateTime.now()
-        )
-    }
-
     fun hasEnoughPoint(amount: Int): Boolean {
         return availablePoint >= amount
     }

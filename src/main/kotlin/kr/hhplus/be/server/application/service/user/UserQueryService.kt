@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.mapper.UserMapper
 import kr.hhplus.be.server.application.port.`in`.user.GetUserUseCase
 import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.domain.users.UserDomainService
+import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,19 +14,16 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional(readOnly = true)
 class UserQueryService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) : GetUserUseCase {
-
-    private val log = LoggerFactory.getLogger(UserQueryService::class.java)
     private val userDomainService = UserDomainService()
+    private val log = LoggerFactory.getLogger(UserQueryService::class.java)
+
 
     override fun getUser(command: GetUserCommand): UserResult {
-        log.info("사용자 정보 조회: userId=${command.userId}")
-
         val user = userRepository.findByUserId(command.userId)
+            ?: throw UserNotFoundException(command.userId)
         userDomainService.validateUserExists(user, command.userId)
-
-        log.info("사용자 정보 조회 완료: 잔액=${user!!.availablePoint}")
         return UserMapper.toResult(user)
     }
 }

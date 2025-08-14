@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.reservation.TempReservation
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.jpa.TempReservationJpaRepository
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 
 @Component
 class TempReservationRepositoryImpl(
@@ -19,7 +18,7 @@ class TempReservationRepositoryImpl(
     }
 
     override fun findByTempReservationId(tempReservationId: Long): TempReservation? {
-        return tempReservationJpaRepository.findByTempReservationId(tempReservationId)
+        return tempReservationJpaRepository.findByTempReservationIdAndStatus_Reserved(tempReservationId)
             ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
 
@@ -28,9 +27,9 @@ class TempReservationRepositoryImpl(
             ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
 
-    override fun findByConcertSeatID(concertSeatId: Long): TempReservation? {
-        return tempReservationJpaRepository.findByTempReservationId(concertSeatId)
-        ?.let { PersistenceMapper.toTempReservationDomain(it) }
+    override fun findByConcertSeatId(concertSeatId: Long): TempReservation? {
+        return tempReservationJpaRepository.findByConcertSeatIdAndStatusReserved(concertSeatId)
+            ?.let { PersistenceMapper.toTempReservationDomain(it) }
     }
 
     override fun findAll(): List<TempReservation> {

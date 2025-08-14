@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.concert.ConcertDate
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.jpa.ConcertDateJpaRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.mapper.PersistenceMapper
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Repository
 
 @Component
 class ConcertDateRepositoryImpl(
