@@ -6,10 +6,12 @@ import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
 import kr.hhplus.be.server.application.port.`in`.queue.GenerateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
 import kr.hhplus.be.server.application.port.out.concert.*
+import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.application.port.out.reservation.TempReservationRepository
 import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.config.TestRedisConfig
 import kr.hhplus.be.server.domain.concert.*
+import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.support.IntegrationTestBase
@@ -57,6 +59,9 @@ class ReservationIntegrationTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var tempReservationRepository: TempReservationRepository
+
+    @Autowired
+    private lateinit var queueTokenRepository: QueueTokenRepository
 
     @Autowired(required = false)
     private lateinit var redisTemplate: RedisTemplate<String, Any>
@@ -167,15 +172,28 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             seat
         }
 
-        // 각 사용자에 대한 활성 토큰 생성
+        // 각 사용자에 대한 토큰 생성 및 활성화
         testTokens = testUserIds.associate { userId ->
+            // 1. 토큰 생성
             val result = generateQueueTokenUseCase.generateToken(
                 GenerateQueueTokenCommand(
                     userId = userId,
                     concertId = testConcert.concertId
                 )
             )
-            log.info("Generated token for user $userId: ${result.tokenId}")
+
+            // 2. 토큰을 활성 상태로 변경 (테스트를 위해)
+            // QueueTokenRepository를 통해 직접 활성화
+            val token = queueTokenRepository.findByTokenId(result.tokenId)
+            if (token != null && token.tokenStatus == QueueTokenStatus.WAITING) {
+                val activatedToken = token.copy(
+                    tokenStatus = QueueTokenStatus.ACTIVE,
+                    expiresAt = LocalDateTime.now().plusMinutes(30)
+                )
+                queueTokenRepository.save(activatedToken)
+                log.info("Activated token for user $userId: ${result.tokenId}")
+            }
+
             userId to result.tokenId
         }
     }

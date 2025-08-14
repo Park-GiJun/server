@@ -49,7 +49,7 @@ class ReservationCommandService(
 
     @DistributedLock(
         type = DistributedLockType.TEMP_RESERVATION_SEAT,
-        key = "lock:temp_reservation:seat:#{#command.concertSeatId}",
+        key = "'lock:temp_reservation:seat:' + #command.concertSeatId",
         waitTime = 5L,
         leaseTime = 10L
     )
@@ -87,7 +87,7 @@ class ReservationCommandService(
 
     @DistributedLock(
         type = DistributedLockType.TEMP_RESERVATION_PROCESS,
-        key = "lock:temp_reservation:process:#{#command.tempReservationId}",
+        key = "'lock:temp_reservation:process:' + #command.tempReservationId",
         waitTime = 5L,
         leaseTime = 10L
     )
@@ -125,7 +125,7 @@ class ReservationCommandService(
 
     @DistributedLock(
         type = DistributedLockType.TEMP_RESERVATION_PROCESS,
-        key = "lock:temp_reservation:process:#{#command.tempReservationId}",
+        key = "'lock:temp_reservation:process:' + #command.tempReservationId",
         waitTime = 5L,
         leaseTime = 10L
     )

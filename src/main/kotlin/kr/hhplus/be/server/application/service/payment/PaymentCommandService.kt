@@ -49,7 +49,7 @@ class PaymentCommandService(
 
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
-        key = "lock:payment:user:#{#command.userId}",
+        key = "'lock:payment:user:' + #command.userId",
         waitTime = 10L,
         leaseTime = 30L
     )
