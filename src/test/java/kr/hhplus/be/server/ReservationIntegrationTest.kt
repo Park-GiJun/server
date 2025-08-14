@@ -172,9 +172,7 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             seat
         }
 
-        // 각 사용자에 대한 토큰 생성 및 활성화
         testTokens = testUserIds.associate { userId ->
-            // 1. 토큰 생성
             val result = generateQueueTokenUseCase.generateToken(
                 GenerateQueueTokenCommand(
                     userId = userId,
@@ -182,8 +180,6 @@ class ReservationIntegrationTest : IntegrationTestBase() {
                 )
             )
 
-            // 2. 토큰을 활성 상태로 변경 (테스트를 위해)
-            // QueueTokenRepository를 통해 직접 활성화
             val token = queueTokenRepository.findByTokenId(result.tokenId)
             if (token != null && token.tokenStatus == QueueTokenStatus.WAITING) {
                 val activatedToken = token.copy(
@@ -321,9 +317,7 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             val reservedSeats = mutableSetOf<Long>()
 
             // when
-            // 각 좌석별로 예약 시도를 그룹화
             val jobsBySeats = testSeats.map { seat ->
-                // 각 좌석에 대해 여러 사용자가 동시에 예약 시도
                 val seatJobs = testUserIds.take(3).map { userId ->
                     async(Dispatchers.IO) {
                         delay((0..50).random().toLong()) // 약간의 랜덤 지연으로 동시성 상황 만들기

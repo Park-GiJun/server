@@ -50,7 +50,7 @@ class ReservationCommandService(
     @DistributedLock(
         type = DistributedLockType.TEMP_RESERVATION_SEAT,
         key = "'lock:temp_reservation:seat:' + #command.concertSeatId",
-        waitTime = 5L,
+        waitTime = 0L,
         leaseTime = 10L
     )
     override fun tempReservation(command: TempReservationCommand): TempReservationResult {
