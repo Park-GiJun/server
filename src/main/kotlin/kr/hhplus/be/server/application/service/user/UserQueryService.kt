@@ -15,9 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class UserQueryService(
     private val userRepository: UserRepository,
-    private val userDomainService: UserDomainService
 ) : GetUserUseCase {
-
+    private val userDomainService = UserDomainService()
     private val log = LoggerFactory.getLogger(UserQueryService::class.java)
 
 

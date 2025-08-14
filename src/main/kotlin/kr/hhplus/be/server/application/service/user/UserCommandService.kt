@@ -20,9 +20,10 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class UserCommandService(
     private val userRepository: UserRepository,
-    private val userDomainService: UserDomainService,
     private val pointHistoryRepository: PointHistoryRepository
 ) : ChargeUserPointUseCase, UseUserPointUseCase {
+    private val userDomainService = UserDomainService()
+
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
         key = "lock:payment:user:#{#command.userId}",

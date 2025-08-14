@@ -41,11 +41,11 @@ class ReservationCommandService(
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
     private val expireTokenUseCase: ExpireQueueTokenUseCase,
     private val completeTokenUseCase: CompleteQueueTokenUseCase,
-    private val reservationDomainService: ReservationDomainService,
-    private val queueTokenDomainService: QueueTokenDomainService
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
     private val log = LoggerFactory.getLogger(ReservationCommandService::class.java)
+    private val reservationDomainService = ReservationDomainService()
+    private val queueTokenDomainService = QueueTokenDomainService()
 
     @DistributedLock(
         type = DistributedLockType.TEMP_RESERVATION_SEAT,

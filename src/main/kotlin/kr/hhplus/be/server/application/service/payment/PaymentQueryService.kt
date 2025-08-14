@@ -16,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class PaymentQueryService(
     private val paymentRepository: PaymentRepository,
-    private val paymentDomainService: PaymentDomainService
+    
 ) : GetPaymentUseCase, GetUserPaymentsUseCase {
+
+    private val paymentDomainService = PaymentDomainService()
     override fun getPayment(command: GetPaymentCommand): PaymentResult {
         val payment = paymentRepository.findByPaymentId(command.paymentId)
             ?: throw PaymentNotFoundException(command.paymentId)

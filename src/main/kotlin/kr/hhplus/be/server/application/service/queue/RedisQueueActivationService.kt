@@ -15,9 +15,12 @@ import org.springframework.transaction.annotation.Transactional
 class RedisQueueActivationService(
     private val queueTokenRepository: QueueTokenRepository,
     private val queueEventPort: QueueEventPort,
-    private val queueManagementService: RedisQueueManagementService,
-    private val redisQueueDomainService: RedisQueueDomainService
+    private val queueManagementService: RedisQueueManagementService
 ) : ProcessQueueActivationUseCase {
+
+    private val redisQueueDomainService = RedisQueueDomainService()
+
+
     override fun processActivation(command: ProcessQueueActivationCommand): ProcessQueueActivationResult {
         val stats = queueManagementService.getQueueStats(command.concertId)
         val tokensToActivate = redisQueueDomainService.calculateTokensToActivate(stats.activeCount.toInt())

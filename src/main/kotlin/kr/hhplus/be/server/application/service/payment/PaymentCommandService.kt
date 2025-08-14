@@ -41,10 +41,12 @@ class PaymentCommandService(
     private val pointHistoryRepository: PointHistoryRepository,
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
     private val completeTokenUseCase: CompleteQueueTokenUseCase,
-    private val paymentDomainService: PaymentDomainService,
-    private val userDomainService: UserDomainService,
     private val concertDateRepository: ConcertDateRepository
 ) : ProcessPaymentUseCase {
+    private val paymentDomainService = PaymentDomainService()
+    private val userDomainService =  UserDomainService()
+
+
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
         key = "lock:payment:user:#{#command.userId}",

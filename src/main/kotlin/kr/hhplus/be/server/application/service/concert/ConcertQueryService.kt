@@ -24,9 +24,10 @@ class ConcertQueryService(
     private val concertRepository: ConcertRepository,
     private val concertDateRepository: ConcertDateRepository,
     private val concertSeatRepository: ConcertSeatRepository,
-    private val concertSeatGradeRepository: ConcertSeatGradeRepository,
-    private val concertDomainService: ConcertDomainService
+    private val concertSeatGradeRepository: ConcertSeatGradeRepository
 ) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase {
+    private val concertDomainService= ConcertDomainService()
+
     override fun getConcertList(): List<ConcertResult> {
         val concerts = concertRepository.findConcertList()
         return ConcertMapper.toResults(concerts)
