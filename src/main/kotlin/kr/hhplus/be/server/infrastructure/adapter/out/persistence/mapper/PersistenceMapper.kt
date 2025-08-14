@@ -6,7 +6,6 @@ import kr.hhplus.be.server.domain.concert.ConcertSeat
 import kr.hhplus.be.server.domain.concert.ConcertSeatGrade
 import kr.hhplus.be.server.domain.log.pointHistory.PointHistory
 import kr.hhplus.be.server.domain.payment.Payment
-import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.ReservationJpaEntity
 import kr.hhplus.be.server.domain.reservation.TempReservation
@@ -17,7 +16,6 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.entity.ConcertSeatGradeJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.log.pointHistory.entity.PointHistoryJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.payment.entity.PaymentJpaEntity
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.entity.QueueTokenJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.reservation.entity.TempReservationJpaEntity
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.user.entity.UserJpaEntity
 
@@ -166,38 +164,6 @@ object PersistenceMapper {
             availablePoint = domain.availablePoint,
             usedPoint = domain.usedPoint,
             version = domain.version,
-        )
-    }
-
-    fun toQueueTokenDomain(entity: QueueTokenJpaEntity): QueueToken {
-        return QueueToken(
-            queueTokenId = entity.queueTokenId,
-            userId = entity.userId,
-            concertId = entity.concertId,
-            tokenStatus = entity.tokenStatus,
-            enteredAt = entity.enteredAt,
-            createdAt = try {
-                entity.createdAt
-            } catch (e: UninitializedPropertyAccessException) {
-                null
-            },
-            updatedAt = try {
-                entity.updatedAt
-            } catch (e: UninitializedPropertyAccessException) {
-                null
-            },
-            isDeleted = entity.isDeleted,
-            deletedAt = entity.deletedAt
-        )
-    }
-
-    fun toQueueTokenEntity(domain: QueueToken): QueueTokenJpaEntity {
-        return QueueTokenJpaEntity(
-            queueTokenId = domain.queueTokenId,
-            userId = domain.userId,
-            concertId = domain.concertId,
-            tokenStatus = domain.tokenStatus,
-            enteredAt = domain.enteredAt
         )
     }
 
