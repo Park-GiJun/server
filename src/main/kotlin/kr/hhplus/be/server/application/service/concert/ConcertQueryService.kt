@@ -17,6 +17,8 @@ import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
+import org.springframework.cache.Cache
+import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,7 +29,8 @@ class ConcertQueryService(
     private val concertRepository: ConcertRepository,
     private val concertDateRepository: ConcertDateRepository,
     private val concertSeatRepository: ConcertSeatRepository,
-    private val concertSeatGradeRepository: ConcertSeatGradeRepository
+    private val concertSeatGradeRepository: ConcertSeatGradeRepository,
+    private val cacheManager: CacheManager
 ) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase, GetPopularConcertUseCase {
     private val concertDomainService= ConcertDomainService()
 
@@ -67,12 +70,45 @@ class ConcertQueryService(
         return results
     }
 
-    @Cacheable(
-        value = ["popularConcerts"],
-        key = "#limit",
-        condition = "#limit > 0 && #limit <= 100"
-    )
     override fun getPopularConcert(limit: Int): List<PopularConcertDto> {
-        return concertRepository.findByPopularConcert(limit)
+        val cacheKey = limit.toString()
+        val cacheName = "popularConcerts"
+
+        return try {
+            val cache = cacheManager.getCache(cacheName)
+            val cachedValue = cache?.get(cacheKey, List::class.java)
+
+            if (cachedValue != null) {
+                @Suppress("UNCHECKED_CAST")
+                cachedValue as List<PopularConcertDto>
+            } else {
+                fetchAndCachePopularConcerts(limit, cache, cacheKey)
+            }
+        } catch (e: Exception) {
+            fetchPopularConcertsFromDB(limit)
+        }
+    }
+
+    private fun fetchAndCachePopularConcerts(
+        limit: Int,
+        cache: Cache?,
+        cacheKey: String
+    ): List<PopularConcertDto> {
+        val popularConcerts = fetchPopularConcertsFromDB(limit)
+        try {
+            cache?.put(cacheKey, popularConcerts)
+        } catch (e: Exception) {
+        }
+
+        return popularConcerts
+    }
+
+    private fun fetchPopularConcertsFromDB(limit: Int): List<PopularConcertDto> {
+        return try {
+            val result = concertRepository.findByPopularConcert(limit)
+            result
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }
