@@ -17,6 +17,7 @@ import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -66,7 +67,12 @@ class ConcertQueryService(
         return results
     }
 
+    @Cacheable(
+        value = ["popularConcerts"],
+        key = "#limit",
+        condition = "#limit > 0 && #limit <= 100"
+    )
     override fun getPopularConcert(limit: Int): List<PopularConcertDto> {
-        return concertRepository.findByPopularConcert(5)
+        return concertRepository.findByPopularConcert(limit)
     }
 }
