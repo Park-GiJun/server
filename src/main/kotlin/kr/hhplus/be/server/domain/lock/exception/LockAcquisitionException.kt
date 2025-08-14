@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.lock.exception
 
+
 class LockTimeoutException(
     lockKey: String,
     waitTime: Long
