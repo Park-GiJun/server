@@ -3,16 +3,18 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.port.`in`.GetConcertDatesUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertListUseCase
-import kr.hhplus.be.server.application.port.`in`.GetConcertSeatsUseCase
-import kr.hhplus.be.server.application.port.`in`.ValidateTokenUseCase
-import kr.hhplus.be.server.application.dto.queue.ValidateTokenCommand
+import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
+import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper.ConcertWebMapper
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.PopularConcert
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -24,7 +26,8 @@ class ConcertWebAdapter(
     private val getConcertListUseCase: GetConcertListUseCase,
     private val getConcertDatesUseCase: GetConcertDatesUseCase,
     private val getConcertSeatsUseCase: GetConcertSeatsUseCase,
-    private val validateTokenUseCase: ValidateTokenUseCase
+    private val validateTokenUseCase: ValidateQueueTokenUseCase,
+    private val getPopularConcertUseCase: GetPopularConcertUseCase
 ) {
 
     @GetMapping
@@ -59,7 +62,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertDateResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
-            ValidateTokenCommand(tokenId, concertId)
+            ValidateQueueTokenCommand(tokenId, concertId)
         )
 
         val command = ConcertWebMapper.toGetConcertDatesCommand(tokenId, concertId)
@@ -91,7 +94,7 @@ class ConcertWebAdapter(
     ): ResponseEntity<ApiResponse<List<ConcertSeatResponse>>> {
 
         validateTokenUseCase.validateActiveTokenForConcert(
-            ValidateTokenCommand(tokenId, concertId)
+            ValidateQueueTokenCommand(tokenId, concertId)
         )
 
         val command = ConcertWebMapper.toGetConcertSeatsCommand(tokenId, dateId)
@@ -103,6 +106,36 @@ class ConcertWebAdapter(
             status = HttpStatus.OK.value(),
             data = response,
             message = "Concert seats retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/popular")
+    @Operation(
+        summary = "인기 콘서트 조회",
+        description = "최근 5분간 가장 많이 예약된 콘서트 목록을 조회합니다."
+    )
+    fun getPopularConcert(
+        @Parameter(description = "조회할 콘서트 수", example = "10")
+        @RequestParam(defaultValue = "10") limit: Int
+    ): ResponseEntity<ApiResponse<List<PopularConcert>>> {
+
+        val popularConcerts = getPopularConcertUseCase.getPopularConcert(limit)
+
+        val response = popularConcerts.map { dto ->
+            PopularConcert(
+                concertId = dto.concertId,
+                concertName = dto.concertName,
+                reservedCount = dto.reservedCount.toInt()
+            )
+        }
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Popular concerts retrieved successfully"
         )
 
         return ResponseEntity.ok(apiResponse)

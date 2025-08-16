@@ -12,8 +12,8 @@ class Reservation(
     val reservationStatus: ReservationStatus,
     val paymentAmount: Int,
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime? = LocalDateTime.now(),
+    var updatedAt: LocalDateTime? = LocalDateTime.now(),
     var isDeleted: Boolean = false,
     var deletedAt: LocalDateTime? = null
 )

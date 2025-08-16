@@ -16,13 +16,23 @@ spring:
     generate-ddl: false
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
-  logging:
-    level:
-      kr.hhplus.be.server.repository.mock: DEBUG
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis123
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 1
+          time-between-eviction-runs: 5s
 
 springdoc:
   api-docs:
@@ -32,13 +42,17 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
-jwt:
-  queue:
-    secret: xK7rV9$g2!mE@1zNwP#bQfL6uT^jHdC0vSxAeYzLpMqWrXtUzGdK
-    expiration: 360000000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
 ---
-spring.config.activate.on-profile: local, test
+spring.config.activate.on-profile: local
 
 spring:
   datasource:

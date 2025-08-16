@@ -3,9 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.port.`in`.CancelReservationUseCase
-import kr.hhplus.be.server.application.port.`in`.ConfirmTempReservationUseCase
-import kr.hhplus.be.server.application.port.`in`.TempReservationUseCase
+import kr.hhplus.be.server.application.port.`in`.reservation.CancelReservationUseCase
+import kr.hhplus.be.server.application.port.`in`.reservation.ConfirmTempReservationUseCase
+import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.common.ApiResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationCancelRequest
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.reservation.dto.ReservationConfirmRequest
@@ -29,7 +29,6 @@ class ReservationWebAdapter(
     @PostMapping("/temp")
     @Operation(
         summary = "임시 예약 생성",
-        description = "선택한 좌석에 대해 5분간 유효한 임시 예약을 생성합니다. 활성화된 대기열 토큰이 필요합니다."
     )
     fun createTempReservation(
         @RequestBody request: TempReservationRequest,
@@ -54,7 +53,6 @@ class ReservationWebAdapter(
     @PostMapping("/confirm")
     @Operation(
         summary = "예약 확정 (결제 완료)",
-        description = "임시 예약을 확정하고 결제를 완료합니다. 대기열 토큰이 완료 상태로 변경됩니다."
     )
     fun confirmReservation(
         @RequestBody request: ReservationConfirmRequest,
@@ -79,7 +77,6 @@ class ReservationWebAdapter(
     @PostMapping("/cancel")
     @Operation(
         summary = "임시 예약 취소",
-        description = "생성된 임시 예약을 취소합니다. 좌석이 다시 예약 가능 상태가 되고 대기열 토큰이 만료됩니다."
     )
     fun cancelReservation(
         @RequestBody request: ReservationCancelRequest,

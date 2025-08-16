@@ -16,8 +16,8 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 @Table(
     name = "concert_seat",
     indexes = [
-        Index(name = "idx_concert_date_id", columnList = "concert_date_id"),
-        Index(name = "idx_seat_status", columnList = "seat_status")
+        Index(name = "CONCERTSEATX0", columnList = "concert_date_id"),
+    Index(name = "CONCERTSEATX1", columnList = "seat_status,concert_date_id"),
     ]
 )
 class ConcertSeatJpaEntity(
@@ -38,6 +38,4 @@ class ConcertSeatJpaEntity(
     @Enumerated(EnumType.STRING)
     @Column(name = "seat_status", nullable = false)
     val seatStatus: SeatStatus = SeatStatus.AVAILABLE
-) : BaseEntity() {
-
-}
+) : BaseEntity()

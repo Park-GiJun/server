@@ -5,11 +5,15 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 
 @Entity
-@Table(name = "concerts")
+@Table(name = "concerts",
+    indexes = [
+        Index(name = "CONCERTX0", columnList = "concert_id"),
+    ])
 class ConcertJpaEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

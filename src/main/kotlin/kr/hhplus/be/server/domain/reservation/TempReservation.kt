@@ -9,8 +9,8 @@ class TempReservation(
     val expiredAt: LocalDateTime,
     val status: TempReservationStatus = TempReservationStatus.RESERVED,
 
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime? = LocalDateTime.now(),
+    var updatedAt: LocalDateTime? = LocalDateTime.now(),
     var isDeleted: Boolean = false,
     var deletedAt: LocalDateTime? = null
 ) {

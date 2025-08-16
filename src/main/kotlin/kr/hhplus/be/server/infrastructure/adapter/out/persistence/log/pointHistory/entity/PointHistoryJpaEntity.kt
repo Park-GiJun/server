@@ -5,10 +5,14 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
 
-@Table(name = "point_history")
+@Table(name = "point_history",
+    indexes = [
+        Index(name = "POINTHISTORYX0", columnList = "user_id")
+    ])
 @Entity
 class PointHistoryJpaEntity(
 
