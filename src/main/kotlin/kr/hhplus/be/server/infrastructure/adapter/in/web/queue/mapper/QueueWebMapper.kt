@@ -7,7 +7,7 @@ import kr.hhplus.be.server.application.dto.queue.GetQueueStatusResult
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
 
-object QueueMapper {
+object QueueWebMapper {
 
     fun toGenerateQueueTokenCommand(userId: String, concertId: Long) : GenerateQueueTokenCommand {
         return GenerateQueueTokenCommand(
