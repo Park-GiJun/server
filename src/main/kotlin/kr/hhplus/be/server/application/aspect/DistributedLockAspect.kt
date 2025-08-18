@@ -24,10 +24,22 @@ class DistributedLockAspect(
     ): Any? {
         val lockKey = parseLockKey(distributedLock.key, joinPoint)
 
+        val actualWaitTime = if (distributedLock.waitTime == -1L) {
+            distributedLock.type.waitTime
+        } else {
+            distributedLock.waitTime
+        }
+
+        val actualLeaseTime = if (distributedLock.leaseTime == -1L) {
+            distributedLock.type.leaseTime
+        } else {
+            distributedLock.leaseTime
+        }
+
         return distributedLockPort.executeWithLock(
             lockKey = lockKey,
-            waitTime = distributedLock.waitTime,
-            leaseTime = distributedLock.leaseTime
+            waitTime = actualWaitTime,
+            leaseTime = actualLeaseTime
         ) {
             joinPoint.proceed()
         }
