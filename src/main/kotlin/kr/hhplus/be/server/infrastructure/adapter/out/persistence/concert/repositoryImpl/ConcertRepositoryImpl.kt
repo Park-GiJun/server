@@ -33,6 +33,4 @@ class ConcertRepositoryImpl(
         return concertJpaRepository.findPopularConcertsLast5Minutes(limit)
             .map { ProjectionMapper.popularConcertToDto(it) }
     }
-
-
 }

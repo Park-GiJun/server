@@ -16,6 +16,7 @@ import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetHotConcertUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
@@ -31,7 +32,7 @@ class ConcertQueryService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository,
     private val cacheManager: CacheManager
-) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase, GetPopularConcertUseCase {
+) : GetConcertListUseCase, GetConcertDatesUseCase, GetConcertSeatsUseCase, GetPopularConcertUseCase, GetHotConcertUseCase {
     private val concertDomainService= ConcertDomainService()
 
     override fun getConcertList(): List<ConcertResult> {
@@ -110,5 +111,13 @@ class ConcertQueryService(
         } catch (e: Exception) {
             emptyList()
         }
+    }
+
+    override fun getHotConcert(limit: Int): List<PopularConcertDto> {
+        TODO("Not yet implemented")
+    }
+
+    override fun increaseConcert(concertId: Long) {
+        TODO("Not yet implemented")
     }
 }

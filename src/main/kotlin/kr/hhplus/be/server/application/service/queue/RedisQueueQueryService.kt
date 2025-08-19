@@ -58,9 +58,6 @@ class RedisQueueQueryService(
         )
     }
 
-    /**
-     * 예상 대기 시간 계산 (분 단위)
-     */
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
             (position / 10) * 60

@@ -109,8 +109,6 @@ class RedisQueueCommandService(
     }
 
     override fun expireToken(command: ExpireQueueTokenCommand): ExpireQueueTokenResult {
-        log.info("Redis 토큰 만료 처리: tokenId=${command.tokenId}")
-
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
@@ -123,14 +121,10 @@ class RedisQueueCommandService(
             expiresAt = java.time.LocalDateTime.now()
         )
         queueTokenRepository.save(expiredToken)
-
-        log.info("토큰 만료 완료: tokenId=${command.tokenId}")
         return ExpireQueueTokenResult(success = true)
     }
 
     override fun completeToken(command: CompleteQueueTokenCommand): CompleteQueueTokenResult {
-        log.info("Redis 토큰 완료 처리: tokenId=${command.tokenId}")
-
         val token = queueTokenRepository.findByTokenId(command.tokenId)
             ?: throw QueueTokenNotFoundException(command.tokenId)
 
@@ -138,20 +132,14 @@ class RedisQueueCommandService(
             queueManagementService.removeFromAllQueues(token.concertId, token.userId)
         }
 
-        // 토큰 완료 처리
         val completedToken = token.copy(
             tokenStatus = QueueTokenStatus.COMPLETED,
             expiresAt = java.time.LocalDateTime.now().plusMinutes(5) // 5분 후 정리
         )
         queueTokenRepository.save(completedToken)
-
-        log.info("토큰 완료 처리 완료: tokenId=${command.tokenId}")
         return CompleteQueueTokenResult(success = true)
     }
 
-    /**
-     * 토큰의 현재 위치 계산
-     */
     private fun calculatePosition(token: QueueToken): Int {
         return if (token.isWaiting()) {
             val rank = queueManagementService.getWaitingPosition(token.concertId, token.userId)
@@ -159,9 +147,6 @@ class RedisQueueCommandService(
         } else 0
     }
 
-    /**
-     * 예상 대기 시간 계산 (분 단위)
-     */
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
             // 10명당 1분 대기로 가정
