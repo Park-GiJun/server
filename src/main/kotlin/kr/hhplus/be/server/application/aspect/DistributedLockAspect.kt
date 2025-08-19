@@ -6,12 +6,20 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.reflect.MethodSignature
+import org.springframework.core.annotation.Order
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.stereotype.Component
 
+/**
+ * 분산 락 AOP
+ *
+ * 실행 순서: @Transactional(Order=1) -> @DistributedLock(Order=2) -> 비즈니스 로직
+ * 이를 통해 트랜잭션 시작 -> 락 획득 -> 로직 실행 -> 락 해제 -> 트랜잭션 종료 순서가 보장됩니다.
+ */
 @Aspect
 @Component
+@Order(2) // @Transactional의 기본 Order는 Ordered.LOWEST_PRECEDENCE이므로, 2로 설정하여 트랜잭션 이후에 실행
 class DistributedLockAspect(
     private val distributedLockPort: DistributedLockPort
 ) {
@@ -23,23 +31,13 @@ class DistributedLockAspect(
         distributedLock: DistributedLock
     ): Any? {
         val lockKey = parseLockKey(distributedLock.key, joinPoint)
-
-        val actualWaitTime = if (distributedLock.waitTime == -1L) {
-            distributedLock.type.waitTime
-        } else {
-            distributedLock.waitTime
-        }
-
-        val actualLeaseTime = if (distributedLock.leaseTime == -1L) {
-            distributedLock.type.leaseTime
-        } else {
-            distributedLock.leaseTime
-        }
+        val waitTime = if (distributedLock.waitTime != -1L) distributedLock.waitTime else distributedLock.type.waitTime
+        val leaseTime = if (distributedLock.leaseTime != -1L) distributedLock.leaseTime else distributedLock.type.leaseTime
 
         return distributedLockPort.executeWithLock(
             lockKey = lockKey,
-            waitTime = actualWaitTime,
-            leaseTime = actualLeaseTime
+            waitTime = waitTime,
+            leaseTime = leaseTime
         ) {
             joinPoint.proceed()
         }
