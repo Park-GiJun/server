@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class RedisQueueQueryService(
     private val queueTokenRepository: QueueTokenRepository,
-    private val queueManagementService: RedisQueueManagementService,
+    private val queueManagementService: RedisQueueManagementRepository,
     private val redisQueueDomainService: RedisQueueDomainService
 ) : GetQueueStatusUseCase, GetActivateTokensCountUseCase {
 

@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUse
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 class RedisQueueActivationService(
     private val queueTokenRepository: QueueTokenRepository,
     private val queueEventPort: QueueEventPort,
-    private val queueManagementService: RedisQueueManagementService
+    private val queueManagementService: RedisQueueManagementRepository
 ) : ProcessQueueActivationUseCase {
 
     private val redisQueueDomainService = RedisQueueDomainService()
