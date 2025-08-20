@@ -22,7 +22,6 @@ import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementRepository
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -33,7 +32,7 @@ class RedisQueueCommandService(
     private val queueTokenRepository: QueueTokenRepository,
     private val userRepository: UserRepository,
     private val redisQueueDomainService: RedisQueueDomainService,
-    private val queueManagementService: RedisQueueManagementRepository
+    private val queueManagementService: RedisQueueManagementService
 ) : GenerateQueueTokenUseCase, ValidateQueueTokenUseCase, ExpireQueueTokenUseCase, CompleteQueueTokenUseCase {
 
     private val log = LoggerFactory.getLogger(RedisQueueCommandService::class.java)

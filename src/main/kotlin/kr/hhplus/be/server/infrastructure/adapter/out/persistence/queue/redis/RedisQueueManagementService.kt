@@ -1,17 +1,18 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
 
 import kr.hhplus.be.server.domain.queue.QueueToken
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.dto.QueueStats
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 
 @Service
-class RedisQueueManagementRepository(
+class RedisQueueManagementService(
     private val redisTemplate: RedisTemplate<String, Any>
 ) {
 
-    private val log = LoggerFactory.getLogger(RedisQueueManagementRepository::class.java)
+    private val log = LoggerFactory.getLogger(RedisQueueManagementService::class.java)
 
     fun addToWaitingQueue(token: QueueToken): Long {
         val queueKey = "queue:waiting:${token.concertId}"
@@ -116,9 +117,3 @@ class RedisQueueManagementRepository(
     }
 
 }
-
-data class QueueStats(
-    val concertId: Long,
-    val waitingCount: Long,
-    val activeCount: Long
-)

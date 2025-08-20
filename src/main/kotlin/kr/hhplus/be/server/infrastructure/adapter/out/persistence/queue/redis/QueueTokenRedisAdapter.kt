@@ -14,7 +14,7 @@ import java.time.LocalDateTime
 
 @Component
 class QueueTokenRedisAdapter(
-    private val queueManagementService: RedisQueueManagementRepository,
+    private val queueManagementService: RedisQueueManagementService,
     private val redisTemplate: RedisTemplate<String, Any>,
     private val stringRedisTemplate: StringRedisTemplate,
     private val redisQueueDomainService: RedisQueueDomainService,
