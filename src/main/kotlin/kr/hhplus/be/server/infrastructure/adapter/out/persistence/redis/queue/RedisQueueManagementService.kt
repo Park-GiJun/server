@@ -1,7 +1,7 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue
 
 import kr.hhplus.be.server.domain.queue.QueueToken
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.dto.QueueStats
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.dto.QueueStats
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service

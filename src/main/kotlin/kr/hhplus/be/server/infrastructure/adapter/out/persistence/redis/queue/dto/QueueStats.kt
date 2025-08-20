@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.dto
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.dto
 
 data class QueueStats(
     val concertId: Long,
