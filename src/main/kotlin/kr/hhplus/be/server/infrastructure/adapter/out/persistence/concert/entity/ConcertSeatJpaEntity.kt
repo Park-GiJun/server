@@ -17,7 +17,7 @@ import kr.hhplus.be.server.infrastructure.adapter.out.persistence.BaseEntity
     name = "concert_seat",
     indexes = [
         Index(name = "CONCERTSEATX0", columnList = "concert_date_id"),
-    Index(name = "CONCERTSEATX1", columnList = "seat_status,concert_date_id"),
+        Index(name = "CONCERTSEATX1", columnList = "seat_status,concert_date_id"),
     ]
 )
 class ConcertSeatJpaEntity(

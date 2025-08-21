@@ -17,7 +17,7 @@ import java.time.LocalDateTime
         Index(name = "CONCERTDATEX0", columnList = "concert_id"),
         Index(name = "CONCERTDATEX1", columnList = "date"),
         Index(name = "CONCERTDATEX2", columnList = "is_sold_out"),
-    Index(name = "CONCERTDATEX3", columnList = "date,concert_id")
+        Index(name = "CONCERTDATEX3", columnList = "date,concert_id")
     ]
 )
 class ConcertDateJpaEntity(

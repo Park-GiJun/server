@@ -7,6 +7,7 @@ import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertDatesUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertListUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetConcertSeatsUseCase
+import kr.hhplus.be.server.application.port.`in`.concert.GetHotConcertUseCase
 import kr.hhplus.be.server.application.port.`in`.concert.GetPopularConcertUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
@@ -27,7 +28,8 @@ class ConcertWebAdapter(
     private val getConcertDatesUseCase: GetConcertDatesUseCase,
     private val getConcertSeatsUseCase: GetConcertSeatsUseCase,
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
-    private val getPopularConcertUseCase: GetPopularConcertUseCase
+    private val getPopularConcertUseCase: GetPopularConcertUseCase,
+    private val getHotConcertUseCase: GetHotConcertUseCase
 ) {
 
     @GetMapping
@@ -123,19 +125,38 @@ class ConcertWebAdapter(
 
         val popularConcerts = getPopularConcertUseCase.getPopularConcert(limit)
 
-        val response = popularConcerts.map { dto ->
-            PopularConcert(
-                concertId = dto.concertId,
-                concertName = dto.concertName,
-                reservedCount = dto.reservedCount.toInt()
-            )
-        }
+        // ✨ 매퍼 활용
+        val response = ConcertWebMapper.toPopularConcertResponses(popularConcerts)
 
         val apiResponse = ApiResponse(
             success = true,
             status = HttpStatus.OK.value(),
             data = response,
             message = "Popular concerts retrieved successfully"
+        )
+
+        return ResponseEntity.ok(apiResponse)
+    }
+
+    @GetMapping("/hot")
+    @Operation(
+        summary = "핫 콘서트 조회",
+        description = "실시간으로 가장 많이 조회되고 있는 콘서트 목록을 조회합니다."
+    )
+    fun getHotConcert(
+        @Parameter(description = "조회할 콘서트 수", example = "10")
+        @RequestParam(defaultValue = "10") limit: Int
+    ): ResponseEntity<ApiResponse<List<PopularConcert>>> {
+
+        val hotConcerts = getHotConcertUseCase.getHotConcert(limit)
+
+        val response = ConcertWebMapper.toHotConcertResponses(hotConcerts)
+
+        val apiResponse = ApiResponse(
+            success = true,
+            status = HttpStatus.OK.value(),
+            data = response,
+            message = "Hot concerts retrieved successfully"
         )
 
         return ResponseEntity.ok(apiResponse)
