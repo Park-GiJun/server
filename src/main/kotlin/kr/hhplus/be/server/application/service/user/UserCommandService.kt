@@ -17,13 +17,19 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Transactional
 class UserCommandService(
     private val userRepository: UserRepository,
     private val pointHistoryRepository: PointHistoryRepository
 ) : ChargeUserPointUseCase, UseUserPointUseCase {
-    private val userDomainService = UserDomainService()
 
+    private val userDomainService = UserDomainService()
+    private val log = LoggerFactory.getLogger(UserCommandService::class.java)
+
+    /**
+     * 포인트 충전
+     * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 락 해제 -> 트랜잭션 종료
+     */
+    @Transactional
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
         key = "'lock:payment:user:' + #command.userId",
@@ -31,10 +37,17 @@ class UserCommandService(
         leaseTime = 30L
     )
     override fun chargeUserPoint(command: ChargeUserPointCommand): UserResult {
+        log.info("포인트 충전 시작: userId=${command.userId}, amount=${command.amount}")
+
+        // 1. 사용자 조회 (비관적 락)
         val user = userRepository.findByUserIdWithLock(command.userId)
         userDomainService.validateUserExists(user, command.userId)
+
+        // 2. 포인트 충전
         val updatedUser = userDomainService.chargeUserPoint(user!!, command.amount)
         val savedUser = userRepository.save(updatedUser)
+
+        // 3. 포인트 히스토리 저장
         val pointHistory = PointHistory(
             pointHistoryId = 0L,
             userId = savedUser.userId,
@@ -43,20 +56,35 @@ class UserCommandService(
             description = "Point charge via API"
         )
         pointHistoryRepository.save(pointHistory)
+
+        log.info("포인트 충전 완료: userId=${command.userId}, newBalance=${savedUser.availablePoint}")
+
         return UserMapper.toResult(savedUser)
     }
 
+    /**
+     * 포인트 사용
+     * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 락 해제 -> 트랜잭션 종료
+     */
+    @Transactional
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
-        key = "lock:payment:user:#{#command.userId}",
+        key = "'lock:payment:user:' + #command.userId",
         waitTime = 10L,
         leaseTime = 30L
     )
     override fun useUserPoint(command: UseUserPointCommand): UserResult {
+        log.info("포인트 사용 시작: userId=${command.userId}, amount=${command.amount}")
+
+        // 1. 사용자 조회 (비관적 락)
         val user = userRepository.findByUserIdWithLock(command.userId)
         userDomainService.validateUserExists(user, command.userId)
+
+        // 2. 포인트 사용
         val updatedUser = userDomainService.useUserPoint(user!!, command.amount)
         val savedUser = userRepository.save(updatedUser)
+
+        // 3. 포인트 히스토리 저장
         val pointHistory = PointHistory(
             pointHistoryId = 0L,
             userId = savedUser.userId,
@@ -65,6 +93,9 @@ class UserCommandService(
             description = "Point usage via API"
         )
         pointHistoryRepository.save(pointHistory)
+
+        log.info("포인트 사용 완료: userId=${command.userId}, remainingBalance=${savedUser.availablePoint}")
+
         return UserMapper.toResult(savedUser)
     }
 }

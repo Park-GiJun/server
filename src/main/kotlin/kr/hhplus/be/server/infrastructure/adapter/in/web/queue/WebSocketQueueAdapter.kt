@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/ws/queue")
 @Tag(name = "대기열 WebSocket", description = "대기열 실시간 알림 (WebSocket)")
-class WebSocketQueueController(
+class WebSocketQueueAdapter(
     private val webSocketEventAdapter: WebSocketQueueEventAdapter
 ) {
 
-    private val log = LoggerFactory.getLogger(WebSocketQueueController::class.java)
+    private val log = LoggerFactory.getLogger(WebSocketQueueAdapter::class.java)
 
     @GetMapping("/stats")
     @Operation(summary = "WebSocket 연결 통계", description = "현재 활성 WebSocket 연결 수를 조회합니다")
