@@ -12,8 +12,7 @@ class RedissonLockConfig {
     @Bean
     fun redissonClient(): RedissonClient {
         val config = Config()
-        config.useSingleServer()
-            .setAddress("redis://localhost:6379")
+        config.useSingleServer().address = "redis://localhost:6379"
         return Redisson.create(config)
     }
 }

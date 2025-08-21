@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis
+package kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.entity
 
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
