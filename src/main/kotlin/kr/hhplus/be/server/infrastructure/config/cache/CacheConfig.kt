@@ -36,7 +36,8 @@ class CacheConfig {
             .disableCachingNullValues()
 
         val cacheConfigurations = mapOf(
-            "popularConcerts" to cacheConfiguration.entryTtl(Duration.ofMinutes(1))
+            "popularConcerts" to cacheConfiguration.entryTtl(Duration.ofMinutes(1)),
+            "hotConcerts" to cacheConfiguration.entryTtl(Duration.ofSeconds(30))
         )
 
         return RedisCacheManager.builder(redisConnectionFactory)

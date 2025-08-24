@@ -5,8 +5,6 @@ import kr.hhplus.be.server.application.dto.payment.PaymentResult
 import kr.hhplus.be.server.application.dto.payment.ProcessPaymentCommand
 import kr.hhplus.be.server.application.mapper.PaymentMapper
 import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.CompleteQueueTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
@@ -19,7 +17,6 @@ import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
 import kr.hhplus.be.server.domain.concert.exception.ConcertSeatNotFoundException
 import kr.hhplus.be.server.domain.log.pointHistory.PointHistory
 import kr.hhplus.be.server.domain.payment.PaymentDomainService
-import kr.hhplus.be.server.domain.queue.service.QueueTokenDomainService
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
@@ -30,7 +27,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Transactional
 class PaymentCommandService(
     private val paymentRepository: PaymentRepository,
     private val tempReservationRepository: TempReservationRepository,
@@ -39,56 +35,87 @@ class PaymentCommandService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository,
     private val pointHistoryRepository: PointHistoryRepository,
-    private val validateTokenUseCase: ValidateQueueTokenUseCase,
-    private val completeTokenUseCase: CompleteQueueTokenUseCase,
     private val concertDateRepository: ConcertDateRepository
 ) : ProcessPaymentUseCase {
+
     private val paymentDomainService = PaymentDomainService()
-    private val userDomainService =  UserDomainService()
+    private val userDomainService = UserDomainService()
+    private val log = LoggerFactory.getLogger(PaymentCommandService::class.java)
 
-
+    /**
+     * 결제 처리
+     * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 락 해제 -> 트랜잭션 종료
+     */
+    @Transactional
     @DistributedLock(
         type = DistributedLockType.PAYMENT_USER,
-        key = "'lock:payment:user:' + #command.userId",
+        key = "'lock:payment:reservation:' + #command.reservationId",
         waitTime = 10L,
         leaseTime = 30L
     )
     override fun processPayment(command: ProcessPaymentCommand): PaymentResult {
+        log.info("결제 처리 시작: reservationId=${command.reservationId}, pointsToUse=${command.pointsToUse}")
+
+        // 1. 기본 검증
         paymentDomainService.validatePaymentAmount(command.pointsToUse)
+
+        // 2. 임시 예약 조회 및 검증
         val tempReservation = tempReservationRepository.findByTempReservationId(command.reservationId)
             ?: throw TempReservationNotFoundException(command.reservationId)
         paymentDomainService.validateTempReservationForPayment(tempReservation)
+
+        // 3. 중복 결제 확인
         val existingPayment = paymentRepository.findByReservationId(command.reservationId)
         paymentDomainService.validatePaymentNotProcessed(existingPayment, command.reservationId)
-        val user = userRepository.findByUserId(tempReservation.userId)
+
+        // 4. 사용자 조회 및 검증
+        val user = userRepository.findByUserIdWithLock(tempReservation.userId)
         userDomainService.validateUserExists(user, tempReservation.userId)
+
+        // 5. 좌석 및 가격 정보 조회
         val seat = concertSeatRepository.findByConcertSeatId(tempReservation.concertSeatId)
             ?: throw ConcertSeatNotFoundException(tempReservation.concertSeatId)
+
         val concert = concertDateRepository.findByConcertDateId(seat.concertDateId)
             ?: throw ConcertNotFoundException(seat.concertDateId)
+
         val seatGrades = concertSeatGradeRepository.findBySeatGrade(seat.seatGrade, concert.concertId)
         val seatGrade = seatGrades.firstOrNull()
             ?: throw ConcertNotFoundException(concert.concertId)
+
+        // 6. 결제 금액 계산
         val paymentCalculation = paymentDomainService.calculatePaymentAmounts(
             seatGrade, command.pointsToUse, user!!.availablePoint
         )
+
+        // 7. 잔액 확인
         userDomainService.validateSufficientBalance(
             user,
             paymentCalculation.actualAmount + paymentCalculation.pointsToUse
         )
+
+        // 8. 사용자 포인트 차감
         val updatedUser = userDomainService.useUserPoint(
             user,
             paymentCalculation.actualAmount + paymentCalculation.pointsToUse
         )
         userRepository.save(updatedUser)
+
+        // 9. 결제 정보 저장
         val payment = paymentDomainService.createPayment(
             command.reservationId, tempReservation.userId, paymentCalculation
         )
         val savedPayment = paymentRepository.save(payment)
+
+        // 10. 임시 예약 확정
         val confirmedTempReservation = tempReservation.confirm()
         tempReservationRepository.save(confirmedTempReservation)
+
+        // 11. 좌석 판매 완료
         val soldSeat = seat.sell()
         concertSeatRepository.save(soldSeat)
+
+        // 12. 예약 정보 저장
         val reservation = Reservation(
             reservationId = 0L,
             userId = tempReservation.userId,
@@ -100,6 +127,8 @@ class PaymentCommandService(
             paymentAmount = paymentCalculation.actualAmount
         )
         reservationRepository.save(reservation)
+
+        // 13. 포인트 사용 히스토리 저장
         if (paymentCalculation.pointsToUse > 0) {
             val pointHistory = PointHistory(
                 pointHistoryId = 0L,
@@ -110,6 +139,9 @@ class PaymentCommandService(
             )
             pointHistoryRepository.save(pointHistory)
         }
+
+        log.info("결제 처리 완료: paymentId=${savedPayment.paymentId}, userId=${tempReservation.userId}, totalAmount=${paymentCalculation.totalAmount}")
+
         return PaymentMapper.toResult(savedPayment, "Payment completed successfully")
     }
 }

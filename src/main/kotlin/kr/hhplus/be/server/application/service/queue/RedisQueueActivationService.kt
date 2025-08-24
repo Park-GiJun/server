@@ -6,7 +6,7 @@ import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUse
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.RedisQueueManagementService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

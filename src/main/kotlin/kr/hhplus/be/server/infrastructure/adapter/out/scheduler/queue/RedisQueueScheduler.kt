@@ -6,7 +6,7 @@ import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.event.queue.QueuePositionUpdate
 import kr.hhplus.be.server.application.port.out.queue.QueueTokenRepository
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled

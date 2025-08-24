@@ -355,11 +355,9 @@ class ReservationIntegrationTest : IntegrationTestBase() {
             log.info("Reserved seats: ${reservedSeats.size}, Total seats: $totalSeats")
             log.info("Reserved seat IDs: $reservedSeats")
 
-            // 각 좌석당 정확히 1명만 성공해야 함
             assertThat(reservedSeats.size).isEqualTo(totalSeats)
             assertThat(actualSuccessCount).isEqualTo(totalSeats)
 
-            // 모든 좌석이 예약되었는지 확인
             testSeats.forEach { seat ->
                 val updatedSeat = concertSeatRepository.findByConcertSeatId(seat.concertSeatId)
                 log.info("Seat ${seat.seatNumber} (${seat.concertSeatId}) status: ${updatedSeat?.seatStatus}")

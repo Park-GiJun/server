@@ -11,7 +11,7 @@ import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import kr.hhplus.be.server.domain.queue.exception.InvalidTokenStatusException
 import kr.hhplus.be.server.domain.queue.exception.QueueTokenNotFoundException
 import kr.hhplus.be.server.domain.queue.service.RedisQueueDomainService
-import kr.hhplus.be.server.infrastructure.adapter.out.persistence.queue.redis.RedisQueueManagementService
+import kr.hhplus.be.server.infrastructure.adapter.out.persistence.redis.queue.RedisQueueManagementService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -58,9 +58,6 @@ class RedisQueueQueryService(
         )
     }
 
-    /**
-     * 예상 대기 시간 계산 (분 단위)
-     */
     private fun calculateEstimatedWaitTime(position: Int): Int {
         return if (position > 0) {
             (position / 10) * 60

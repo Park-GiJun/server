@@ -5,9 +5,11 @@ import kr.hhplus.be.server.application.dto.concert.ConcertResult
 import kr.hhplus.be.server.application.dto.concert.ConcertSeatWithPriceResult
 import kr.hhplus.be.server.application.dto.concert.GetConcertDatesQuery
 import kr.hhplus.be.server.application.dto.concert.GetConcertSeatsQuery
+import kr.hhplus.be.server.application.dto.concert.PopularConcertDto
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
+import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.PopularConcert
 
 object ConcertWebMapper {
 
@@ -67,5 +69,30 @@ object ConcertWebMapper {
 
     fun toSeatResponses(results: List<ConcertSeatWithPriceResult>): List<ConcertSeatResponse> {
         return results.map { toSeatResponse(it) }
+    }
+
+    // ✨ 새로 추가: 인기/핫 콘서트 응답 매핑
+    fun toPopularConcertResponse(result: PopularConcertDto): PopularConcert {
+        return PopularConcert(
+            concertId = result.concertId,
+            concertName = result.concertName,
+            reservedCount = result.reservedCount.toInt()
+        )
+    }
+
+    fun toPopularConcertResponses(results: List<PopularConcertDto>): List<PopularConcert> {
+        return results.map { toPopularConcertResponse(it) }
+    }
+
+    fun toHotConcertResponse(result: PopularConcertDto): PopularConcert {
+        return PopularConcert(
+            concertId = result.concertId,
+            concertName = result.concertName,
+            reservedCount = result.reservedCount.toInt()
+        )
+    }
+
+    fun toHotConcertResponses(results: List<PopularConcertDto>): List<PopularConcert> {
+        return results.map { toHotConcertResponse(it) }
     }
 }
