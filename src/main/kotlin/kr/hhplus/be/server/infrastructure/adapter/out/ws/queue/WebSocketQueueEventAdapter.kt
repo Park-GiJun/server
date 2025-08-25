@@ -3,7 +3,7 @@ package kr.hhplus.be.server.infrastructure.adapter.out.ws.queue
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
 import kr.hhplus.be.server.application.port.out.event.queue.QueuePositionUpdate
-import kr.hhplus.be.server.infrastructure.adapter.out.event.sse.queue.QueueEventMessage
+import kr.hhplus.be.server.infrastructure.adapter.out.event.queue.QueueEventMessage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage

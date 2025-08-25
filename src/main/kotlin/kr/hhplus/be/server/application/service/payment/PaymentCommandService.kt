@@ -8,6 +8,7 @@ import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatGradeRepository
 import kr.hhplus.be.server.application.port.out.concert.ConcertSeatRepository
+import kr.hhplus.be.server.application.port.out.event.payment.PaymentEventPort
 import kr.hhplus.be.server.application.port.out.log.PointHistoryRepository
 import kr.hhplus.be.server.application.port.out.payment.PaymentRepository
 import kr.hhplus.be.server.application.port.out.user.UserRepository
@@ -17,6 +18,7 @@ import kr.hhplus.be.server.domain.concert.exception.ConcertNotFoundException
 import kr.hhplus.be.server.domain.concert.exception.ConcertSeatNotFoundException
 import kr.hhplus.be.server.domain.log.pointHistory.PointHistory
 import kr.hhplus.be.server.domain.payment.PaymentDomainService
+import kr.hhplus.be.server.domain.payment.event.PaymentCompletedEvent
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.ReservationStatus
 import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundException
@@ -35,7 +37,8 @@ class PaymentCommandService(
     private val concertSeatRepository: ConcertSeatRepository,
     private val concertSeatGradeRepository: ConcertSeatGradeRepository,
     private val pointHistoryRepository: PointHistoryRepository,
-    private val concertDateRepository: ConcertDateRepository
+    private val concertDateRepository: ConcertDateRepository,
+    private val paymentEventPort: PaymentEventPort  // 이벤트 포트 추가
 ) : ProcessPaymentUseCase {
 
     private val paymentDomainService = PaymentDomainService()
@@ -44,7 +47,7 @@ class PaymentCommandService(
 
     /**
      * 결제 처리
-     * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 락 해제 -> 트랜잭션 종료
+     * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 이벤트 발행 -> 락 해제 -> 트랜잭션 종료 -> 이벤트 처리
      */
     @Transactional
     @DistributedLock(
@@ -126,7 +129,7 @@ class PaymentCommandService(
             reservationStatus = ReservationStatus.CONFIRMED,
             paymentAmount = paymentCalculation.actualAmount
         )
-        reservationRepository.save(reservation)
+        val savedReservation = reservationRepository.save(reservation)
 
         // 13. 포인트 사용 히스토리 저장
         if (paymentCalculation.pointsToUse > 0) {
@@ -140,7 +143,17 @@ class PaymentCommandService(
             pointHistoryRepository.save(pointHistory)
         }
 
-        log.info("결제 처리 완료: paymentId=${savedPayment.paymentId}, userId=${tempReservation.userId}, totalAmount=${paymentCalculation.totalAmount}")
+        // 14. 결제 완료 이벤트 발행
+        val paymentCompletedEvent = PaymentCompletedEvent(
+            paymentId = savedPayment.paymentId,
+            reservationId = savedReservation.reservationId,
+            userId = tempReservation.userId,
+            concertId = concert.concertId,
+            seatNumber = seat.seatNumber,
+            totalAmount = paymentCalculation.totalAmount
+        )
+
+        paymentEventPort.publishPaymentCompleted(paymentCompletedEvent)
 
         return PaymentMapper.toResult(savedPayment, "Payment completed successfully")
     }
