@@ -13,23 +13,17 @@ import org.springframework.transaction.event.TransactionalEventListener
 class PaymentEventHandler(
     private val dataPlatformPort: DataPlatformPort
 ) {
-    @Component
-    class PaymentEventHandler(
-        private val dataPlatformPort: DataPlatformPort
-    ) {
-
-        @Async
-        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-        fun handlePaymentCompleted(event: PaymentCompletedEvent) {
-            val reservationEvent = ReservationEventDto(
-                eventType = "COMPLETED",
-                reservationId = event.reservationId,
-                userId = event.userId,
-                concertId = event.concertId,
-                seatNumber = event.seatNumber,
-                price = event.totalAmount
-            )
-            dataPlatformPort.sendEvent(reservationEvent)
-        }
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun handlePaymentCompleted(event: PaymentCompletedEvent) {
+        val reservationEvent = ReservationEventDto(
+            eventType = "COMPLETED",
+            reservationId = event.reservationId,
+            userId = event.userId,
+            concertId = event.concertId,
+            seatNumber = event.seatNumber,
+            price = event.totalAmount
+        )
+        dataPlatformPort.sendEvent(reservationEvent)
     }
 }

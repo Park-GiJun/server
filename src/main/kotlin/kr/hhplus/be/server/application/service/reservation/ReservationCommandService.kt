@@ -38,7 +38,6 @@ class ReservationCommandService(
     private val userRepository: UserRepository,
     private val concertSeatRepository: ConcertSeatRepository,
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
-    private val expireTokenUseCase: ExpireQueueTokenUseCase,
     private val completeTokenUseCase: CompleteQueueTokenUseCase,
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
