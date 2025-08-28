@@ -1,8 +1,8 @@
-package kr.hhplus.be.server.application.service.payment
+package kr.hhplus.be.server.application.handler.command.payment
 
 import kr.hhplus.be.server.application.annotation.DistributedLock
-import kr.hhplus.be.server.application.dto.payment.PaymentResult
-import kr.hhplus.be.server.application.dto.payment.ProcessPaymentCommand
+import kr.hhplus.be.server.application.dto.payment.result.PaymentResult
+import kr.hhplus.be.server.application.dto.payment.command.ProcessPaymentCommand
 import kr.hhplus.be.server.application.mapper.PaymentMapper
 import kr.hhplus.be.server.application.port.`in`.payment.ProcessPaymentUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertDateRepository
@@ -25,11 +25,13 @@ import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundE
 import kr.hhplus.be.server.domain.users.UserDomainService
 import kr.hhplus.be.server.domain.lock.DistributedLockType
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
-class PaymentCommandService(
+class PaymentCommandHandler(
     private val paymentRepository: PaymentRepository,
     private val tempReservationRepository: TempReservationRepository,
     private val reservationRepository: ReservationRepository,
@@ -38,16 +40,20 @@ class PaymentCommandService(
     private val concertSeatGradeRepository: ConcertSeatGradeRepository,
     private val pointHistoryRepository: PointHistoryRepository,
     private val concertDateRepository: ConcertDateRepository,
-    private val paymentEventPort: PaymentEventPort  // 이벤트 포트 추가
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) : ProcessPaymentUseCase {
+
 
     private val paymentDomainService = PaymentDomainService()
     private val userDomainService = UserDomainService()
-    private val log = LoggerFactory.getLogger(PaymentCommandService::class.java)
+    private val log = LoggerFactory.getLogger(PaymentCommandHandler::class.java)
 
     /**
      * 결제 처리
      * 실행 순서: 트랜잭션 시작 -> 분산락 획득 -> 비즈니스 로직 -> 이벤트 발행 -> 락 해제 -> 트랜잭션 종료 -> 이벤트 처리
+     *
+     *
+     * 더이상 사용하지않음.
      */
     @Transactional
     @DistributedLock(
@@ -118,14 +124,12 @@ class PaymentCommandService(
         val soldSeat = seat.sell()
         concertSeatRepository.save(soldSeat)
 
-        // 12. 예약 정보 저장
         val reservation = Reservation(
             reservationId = 0L,
             userId = tempReservation.userId,
             concertDateId = seat.concertDateId,
             seatId = tempReservation.concertSeatId,
-            reservationAt = System.currentTimeMillis(),
-            cancelAt = 0,
+            reservationAt = LocalDateTime.now(),
             reservationStatus = ReservationStatus.CONFIRMED,
             paymentAmount = paymentCalculation.actualAmount
         )
@@ -153,7 +157,7 @@ class PaymentCommandService(
             totalAmount = paymentCalculation.totalAmount
         )
 
-        paymentEventPort.publishPaymentCompleted(paymentCompletedEvent)
+        applicationEventPublisher.publishEvent(paymentCompletedEvent)
 
         return PaymentMapper.toResult(savedPayment, "Payment completed successfully")
     }
