@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.mapper
 
-import kr.hhplus.be.server.application.dto.user.UserResult
+import kr.hhplus.be.server.application.dto.user.result.UserResult
 import kr.hhplus.be.server.domain.users.User
 
 object UserMapper {

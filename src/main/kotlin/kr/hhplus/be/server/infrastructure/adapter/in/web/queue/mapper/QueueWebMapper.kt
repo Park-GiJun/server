@@ -1,9 +1,9 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.mapper
 
-import kr.hhplus.be.server.application.dto.queue.GenerateQueueTokenCommand
-import kr.hhplus.be.server.application.dto.queue.GenerateQueueTokenResult
-import kr.hhplus.be.server.application.dto.queue.GetQueueStatusQuery
-import kr.hhplus.be.server.application.dto.queue.GetQueueStatusResult
+import kr.hhplus.be.server.application.dto.queue.command.GenerateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.result.GenerateQueueTokenResult
+import kr.hhplus.be.server.application.dto.queue.query.GetQueueStatusQuery
+import kr.hhplus.be.server.application.dto.queue.result.GetQueueStatusResult
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.GenerateTokenResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.queue.dto.QueueStatusResponse
 

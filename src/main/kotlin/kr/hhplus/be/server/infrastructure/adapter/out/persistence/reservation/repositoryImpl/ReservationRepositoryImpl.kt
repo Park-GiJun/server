@@ -16,4 +16,9 @@ class ReservationRepositoryImpl(
             .let { reservationRepository.save(it) }
             .let { PersistenceMapper.toReservationDomain(it) }
     }
+
+    override fun findByReservationId(id: Long): Reservation? {
+        return reservationRepository.findByReservationId(id)
+            ?.let { PersistenceMapper.toReservationDomain(it) }
+    }
 }

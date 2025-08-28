@@ -2,8 +2,6 @@ package kr.hhplus.be.server.infrastructure.adapter.out.persistence.lock
 
 import kr.hhplus.be.server.application.port.out.lock.DistributedLockPort
 import kr.hhplus.be.server.domain.lock.exception.ConcurrencyProcessingException
-import kr.hhplus.be.server.domain.lock.exception.LockAcquisitionException
-import kr.hhplus.be.server.domain.lock.exception.LockTimeoutException
 import kr.hhplus.be.server.domain.lock.exception.ResourceBusyException
 import org.redisson.api.RedissonClient
 import org.slf4j.LoggerFactory
@@ -49,7 +47,7 @@ class RedissonDistributedLockAdapter(
             throw ConcurrencyProcessingException("동시성 처리 중 오류가 발생했습니다.")
         } finally {
             try {
-                if (lock.isHeldByCurrentThread()) {
+                if (lock.isHeldByCurrentThread) {
                     lock.unlock()
                     log.debug("락 해제 완료: key={}", lockKey)
                 }

@@ -38,4 +38,16 @@ class TempReservation(
             status = TempReservationStatus.EXPIRED
         )
     }
+
+    fun delete(): TempReservation {
+        return TempReservation(
+            tempReservationId = this.tempReservationId,
+            userId = this.userId,
+            concertSeatId = this.concertSeatId,
+            expiredAt = this.expiredAt,
+            status = this.status,
+            isDeleted = true,
+            deletedAt = LocalDateTime.now()
+        )
+    }
 }

@@ -17,3 +17,7 @@ class InvalidReservationStatusException(
 
 class ReservationNotReservedException(message: String) :
     EntityStateException(message)
+
+class TempReservationValidationException(userId: String, seatId: Long) : EntityStateException(
+    "Temp reservation $userId validation failed. Seat cannot be empty"
+)

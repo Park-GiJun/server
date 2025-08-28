@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.repositoryImpl
 
-import kr.hhplus.be.server.application.dto.concert.PopularConcertDto
+import kr.hhplus.be.server.application.dto.concert.result.PopularConcertResult
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.domain.concert.Concert
 import kr.hhplus.be.server.infrastructure.adapter.out.persistence.concert.jpa.ConcertJpaRepository
@@ -29,7 +29,7 @@ class ConcertRepositoryImpl(
             ?.let { PersistenceMapper.toConcertDomain(it) }
     }
 
-    override fun findByPopularConcert(limit: Int): List<PopularConcertDto> {
+    override fun findByPopularConcert(limit: Int): List<PopularConcertResult> {
         return concertJpaRepository.findPopularConcertsLast5Minutes(limit)
             .map { ProjectionMapper.popularConcertToDto(it) }
     }

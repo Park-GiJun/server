@@ -16,6 +16,7 @@ class ConcertSeat(
 ) {
 
     fun isAvailable(): Boolean = seatStatus == SeatStatus.AVAILABLE
+    fun isSold(): Boolean = seatStatus == SeatStatus.SOLD
 
     fun reserve(): ConcertSeat {
         return ConcertSeat(

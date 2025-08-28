@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.mapper
 
-import kr.hhplus.be.server.application.dto.concert.ConcertDateWithStatsResult
-import kr.hhplus.be.server.application.dto.concert.ConcertResult
-import kr.hhplus.be.server.application.dto.concert.ConcertSeatWithPriceResult
-import kr.hhplus.be.server.application.dto.concert.GetConcertDatesQuery
-import kr.hhplus.be.server.application.dto.concert.GetConcertSeatsQuery
-import kr.hhplus.be.server.application.dto.concert.PopularConcertDto
+import kr.hhplus.be.server.application.dto.concert.result.ConcertDateWithStatsResult
+import kr.hhplus.be.server.application.dto.concert.result.ConcertResult
+import kr.hhplus.be.server.application.dto.concert.result.ConcertSeatWithPriceResult
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertDatesQuery
+import kr.hhplus.be.server.application.dto.concert.query.GetConcertSeatsQuery
+import kr.hhplus.be.server.application.dto.concert.result.PopularConcertResult
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertDateResponse
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.concert.dto.ConcertSeatResponse
@@ -72,7 +72,7 @@ object ConcertWebMapper {
     }
 
     // ✨ 새로 추가: 인기/핫 콘서트 응답 매핑
-    fun toPopularConcertResponse(result: PopularConcertDto): PopularConcert {
+    fun toPopularConcertResponse(result: PopularConcertResult): PopularConcert {
         return PopularConcert(
             concertId = result.concertId,
             concertName = result.concertName,
@@ -80,11 +80,11 @@ object ConcertWebMapper {
         )
     }
 
-    fun toPopularConcertResponses(results: List<PopularConcertDto>): List<PopularConcert> {
+    fun toPopularConcertResponses(results: List<PopularConcertResult>): List<PopularConcert> {
         return results.map { toPopularConcertResponse(it) }
     }
 
-    fun toHotConcertResponse(result: PopularConcertDto): PopularConcert {
+    fun toHotConcertResponse(result: PopularConcertResult): PopularConcert {
         return PopularConcert(
             concertId = result.concertId,
             concertName = result.concertName,
@@ -92,7 +92,7 @@ object ConcertWebMapper {
         )
     }
 
-    fun toHotConcertResponses(results: List<PopularConcertDto>): List<PopularConcert> {
+    fun toHotConcertResponses(results: List<PopularConcertResult>): List<PopularConcert> {
         return results.map { toHotConcertResponse(it) }
     }
 }

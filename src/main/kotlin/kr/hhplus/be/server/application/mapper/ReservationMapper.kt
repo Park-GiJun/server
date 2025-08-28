@@ -1,8 +1,8 @@
 package kr.hhplus.be.server.application.mapper
 
-import kr.hhplus.be.server.application.dto.reservation.CancelReservationResult
-import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationResult
-import kr.hhplus.be.server.application.dto.reservation.TempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.result.CancelReservationResult
+import kr.hhplus.be.server.application.dto.reservation.result.ConfirmTempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.result.TempReservationResult
 import kr.hhplus.be.server.domain.reservation.Reservation
 import kr.hhplus.be.server.domain.reservation.TempReservation
 import java.time.LocalDateTime

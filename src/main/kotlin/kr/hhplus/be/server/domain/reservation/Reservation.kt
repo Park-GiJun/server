@@ -7,8 +7,8 @@ class Reservation(
     val userId: String,
     val concertDateId: Long,
     val seatId: Long,
-    val reservationAt: Long,
-    val cancelAt: Long,
+    val reservationAt: LocalDateTime,
+    val cancelAt: LocalDateTime? = null,
     val reservationStatus: ReservationStatus,
     val paymentAmount: Int,
 
@@ -16,4 +16,17 @@ class Reservation(
     var updatedAt: LocalDateTime? = LocalDateTime.now(),
     var isDeleted: Boolean = false,
     var deletedAt: LocalDateTime? = null
-)
+)  {
+    fun cancel(): Reservation {
+        return Reservation(
+            reservationId = this.reservationId,
+            userId = this.userId,
+            concertDateId = this.concertDateId,
+            reservationAt = this.reservationAt,
+            reservationStatus = ReservationStatus.CANCELLED,
+            cancelAt = LocalDateTime.now(),
+            paymentAmount = this.paymentAmount,
+            seatId = this.seatId
+        )
+    }
+}

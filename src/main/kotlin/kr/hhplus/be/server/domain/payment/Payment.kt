@@ -10,9 +10,9 @@ class Payment(
     val discountAmount: Int,
     val actualAmount: Int,
     val paymentAt: LocalDateTime = LocalDateTime.now(),
-    val isCancel: Boolean,
-    val isRefund: Boolean,
-    val cancelAt: LocalDateTime?,
+    val isCancel: Boolean = false,
+    val isRefund: Boolean = false,
+    val cancelAt: LocalDateTime? = null,
 
     val createdAt: LocalDateTime? = LocalDateTime.now(),
     var updatedAt: LocalDateTime? = LocalDateTime.now(),

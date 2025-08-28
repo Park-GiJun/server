@@ -36,4 +36,10 @@ class TempReservationRepositoryImpl(
         return tempReservationJpaRepository.findAll()
             .map { PersistenceMapper.toTempReservationDomain(it) }
     }
+
+    override fun delete(reservation: TempReservation) {
+        val tempReservation = reservation.delete()
+            .let { PersistenceMapper.toTempReservationEntity(reservation) }
+        tempReservationJpaRepository.save(tempReservation);
+    }
 }

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.domain.queue.service
 
-import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenResult
+import kr.hhplus.be.server.application.dto.queue.result.ValidateQueueTokenResult
 import kr.hhplus.be.server.domain.queue.QueueToken
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
 import org.springframework.stereotype.Component
