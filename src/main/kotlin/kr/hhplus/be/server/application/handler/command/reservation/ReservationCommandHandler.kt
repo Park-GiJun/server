@@ -1,15 +1,15 @@
-package kr.hhplus.be.server.application.service.reservation
+package kr.hhplus.be.server.application.handler.command.reservation
 
 import kr.hhplus.be.server.application.annotation.DistributedLock
-import kr.hhplus.be.server.application.dto.queue.CompleteQueueTokenCommand
-import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.CompleteQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.ValidateQueueTokenCommand
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
-import kr.hhplus.be.server.application.dto.reservation.CancelReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
-import kr.hhplus.be.server.application.dto.reservation.CancelReservationResult
-import kr.hhplus.be.server.application.dto.reservation.ConfirmTempReservationResult
-import kr.hhplus.be.server.application.dto.reservation.TempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.command.CancelReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.command.ConfirmTempReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.command.TempReservationCommand
+import kr.hhplus.be.server.application.dto.reservation.result.CancelReservationResult
+import kr.hhplus.be.server.application.dto.reservation.result.ConfirmTempReservationResult
+import kr.hhplus.be.server.application.dto.reservation.result.TempReservationResult
 import kr.hhplus.be.server.application.port.`in`.reservation.CancelReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.ConfirmTempReservationUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
@@ -24,7 +24,6 @@ import kr.hhplus.be.server.domain.reservation.exception.TempReservationNotFoundE
 import kr.hhplus.be.server.domain.users.exception.UserNotFoundException
 import kr.hhplus.be.server.application.mapper.ReservationMapper
 import kr.hhplus.be.server.application.port.`in`.queue.CompleteQueueTokenUseCase
-import kr.hhplus.be.server.application.port.`in`.queue.ExpireQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.domain.lock.DistributedLockType
 import org.slf4j.LoggerFactory
@@ -32,17 +31,16 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class ReservationCommandService(
+class ReservationCommandHandler(
     private val tempReservationRepository: TempReservationRepository,
     private val reservationRepository: ReservationRepository,
     private val userRepository: UserRepository,
     private val concertSeatRepository: ConcertSeatRepository,
     private val validateTokenUseCase: ValidateQueueTokenUseCase,
-    private val expireTokenUseCase: ExpireQueueTokenUseCase,
     private val completeTokenUseCase: CompleteQueueTokenUseCase,
 ) : CancelReservationUseCase, TempReservationUseCase, ConfirmTempReservationUseCase {
 
-    private val log = LoggerFactory.getLogger(ReservationCommandService::class.java)
+    private val log = LoggerFactory.getLogger(ReservationCommandHandler::class.java)
     private val reservationDomainService = ReservationDomainService()
     private val queueTokenDomainService = QueueTokenDomainService()
 
