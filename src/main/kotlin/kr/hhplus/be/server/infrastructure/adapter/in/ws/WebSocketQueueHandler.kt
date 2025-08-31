@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.ws
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kr.hhplus.be.server.application.dto.queue.ValidateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.queue.command.ValidateQueueTokenCommand
 import kr.hhplus.be.server.application.port.`in`.queue.ValidateQueueTokenUseCase
 import kr.hhplus.be.server.infrastructure.adapter.out.ws.queue.WebSocketQueueEventAdapter
 import org.slf4j.LoggerFactory

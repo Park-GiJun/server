@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.application.mapper
 
-import kr.hhplus.be.server.application.dto.payment.PaymentResult
+import kr.hhplus.be.server.application.dto.payment.result.PaymentResult
 import kr.hhplus.be.server.domain.payment.Payment
 
 object PaymentMapper {

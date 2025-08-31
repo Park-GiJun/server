@@ -1,8 +1,8 @@
 package kr.hhplus.be.server
 
 import kotlinx.coroutines.*
-import kr.hhplus.be.server.application.dto.queue.GenerateQueueTokenCommand
-import kr.hhplus.be.server.application.dto.reservation.TempReservationCommand
+import kr.hhplus.be.server.application.dto.queue.command.GenerateQueueTokenCommand
+import kr.hhplus.be.server.application.dto.reservation.command.TempReservationCommand
 import kr.hhplus.be.server.application.port.`in`.queue.GenerateQueueTokenUseCase
 import kr.hhplus.be.server.application.port.`in`.reservation.TempReservationUseCase
 import kr.hhplus.be.server.application.port.out.concert.*
@@ -12,7 +12,6 @@ import kr.hhplus.be.server.application.port.out.user.UserRepository
 import kr.hhplus.be.server.config.TestRedisConfig
 import kr.hhplus.be.server.domain.concert.*
 import kr.hhplus.be.server.domain.queue.QueueTokenStatus
-import kr.hhplus.be.server.domain.reservation.TempReservationStatus
 import kr.hhplus.be.server.domain.users.User
 import kr.hhplus.be.server.support.IntegrationTestBase
 import org.assertj.core.api.Assertions.assertThat

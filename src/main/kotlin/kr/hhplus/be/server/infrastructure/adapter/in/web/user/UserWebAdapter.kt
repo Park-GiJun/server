@@ -3,9 +3,9 @@ package kr.hhplus.be.server.infrastructure.adapter.`in`.web.user
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import kr.hhplus.be.server.application.dto.user.ChargeUserPointCommand
-import kr.hhplus.be.server.application.dto.user.GetUserCommand
-import kr.hhplus.be.server.application.dto.user.UseUserPointCommand
+import kr.hhplus.be.server.application.dto.user.command.ChargeUserPointCommand
+import kr.hhplus.be.server.application.dto.user.query.GetUserCommand
+import kr.hhplus.be.server.application.dto.user.command.UseUserPointCommand
 import kr.hhplus.be.server.application.port.`in`.user.ChargeUserPointUseCase
 import kr.hhplus.be.server.application.port.`in`.user.GetUserUseCase
 import kr.hhplus.be.server.application.port.`in`.user.UseUserPointUseCase

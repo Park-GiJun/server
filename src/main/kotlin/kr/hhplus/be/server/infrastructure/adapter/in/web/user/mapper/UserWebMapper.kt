@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.`in`.web.user.mapper
 
-import kr.hhplus.be.server.application.dto.user.UserResult
+import kr.hhplus.be.server.application.dto.user.result.UserResult
 import kr.hhplus.be.server.infrastructure.adapter.`in`.web.user.dto.UserPointResponse
 
 object UserWebMapper {

@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.infrastructure.adapter.out.scheduler.queue
 
-import kr.hhplus.be.server.application.dto.queue.ProcessQueueActivationCommand
+import kr.hhplus.be.server.application.dto.queue.command.ProcessQueueActivationCommand
 import kr.hhplus.be.server.application.port.`in`.queue.ProcessQueueActivationUseCase
 import kr.hhplus.be.server.application.port.out.concert.ConcertRepository
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
