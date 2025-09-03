@@ -21,7 +21,6 @@ services:
     environment:
       - REDIS_PASSWORD=redis123
 
-  # Zookeeper - Kafka 클러스터 관리
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     hostname: zookeeper
@@ -35,7 +34,6 @@ services:
       - ./data/zookeeper/data:/var/lib/zookeeper/data
       - ./data/zookeeper/log:/var/lib/zookeeper/log
 
-  # Kafka Broker
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     hostname: kafka
@@ -57,20 +55,19 @@ services:
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_LOG_RETENTION_HOURS: 168  # 7일
-      KAFKA_LOG_RETENTION_BYTES: 1073741824  # 1GB
-      KAFKA_LOG_SEGMENT_BYTES: 1073741824  # 1GB
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_RETENTION_BYTES: 1073741824
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
     volumes:
       - ./data/kafka:/var/lib/kafka/data
 
-  # Kafka UI - 관리 UI
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     depends_on:
       - kafka
     ports:
-      - "8090:8080"  # 8090 포트로 변경
+      - "8090:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092

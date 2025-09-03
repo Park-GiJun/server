@@ -21,3 +21,24 @@ data class QueueStatusResponse(
     val estimatedWaitTime: Int,
     val message: String
 )
+
+data class EnterQueueKafkaRequest(
+    val userId: Long,
+    val concertId: Long
+)
+
+data class EnterQueueKafkaResponse(
+    val tokenId: String,
+    val position: Int,
+    val status: String,
+    val message: String
+)
+
+data class QueueStatusKafkaResponse(
+    val tokenId: String,
+    val position: Int,
+    val activeCount: Int,
+    val waitingCount: Int,
+    val status: String,
+    val estimatedWaitTime: Int
+)
