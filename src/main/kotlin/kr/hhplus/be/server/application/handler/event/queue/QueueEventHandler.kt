@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.handler.event.queue
 
 import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPort
+import kr.hhplus.be.server.application.port.out.event.queue.QueueEventPublisher
 import kr.hhplus.be.server.domain.queue.event.QueueEvent
 import kr.hhplus.be.server.domain.queue.service.QueuePartitionStrategy
 import org.slf4j.LoggerFactory
@@ -9,7 +10,8 @@ import java.util.UUID
 
 @Component
 class QueueEventHandler(
-    private val queueKafkaEventPort: QueueKafkaEventPort,
+    private val queueEventPublisher: QueueEventPublisher,
+    private val queueEventSubscriber: QueueEventSubscriber,
     private val partitionStrategy: QueuePartitionStrategy
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -23,7 +25,7 @@ class QueueEventHandler(
             concertId = concertId
         )
 
-        queueKafkaEventPort.publishQueueEvent(event)
+        queueEventPublisher.publish(event)
 
         return tokenId
     }
@@ -35,7 +37,7 @@ class QueueEventHandler(
             concertId = concertId
         )
 
-        queueKafkaEventPort.publishQueueEvent(event)
+        queueEventPublisher.publish(event)
         log.info("Queue activated event published: tokenId=$tokenId")
     }
 
@@ -46,7 +48,7 @@ class QueueEventHandler(
             concertId = concertId
         )
 
-        queueKafkaEventPort.publishQueueEvent(event)
+        queueEventPublisher.publish(event)
         log.info("Queue completed event published: tokenId=$tokenId")
     }
 
