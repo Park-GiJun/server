@@ -76,6 +76,9 @@ dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.7.3")
 	implementation("org.redisson:redisson-spring-boot-starter:3.24.3")
+	implementation("org.springframework.kafka:spring-kafka")
+	implementation("org.springframework.kafka:spring-kafka-test")
+	testImplementation("org.testcontainers:kafka")
 
 }
 
