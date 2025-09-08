@@ -34,6 +34,29 @@ spring:
           min-idle: 1
           time-between-eviction-runs: 5s
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: queue-service-group
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
+
+app:
+  kafka:
+    topics:
+      queue:
+        entered: queue.entered
+        activated: queue.activated
+        expired: queue.expired
+
 springdoc:
   api-docs:
     path: /api-docs
